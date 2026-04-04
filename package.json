@@ -1,0 +1,17 @@
+{
+  "name": "peabind",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "jasmine"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "packageManager": "pnpm@10.28.2",
+  "devDependencies": {
+    "jasmine": "^6.1.0"
+  }
+}

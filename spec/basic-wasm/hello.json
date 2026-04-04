@@ -1,0 +1,14 @@
+{
+	"include": ["hello.h"],
+	"functions": {
+		"hello": {"args":["int","int"]},
+		"hello2": {}
+	},
+	"classes": {
+		"Hello": {
+			"methods": {
+				"getVal": {}
+			}
+		}
+	}
+}
