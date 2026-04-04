@@ -6,6 +6,9 @@
   "scripts": {
     "test": "jasmine"
   },
+  "bin": {
+    "peabind": "./src/peabind/peabind-cli.js"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -13,5 +16,8 @@
   "packageManager": "pnpm@10.28.2",
   "devDependencies": {
     "jasmine": "^6.1.0"
+  },
+  "dependencies": {
+    "commander": "^14.0.3"
   }
 }
