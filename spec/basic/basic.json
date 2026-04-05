@@ -1,0 +1,14 @@
+{
+	"include": ["basic.h"],
+	"functions": {
+		"hello": {"return":"int", "args": ["int","int"]},
+		"hello2": {"return":"int"}
+	},
+	"classes": {
+		"Hello": {
+			"methods": {
+				"getVal": {}
+			}
+		}
+	}
+}

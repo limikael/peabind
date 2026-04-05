@@ -5,7 +5,7 @@ import path from "path";
 import fs from "fs";
 import os from "os";
 
-function peabindWasmWrapper({idl, projectName}) {
+function peabindWasmWrapper({idl, projectName, prefix}) {
     let js=`
         const wasmUrl = new URL('./${projectName}.wasm', import.meta.url);
         let wasmBytes;
@@ -35,7 +35,7 @@ function peabindWasmWrapper({idl, projectName}) {
 
     for (let func of idl.functions) {
         js+=`
-            export const ${func.name}=exp.${func.name};
+            export const ${func.name}=exp.${prefix}${func.name};
         `;
     }
 
@@ -59,11 +59,21 @@ function peabindWasmWrapper({idl, projectName}) {
     return js;
 }
 
-export async function peabindWasmStub({idl, projectName, exportedFunctionNames}) {
+export async function peabindWasmStub({idl, projectName, prefix, exportedFunctionNames}) {
     let src=``;
     src+=idl.include.map(i=>`#include "${i}"\n`);
 
     src+=`extern "C" {\n`;
+
+    for (let func of idl.functions) {
+        exportedFunctionNames.push(`_${prefix}${func.name}`);
+        src+=`
+            ${func.return.type} ${prefix}${func.name}(
+                    ${func.args.map((arg,i)=>`${arg.type} arg_${i}`).join(",")}) {
+                return ${func.name}(${func.args.map((arg,i)=>`arg_${i}`).join(",")});
+            }
+        `;
+    }
 
     for (let cls of idl.classes) {
         exportedFunctionNames.push(`_${cls.name}_new`);
@@ -84,7 +94,7 @@ export async function peabindWasmStub({idl, projectName, exportedFunctionNames})
     return src;
 }
 
-export async function peabindWasm({idl, sources, output}) {
+export async function peabindWasm({idl, sources, output, prefix}) {
     let idlDir=path.parse(idl).dir;
     idl=peabindParse(fs.readFileSync(idl,"utf8"));
 
@@ -94,13 +104,20 @@ export async function peabindWasm({idl, sources, output}) {
 
     let outputBase=path.join(outputPath.dir,outputPath.name);
     let projectName=outputPath.name;
-    let exportedFunctionNames=idl.functions.map(f=>"_"+f.name);
 
-    let stub=await peabindWasmStub({idl, projectName, exportedFunctionNames});
+    if (!prefix)
+        prefix=projectName.replaceAll(".","_")+"_";
+
+    idl.prefix=prefix;
+
+    let exportedFunctionNames=[]; //idl.functions.map(f=>"_"+f.name);
+
+    let stub=await peabindWasmStub({idl, projectName, exportedFunctionNames, prefix});
     let stubFn=path.join(os.tmpdir(), "peabind-stub.cpp");
     fs.writeFileSync(stubFn,stub);
 
     //console.log(stub);
+    //console.log(exportedFunctionNames);
 
     await runCommand("emcc",[
         ...sources,
@@ -112,7 +129,7 @@ export async function peabindWasm({idl, sources, output}) {
         "--no-entry"
     ]);
 
-    let js=peabindWasmWrapper({idl, projectName});
+    let js=peabindWasmWrapper({idl, projectName, prefix});
     fs.writeFileSync(path.join(outputPath.dir,outputPath.name+".js"),js);
 
     //console.log(js);
