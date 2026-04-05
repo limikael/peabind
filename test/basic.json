@@ -1,0 +1,9 @@
+{
+	"include": ["basic.h"],
+	"functions": {
+		"hello": {
+			"args": ["int","int"],
+			"return": "int"
+		}
+	}
+}

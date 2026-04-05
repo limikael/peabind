@@ -10,8 +10,10 @@ export function peabindParse(def) {
 	def.functions=normalizeMapOrArray(def.functions,"name");
 	def.functionsByName=normalizeBuildIndex(def.functions,"name");
 
-	for (let f of def.functions)
+	for (let f of def.functions) {
 		f.args=normalizeArray(f.args).map(a=>normalizeStringOrObject(a,"type"));
+		f.return=normalizeStringOrObject(f.return,"type");
+	}
 
 	def.classes=normalizeMapOrArray(def.classes,"name");
 	def.classesByName=normalizeBuildIndex(def.classes,"name");
