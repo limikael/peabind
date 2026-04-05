@@ -7,3 +7,9 @@ int hello(int a, int b) {
 int hello2() {
 	return 222;
 }
+
+std::shared_ptr<Hello> createHello() {
+	std::shared_ptr<Hello> h=std::make_shared<Hello>();
+
+	return h;
+}

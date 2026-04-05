@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 
 int hello(int a, int b);
 int hello2();
@@ -9,3 +10,5 @@ public:
 		return 123;
 	}
 };
+
+std::shared_ptr<Hello> createHello();
