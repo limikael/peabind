@@ -20,7 +20,13 @@ export function normalizeMapOrArray(input, { key = "name" } = {}) {
     throw new Error("Expected object or array")
 }
 
-export function normalizeStringOrObject(input, key) {
+export function normalizeStringOrObject(input, key, def) {
+    if (input===undefined && typeof def=="string")
+        input=def;
+
+    if (input===undefined && def!==undefined)
+        input={...def};
+
     if (typeof input === "string") {
         return { [key]: input }
     }

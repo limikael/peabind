@@ -8,5 +8,13 @@ describe("normalize-util",()=>{
 		expect(o).toEqual({type:"int"});
 		o=normalizeStringOrObject({type:"int"},"type");
 		expect(o).toEqual({type:"int"});
+
+		o=normalizeStringOrObject(undefined,"type","void");
+		expect(o).toEqual({type: "void"});
+		o=normalizeStringOrObject(undefined,"type",{type: "void"});
+		expect(o).toEqual({type: "void"});
+
+		o=normalizeStringOrObject(undefined,"type",{type: "void"});
+		expect(o).toEqual({type: "void"});
 	})
 });

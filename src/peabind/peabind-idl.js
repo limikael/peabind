@@ -12,7 +12,7 @@ export function peabindParse(def) {
 
 	for (let f of def.functions) {
 		f.args=normalizeArray(f.args).map(a=>normalizeStringOrObject(a,"type"));
-		f.return=normalizeStringOrObject(f.return,"type");
+		f.return=normalizeStringOrObject(f.return,"type","void");
 	}
 
 	def.classes=normalizeMapOrArray(def.classes,"name");
