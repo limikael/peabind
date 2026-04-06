@@ -50,10 +50,8 @@ describe("basic-wasm",()=>{
 		h3.setVal(789);
 		expect(h3.getVal()).toEqual(789);
 
-		/*mod.setHelloVal(h3,999);
+		mod.setHelloVal(h3,999);
 		expect(h3.getVal()).toEqual(999);
-		expect(h4.getVal()).toEqual(999);*/
-
-		//expect(h.getVal()).toEqual(123);
+		expect(h4.getVal()).toEqual(999);
 	});
 });

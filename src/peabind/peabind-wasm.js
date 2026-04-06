@@ -103,7 +103,7 @@ class PeabindWasmBuilder {
         `;
     }
 
-    generateCppStub() {
+    generateCppSource() {
         return autoIndent(`
             ${this.idl.include.map(i=>`#include "${i}"`).join("\n")}
             #include <map>
@@ -195,7 +195,7 @@ class PeabindWasmBuilder {
         `;
     }
 
-    generateJsWrapper() {
+    generateJsSource() {
         return autoIndent(`
             const wasmUrl = new URL('./${this.projectName}.wasm', import.meta.url);
             let wasmBytes;
@@ -290,10 +290,10 @@ export async function peabindWasm({idl, sources, output, prefix}) {
     let builder=new PeabindWasmBuilder({idl, projectName});
 
     let wrapperFn=path.join(outputPath.dir,outputPath.name+".js");
-    fs.writeFileSync(wrapperFn,builder.generateJsWrapper());
+    fs.writeFileSync(wrapperFn,builder.generateJsSource());
 
     let stubFn=path.join(os.tmpdir(), "peabind-stub.cpp");
-    fs.writeFileSync(stubFn,builder.generateCppStub());
+    fs.writeFileSync(stubFn,builder.generateCppSource());
 
     await runCommand("emcc",[
         ...sources,

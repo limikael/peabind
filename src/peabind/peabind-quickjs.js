@@ -39,27 +39,68 @@ function generateUnpack(typeDef, dest, src) {
     }
 }
 
-function generateFunctionDef(idl, func) {
-    return `
-        static JSValue ${idl.prefix}${func.name}(JSContext *ctx, JSValueConst thisobj, int argc, JSValueConst *argv) {
-            if (argc!=${func.args.length}) return JS_ThrowTypeError(ctx, "wrong arg count");
-            ${func.args.map((arg,i)=>`
-                ${generateVarDecl(arg,"arg_"+i)}
-                ${generateUnpack(arg,"arg_"+i,"argv["+i+"]")}
-            `).join("")}
-            ${generateVarDecl(func.return,"ret")}
-            ret=${func.name}(${func.args.map((arg,i)=>"arg_"+i).join(",")});
-            JSValue retval;
-            ${generatePack(func.return,"retval","ret")}
-            return retval;
-        }
-    `;
-}
+class PeabindQuickjsBuilder {
+    constructor({idl, prefix, projectName}) {
+        this.idl=idl;
+        this.prefix=prefix;
+        this.projectName=projectName;
 
-function generateFunctionReg(idl, func) {
-    return `
-        JS_SetPropertyStr(ctx,global,"${func.name}",JS_NewCFunction(ctx,${idl.prefix}${func.name},"${func.name}",0));
-    `;
+        if (!this.prefix)
+            this.prefix=this.projectName.replaceAll(".","_")+"_";
+
+        this.idl.prefix=this.prefix; // remote later!!!
+    }
+
+    generateFunctionReg(func) {
+        return `
+            JS_SetPropertyStr(ctx,global,"${func.name}",JS_NewCFunction(ctx,${this.prefix}${func.name},"${func.name}",0));
+        `;
+    }
+
+    generateFunctionDef(func) {
+        return `
+            static JSValue ${this.prefix}${func.name}(JSContext *ctx, JSValueConst thisobj, int argc, JSValueConst *argv) {
+                if (argc!=${func.args.length}) return JS_ThrowTypeError(ctx, "wrong arg count");
+                ${func.args.map((arg,i)=>`
+                    ${generateVarDecl(arg,"arg_"+i)}
+                    ${generateUnpack(arg,"arg_"+i,"argv["+i+"]")}
+                `).join("")}
+                ${generateVarDecl(func.return,"ret")}
+                ret=${func.name}(${func.args.map((arg,i)=>"arg_"+i).join(",")});
+                JSValue retval;
+                ${generatePack(func.return,"retval","ret")}
+                return retval;
+            }
+        `;
+    }
+
+    generateCppSource() {
+       return autoIndent(`
+            #include "${this.projectName+".h"}"
+
+            ${this.idl.functions.map(func=>this.generateFunctionDef(func)).join("\n")}
+
+            void ${this.prefix}init(JSContext *ctx) {
+                JSValue global=JS_GetGlobalObject(ctx);
+                ${this.idl.functions.map(func=>this.generateFunctionReg(func)).join("\n")}
+                JS_FreeValue(ctx,global);
+            }
+        `); 
+    }
+
+    generateIncludeSource() {
+        return autoIndent(`
+            #pragma once
+            extern "C" {
+            #include "quickjs.h"
+            }
+
+            ${this.idl.include.map(inc=>`#include "${inc}"`).join("\n")}
+
+            void ${this.prefix}init(JSContext *ctx);
+            void ${this.prefix}exit(JSContext *ctx);
+        `);
+    }
 }
 
 export async function peabindQuickjs({idl, prefix, output}) {
@@ -70,41 +111,13 @@ export async function peabindQuickjs({idl, prefix, output}) {
     if (outputPath.ext!=".c" && outputPath.ext!=".cpp")
         throw new DeclaredError("Expected .js output");
 
-    let outputBase=path.join(outputPath.dir,outputPath.name);
     let projectName=outputPath.name;
+    let builder=new PeabindQuickjsBuilder({idl, prefix, projectName});
 
-    if (!prefix)
-        prefix=projectName.replaceAll(".","_")+"_";
+    fs.writeFileSync(output,builder.generateCppSource());
 
-    idl.prefix=prefix;
-
-    let source=autoIndent(`
-        #include "${outputPath.name+".h"}"
-
-        ${idl.functions.map(func=>generateFunctionDef(idl,func)).join("\n")}
-
-        void ${prefix}init(JSContext *ctx) {
-            JSValue global=JS_GetGlobalObject(ctx);
-            ${idl.functions.map(func=>generateFunctionReg(idl,func)).join("\n")}
-            JS_FreeValue(ctx,global);
-        }
-    `);
-
-    fs.writeFileSync(output,source);
-
-    let includeSource=autoIndent(`
-        #pragma once
-        extern "C" {
-        #include "quickjs.h"
-        }
-
-        ${idl.include.map(inc=>`#include "${inc}"`).join("\n")}
-
-        void ${prefix}init(JSContext *ctx);
-        void ${prefix}exit(JSContext *ctx);
-    `);
-
-    fs.writeFileSync(path.join(outputPath.dir,outputPath.name+".h"),includeSource);
+    let includeFn=path.join(outputPath.dir,projectName+".h");
+    fs.writeFileSync(includeFn,builder.generateIncludeSource());
 
     //console.log(js);*/
 }
