@@ -1,6 +1,10 @@
 import {normalizeMapOrArray, normalizeArray, normalizeBuildIndex,
 		normalizeStringOrObject} from "../utils/normalize-util.js";
 
+export function isPrimitiveType(t) {
+    return ["int"].includes(t);
+}
+
 export function peabindParse(def) {
 	if (typeof def=="string")
 		def=JSON.parse(def);
@@ -21,8 +25,10 @@ export function peabindParse(def) {
 	for (let c of def.classes) {
 		c.ctorArgs=normalizeArray(c.ctorArgs).map(a=>normalizeStringOrObject(a,"type"));
 		c.methods=normalizeMapOrArray(c.methods,"name");
-		for (let m of c.methods)
+		for (let m of c.methods) {
 			m.args=normalizeArray(m.args).map(a=>normalizeStringOrObject(a,"type"));
+			m.return=normalizeStringOrObject(m.return,"type","void");
+		}
 	}
 
 	return def;

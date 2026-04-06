@@ -1,14 +1,10 @@
-import {peabindParse} from "./peabind-idl.js";
+import {peabindParse, isPrimitiveType} from "./peabind-idl.js";
 import {runCommand} from "../utils/node-util.js";
 import {DeclaredError} from "../utils/js-util.js";
 import path from "path";
 import fs from "fs";
 import os from "os";
 import {autoIndent} from "../utils/auto-indent.js";
-
-function isPrimitiveType(t) {
-    return ["int"].includes(t);
-}
 
 class PeabindWasmBuilder {
     constructor({idl, prefix, projectName}) {
@@ -27,9 +23,9 @@ class PeabindWasmBuilder {
             exportedFunctionNames.push(`_${this.prefix}${func.name}`);
 
         for (let cls of this.idl.classes) {
-            exportedFunctionNames.push(`_${cls.name}_new`);
+            exportedFunctionNames.push(`_${this.prefix}${cls.name}_new`);
             for (let method of cls.methods)
-                exportedFunctionNames.push(`_${cls.name}_${method.name}`);
+                exportedFunctionNames.push(`_${this.prefix}${cls.name}_${method.name}`);
         }
 
         exportedFunctionNames.push(`_${this.prefix}destroy`);
@@ -37,28 +33,67 @@ class PeabindWasmBuilder {
         return exportedFunctionNames;
     }
 
-    generateFunction(func) {
-        if (isPrimitiveType(func.return.type)) {
-            return `
-                ${func.return.type} ${this.prefix}${func.name}(
-                    ${func.args.map((arg,i)=>`${arg.type} arg_${i}`).join(",")}) {
-                    return ${func.name}(${func.args.map((arg,i)=>`arg_${i}`).join(",")});
-                }
-            `;
+    generateCppFunctionReturnType(func) {
+        if (func.return.type=="void")
+            return `void`;
+
+        else if (isPrimitiveType(func.return.type))
+            return `${func.return.type}`;
+
+        else 
+            return `int`;
+    }
+
+    generateCppFunctionReturn(func, expr) {
+        if (func.return.type=="void")
+            return `${expr};`;
+
+        else if (isPrimitiveType(func.return.type))
+            return `return (${expr});`;
+
+        else
+            return `return store(${expr});`;
+    }
+
+    generateCppFunctionDeclArgList(func, {cls}={}) {
+        let l=func.args.map((arg,i)=>`${arg.type} arg_${i}`);
+        if (cls)
+            l.unshift("int id");
+
+        return l.join(",")
+    }
+
+    generateCppFunctionCallArgList(func) {
+        return `${func.args.map((arg,i)=>`arg_${i}`).join(",")}`;
+    }
+
+    generateCppFunction(func, {cls}={}) {
+        let returnType=this.generateCppFunctionReturnType(func);
+        let declArgList=this.generateCppFunctionDeclArgList(func,{cls});
+        let callArgList=this.generateCppFunctionCallArgList(func);
+
+        let name,prelude,callTarget;
+        if (cls) {
+            name=`${this.prefix}${cls.name}_${func.name}`;
+            prelude=`std::shared_ptr<${cls.name}> instance=std::static_pointer_cast<${cls.name}>(registry[id]);`;
+            callTarget=`instance->${func.name}`;
         }
 
         else {
-            return `
-                int ${this.prefix}${func.name}(
-                    ${func.args.map((arg,i)=>`${arg.type} arg_${i}`).join(",")}) {
-                    return store(${func.name}(${func.args.map((arg,i)=>`arg_${i}`).join(",")}));
-                }
-            `;
+            name=`${this.prefix}${func.name}`;
+            prelude="";
+            callTarget=`${func.name}`;
         }
+
+        return `
+            ${returnType} ${name}(${declArgList}) {
+                ${prelude}
+                ${this.generateCppFunctionReturn(func,`${callTarget}(${callArgList})`)}
+            }
+        `;
     }
 
-    createWasmStub() {
-
+    generateCppStub() {
         return autoIndent(`
             ${this.idl.include.map(i=>`#include "${i}"`).join("\n")}
             #include <map>
@@ -90,41 +125,58 @@ class PeabindWasmBuilder {
                     registry.erase(it);
                 }
 
-                ${this.idl.functions.map(func=>this.generateFunction(func)).join("\n")}
+                ${this.idl.functions.map(func=>this.generateCppFunction(func)).join("\n")}
 
                 ${this.idl.classes.map(cls=>`
-                    int ${cls.name}_new() {
+                    int ${this.prefix}${cls.name}_new() {
                         return store(std::make_shared<${cls.name}>());
                     }
 
-                    ${cls.methods.map(method=>`
-                        int ${cls.name}_${method.name}(int id) {
+                    ${cls.methods.map(method=>this.generateCppFunction(method,{cls})).join("\n")}
+
+                    /*${cls.methods.map(method=>`
+                        int ${this.prefix}${cls.name}_${method.name}(int id) {
                             std::shared_ptr<${cls.name}> instance=std::static_pointer_cast<Hello>(registry[id]);
                             return instance->${method.name}();
                         }
-                    `).join("\n")}
+                    `).join("\n")}*/
                 `).join("\n")}
             }
         `);
     }
 
-    createWasmFunctionWrapper(func) {
-        if (isPrimitiveType(func.return.type)) {
-            return `
-                export const ${func.name}=exp.${this.prefix}${func.name};
-            `;
+    generateJsFunctionReturn(func, call) {
+        if (func.return.type=="void")
+            return `${call};`;
+
+        else if (isPrimitiveType(func.return.type))
+            return `return (${call});`;
+
+        else 
+            return `return (getRegistryObject(${call},${func.return.type}));`;
+    }
+
+    generateJsFunction(func,{cls}={}) {
+        let signature,call;
+
+        if (cls) {
+            signature=`${func.name}(...args)`;
+            call=`exp.${this.prefix}${cls.name}_${func.name}(this._handle,...args)`;
         }
 
         else {
-            return `
-                export function ${func.name}() {
-                    return getRegistryObject(exp.${this.prefix}${func.name}(),${func.return.type});
-                }
-            `;
+            signature=`export function ${func.name}(...args)`;
+            call=`exp.${this.prefix}${func.name}(...args)`;
         }
+
+        return `
+            ${signature} {
+                ${this.generateJsFunctionReturn(func,call)}
+            }
+        `;
     }
 
-    createWasmWrapper() {
+    generateJsWrapper() {
         return autoIndent(`
             const wasmUrl = new URL('./${this.projectName}.wasm', import.meta.url);
             let wasmBytes;
@@ -185,12 +237,12 @@ class PeabindWasmBuilder {
                 return registry.get(id);
             }
 
-            ${this.idl.functions.map(func=>this.createWasmFunctionWrapper(func)).join("\n")}
+            ${this.idl.functions.map(func=>this.generateJsFunction(func)).join("\n")}
 
             ${this.idl.classes.map(cls=>`
                 export class ${cls.name} {
                     constructor() {
-                        this._handle=exp.${cls.name}_new();
+                        this._handle=exp.${this.prefix}${cls.name}_new();
                         registry.set(this._handle,this);
                     }
 
@@ -199,11 +251,7 @@ class PeabindWasmBuilder {
                         this._handle=null;
                     }
 
-                    ${cls.methods.map(method=>`
-                        ${method.name}() {
-                            return exp.${cls.name}_${method.name}(this._handle);
-                        }
-                    `).join("\n")}
+                    ${cls.methods.map(method=>this.generateJsFunction(method,{cls})).join("\n")}
                 }
             `).join("\n")}
         `);
@@ -223,7 +271,7 @@ export async function peabindWasm({idl, sources, output, prefix}) {
     let builder=new PeabindWasmBuilder({idl, projectName});
 
     let stubFn=path.join(os.tmpdir(), "peabind-stub.cpp");
-    fs.writeFileSync(stubFn,builder.createWasmStub());
+    fs.writeFileSync(stubFn,builder.generateCppStub());
 
     await runCommand("emcc",[
         ...sources,
@@ -236,5 +284,5 @@ export async function peabindWasm({idl, sources, output, prefix}) {
     ]);
 
     let wrapperFn=path.join(outputPath.dir,outputPath.name+".js");
-    fs.writeFileSync(wrapperFn,builder.createWasmWrapper());
+    fs.writeFileSync(wrapperFn,builder.generateJsWrapper());
 }

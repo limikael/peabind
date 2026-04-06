@@ -48,6 +48,10 @@ describe("basic-wasm",()=>{
 		//console.log("h3 val="+h3.getVal());
 		expect(h3.getVal()).toEqual(666);
 
+		h3.setVal(789);
+
+		expect(h3.getVal()).toEqual(789);
+
 		//expect(h.getVal()).toEqual(123);
 	});
 });
