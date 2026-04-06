@@ -5,6 +5,7 @@ import path from "path";
 import fs from "fs";
 import os from "os";
 import {autoIndent} from "../utils/auto-indent.js";
+import {peabindGenerateJs, peabindGenerateCpp} from "./peabind-gen.js";
 
 class PeabindWasmBuilder {
     constructor({idl, prefix, projectName}) {
@@ -103,96 +104,28 @@ class PeabindWasmBuilder {
         `;
     }
 
+    generateCppClass(cls) {
+        return `
+            int ${this.prefix}${cls.name}_new() {
+                return store(std::make_shared<${cls.name}>());
+            }
+
+            ${cls.methods.map(method=>this.generateCppFunction(method,{cls})).join("\n")}
+        `;
+    }
+
     generateCppSource() {
         return autoIndent(`
-            ${this.idl.include.map(i=>`#include "${i}"`).join("\n")}
-            #include <map>
-            #include <cstdio>
-
-            std::map<int, std::shared_ptr<void>> registry;
-            std::map<void*, int> reverseRegistry;
-            int registryIdCounter = 1;
-
-            template<typename T>
-            int store(std::shared_ptr<T> obj) {
-                void* key = obj.get();
-                auto it = reverseRegistry.find(key);
-                if (it != reverseRegistry.end())
-                    return it->second;
-
-                int id = registryIdCounter++;
-                registry[id] = obj;
-                reverseRegistry[key] = id;
-                return id;
-            }
+            ${peabindGenerateCpp({
+                idl: this.idl,
+                prefix: this.prefix
+            })}
 
             extern "C" {
-                void ${this.prefix}destroy(int id) {
-                    auto it = registry.find(id);
-                    if (it == registry.end()) return;
-                    void* key = it->second.get();
-                    reverseRegistry.erase(key);
-                    registry.erase(it);
-                }
-
                 ${this.idl.functions.map(func=>this.generateCppFunction(func)).join("\n")}
-
-                ${this.idl.classes.map(cls=>`
-                    int ${this.prefix}${cls.name}_new() {
-                        return store(std::make_shared<${cls.name}>());
-                    }
-
-                    ${cls.methods.map(method=>this.generateCppFunction(method,{cls})).join("\n")}
-                `).join("\n")}
+                ${this.idl.classes.map(cls=>this.generateCppClass(cls)).join("\n")}
             }
         `);
-    }
-
-    generateJsFunctionReturn(func, call) {
-        if (func.return.type=="void")
-            return `${call};`;
-
-        else if (isPrimitiveType(func.return.type))
-            return `return (${call});`;
-
-        else 
-            return `return (getRegistryObject(${call},${func.return.type}));`;
-    }
-
-    generateJsFunctionDeclArgList(func) {
-        return func.args.map((arg,i)=>`a${i}`).join(",");
-    }
-
-    generateJsFunctionCallArgList(func) {
-        return func.args.map((arg,i)=>{
-            if (isPrimitiveType(arg.type))
-                return `a${i}`;
-
-            return `a${i}._handle`;
-        }).join(",");
-    }
-
-    generateJsFunction(func,{cls}={}) {
-        let declArgs=this.generateJsFunctionDeclArgList(func);
-        let callArgs=this.generateJsFunctionCallArgList(func);
-
-        let signature,call;
-
-        if (cls) {
-            signature=`${func.name}(${declArgs})`;
-            call=`exp.${this.prefix}${cls.name}_${func.name}(this._handle,${callArgs})`;
-        }
-
-        else {
-            signature=`export function ${func.name}(${declArgs})`;
-            call=`exp.${this.prefix}${func.name}(${callArgs})`;
-        }
-
-        return `
-            ${signature} {
-                ${this.generateJsFunctionReturn(func,call)}
-            }
-        `;
     }
 
     generateJsSource() {
@@ -244,35 +177,12 @@ class PeabindWasmBuilder {
             let exp=instance.exports;
             memory=instance.exports.memory;
 
-            let registry=new Map();
-
-            function getRegistryObject(id,cls) {
-                if (!registry.get(id)) {
-                    let o=Object.create(cls.prototype);
-                    o._handle=id;
-                    registry.set(id,o);
-                }
-
-                return registry.get(id);
-            }
-
-            ${this.idl.functions.map(func=>this.generateJsFunction(func)).join("\n")}
-
-            ${this.idl.classes.map(cls=>`
-                export class ${cls.name} {
-                    constructor() {
-                        this._handle=exp.${this.prefix}${cls.name}_new();
-                        registry.set(this._handle,this);
-                    }
-
-                    destroy() {
-                        exp.${this.prefix}destroy(this._handle);
-                        this._handle=null;
-                    }
-
-                    ${cls.methods.map(method=>this.generateJsFunction(method,{cls})).join("\n")}
-                }
-            `).join("\n")}
+            ${peabindGenerateJs({
+                idl: this.idl, 
+                prefix: this.prefix,
+                mod: "exp",
+                exports: true
+            })}
         `);
     }
 }
