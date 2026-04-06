@@ -29,3 +29,4 @@ public:
 };
 
 std::shared_ptr<Hello> createHello();
+void setHelloVal(std::shared_ptr<Hello>, int val);

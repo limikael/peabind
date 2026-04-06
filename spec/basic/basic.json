@@ -3,7 +3,8 @@
 	"functions": {
 		"hello": {"return":"int", "args": ["int","int"]},
 		"hello2": {"return":"int"},
-		"createHello": {"return":"Hello"}
+		"createHello": {"return":"Hello"},
+		"setHelloVal": {"args": ["Hello","int"]}
 	},
 	"classes": {
 		"Hello": {

@@ -22,3 +22,7 @@ std::shared_ptr<Hello> createHello() {
 
 	return globalHello;
 }
+
+void setHelloVal(std::shared_ptr<Hello> hello, int val) {
+	hello->setVal(val);
+}

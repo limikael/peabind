@@ -1,3 +1,5 @@
+import JSON5 from "json5";
+
 import {normalizeMapOrArray, normalizeArray, normalizeBuildIndex,
 		normalizeStringOrObject} from "../utils/normalize-util.js";
 
@@ -7,7 +9,7 @@ export function isPrimitiveType(t) {
 
 export function peabindParse(def) {
 	if (typeof def=="string")
-		def=JSON.parse(def);
+		def=JSON5.parse(def);
 
 	def.include=normalizeArray(def.include);
 

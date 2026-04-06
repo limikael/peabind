@@ -56,7 +56,12 @@ class PeabindWasmBuilder {
     }
 
     generateCppFunctionDeclArgList(func, {cls}={}) {
-        let l=func.args.map((arg,i)=>`${arg.type} arg_${i}`);
+        let l=func.args.map((arg,i)=>{
+            if (isPrimitiveType(arg.type))
+                return `${arg.type} arg_${i}`
+
+            return `int arg_${i}`;
+        });
         if (cls)
             l.unshift("int id");
 
@@ -64,7 +69,12 @@ class PeabindWasmBuilder {
     }
 
     generateCppFunctionCallArgList(func) {
-        return `${func.args.map((arg,i)=>`arg_${i}`).join(",")}`;
+        return `${func.args.map((arg,i)=>{
+            if (isPrimitiveType(arg.type))
+                return `arg_${i}`;
+
+            return `std::static_pointer_cast<${arg.type}>(registry[arg_${i}])`;
+        }).join(",")}`;
     }
 
     generateCppFunction(func, {cls}={}) {
@@ -133,13 +143,6 @@ class PeabindWasmBuilder {
                     }
 
                     ${cls.methods.map(method=>this.generateCppFunction(method,{cls})).join("\n")}
-
-                    /*${cls.methods.map(method=>`
-                        int ${this.prefix}${cls.name}_${method.name}(int id) {
-                            std::shared_ptr<${cls.name}> instance=std::static_pointer_cast<Hello>(registry[id]);
-                            return instance->${method.name}();
-                        }
-                    `).join("\n")}*/
                 `).join("\n")}
             }
         `);
@@ -156,17 +159,33 @@ class PeabindWasmBuilder {
             return `return (getRegistryObject(${call},${func.return.type}));`;
     }
 
+    generateJsFunctionDeclArgList(func) {
+        return func.args.map((arg,i)=>`a${i}`).join(",");
+    }
+
+    generateJsFunctionCallArgList(func) {
+        return func.args.map((arg,i)=>{
+            if (isPrimitiveType(arg.type))
+                return `a${i}`;
+
+            return `a${i}._handle`;
+        }).join(",");
+    }
+
     generateJsFunction(func,{cls}={}) {
+        let declArgs=this.generateJsFunctionDeclArgList(func);
+        let callArgs=this.generateJsFunctionCallArgList(func);
+
         let signature,call;
 
         if (cls) {
-            signature=`${func.name}(...args)`;
-            call=`exp.${this.prefix}${cls.name}_${func.name}(this._handle,...args)`;
+            signature=`${func.name}(${declArgs})`;
+            call=`exp.${this.prefix}${cls.name}_${func.name}(this._handle,${callArgs})`;
         }
 
         else {
-            signature=`export function ${func.name}(...args)`;
-            call=`exp.${this.prefix}${func.name}(...args)`;
+            signature=`export function ${func.name}(${declArgs})`;
+            call=`exp.${this.prefix}${func.name}(${callArgs})`;
         }
 
         return `
@@ -270,6 +289,9 @@ export async function peabindWasm({idl, sources, output, prefix}) {
     let projectName=outputPath.name;
     let builder=new PeabindWasmBuilder({idl, projectName});
 
+    let wrapperFn=path.join(outputPath.dir,outputPath.name+".js");
+    fs.writeFileSync(wrapperFn,builder.generateJsWrapper());
+
     let stubFn=path.join(os.tmpdir(), "peabind-stub.cpp");
     fs.writeFileSync(stubFn,builder.generateCppStub());
 
@@ -282,7 +304,4 @@ export async function peabindWasm({idl, sources, output, prefix}) {
         "-s",`EXPORTED_FUNCTIONS=${builder.getExportedFunctionNames().join(",")}`,
         "--no-entry"
     ]);
-
-    let wrapperFn=path.join(outputPath.dir,outputPath.name+".js");
-    fs.writeFileSync(wrapperFn,builder.generateJsWrapper());
 }
