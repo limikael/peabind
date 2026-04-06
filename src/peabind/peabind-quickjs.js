@@ -23,7 +23,10 @@ function generateVarDecl(typeDef, name) {
             break;
 
         default:
-            throw new Error("Unknown type: "+typeDef.type);
+            return `
+                int ${name}_id;
+                std::shared_ptr<${typeDef.type}> ${name}; 
+            `;
     }
 }
 
@@ -34,6 +37,10 @@ function generatePack(typeDef, dest, src) {
             break;
 
         default:
+            return `
+                ${dest}=JS_NewInt32(ctx,store(${src}));
+            `;
+
             throw new Error("Unknown type: "+typeDef.type);
     }
 }
@@ -45,7 +52,10 @@ function generateUnpack(typeDef, dest, src) {
             break;
 
         default:
-            throw new Error("Unknown type: "+typeDef.type);
+            return `
+                JS_ToInt32(ctx,&${dest}_id,${src});\n
+                ${dest}=std::static_pointer_cast<${typeDef.type}>(registry[${dest}_id]);\n
+            `;
     }
 }
 
