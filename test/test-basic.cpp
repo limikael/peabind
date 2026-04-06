@@ -43,11 +43,17 @@ void test_basic() {
 
     basic_init(ctx);
 
-    std::string s=runjs(ctx,"hello(1,2);");
-    //std::string s=runjs(ctx,"hello(1,2); new Hello()");
-    //printf("s: %s\n",s.c_str());
-
-    assert(s=="3");
+    std::string s=runjs(ctx,"\
+        let h=new Hello();\
+        let callret=hello(1,2);\
+        let v=h.getVal();\
+        h.setVal(999);\
+        let v2=h.getVal();\
+        JSON.stringify([h._handle,callret,v,v2]);\
+    ");
+    //std::string s=runjs(ctx,"hello(1,2); ");
+    printf("s: %s\n",s.c_str());
+    assert(s=="[1,3,100,999]");
 
     JS_FreeContext(ctx);
     JS_FreeRuntime(rt);

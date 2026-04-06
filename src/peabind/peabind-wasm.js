@@ -117,11 +117,14 @@ class PeabindWasmBuilder {
     generateCppSource() {
         return autoIndent(`
             ${peabindGenerateCpp({
-                idl: this.idl,
-                prefix: this.prefix
+                idl: this.idl
             })}
 
             extern "C" {
+                void ${this.prefix}destroy(int id) {
+                    destroy(id);
+                }
+
                 ${this.idl.functions.map(func=>this.generateCppFunction(func)).join("\n")}
                 ${this.idl.classes.map(cls=>this.generateCppClass(cls)).join("\n")}
             }

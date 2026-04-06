@@ -5,6 +5,16 @@ import path from "path";
 import fs from "fs";
 import os from "os";
 import {autoIndent} from "../utils/auto-indent.js";
+import {peabindGenerateJs, peabindGenerateCpp} from "./peabind-gen.js";
+
+function escapeCString(str) {
+    return str
+        .replace(/\\/g, '\\\\')   // backslash
+        .replace(/"/g, '\\"')     // double quote
+        .replace(/\n/g, '\\n')    // newline
+        .replace(/\r/g, '\\r')    // carriage return
+        .replace(/\t/g, '\\t');   // tab
+}
 
 function generateVarDecl(typeDef, name) {
     switch (typeDef.type) {
@@ -13,7 +23,7 @@ function generateVarDecl(typeDef, name) {
             break;
 
         default:
-            throw new Error("Unknown type: "+name);
+            throw new Error("Unknown type: "+typeDef.type);
     }
 }
 
@@ -24,7 +34,7 @@ function generatePack(typeDef, dest, src) {
             break;
 
         default:
-            throw new Error("Unknown type: "+name);
+            throw new Error("Unknown type: "+typeDef.type);
     }
 }
 
@@ -35,7 +45,7 @@ function generateUnpack(typeDef, dest, src) {
             break;
 
         default:
-            throw new Error("Unknown type: "+name);
+            throw new Error("Unknown type: "+typeDef.type);
     }
 }
 
@@ -51,39 +61,124 @@ class PeabindQuickjsBuilder {
         this.idl.prefix=this.prefix; // remote later!!!
     }
 
-    generateFunctionReg(func) {
-        return `
-            JS_SetPropertyStr(ctx,global,"${func.name}",JS_NewCFunction(ctx,${this.prefix}${func.name},"${func.name}",0));
-        `;
-    }
+    generateFunctionDef(func,{cls}={}) {
+        let name,prelude,callTarget,argStart;
+        if (cls) {
+            name=`${this.prefix}${cls.name}_${func.name}`;
+            prelude=`
+                int id;
+                JS_ToInt32(ctx,&id,argv[0]);
+                std::shared_ptr<${cls.name}> instance=std::static_pointer_cast<${cls.name}>(registry[id]);
+            `;
+            callTarget=`instance->${func.name}`;
+            argStart=1;
+        }
 
-    generateFunctionDef(func) {
-        return `
-            static JSValue ${this.prefix}${func.name}(JSContext *ctx, JSValueConst thisobj, int argc, JSValueConst *argv) {
-                if (argc!=${func.args.length}) return JS_ThrowTypeError(ctx, "wrong arg count");
-                ${func.args.map((arg,i)=>`
-                    ${generateVarDecl(arg,"arg_"+i)}
-                    ${generateUnpack(arg,"arg_"+i,"argv["+i+"]")}
-                `).join("")}
+        else {
+            name=`${this.prefix}${func.name}`;
+            prelude="";
+            callTarget=`${func.name}`;
+            argStart=0;
+        }
+
+        let call;
+        if (func.return.type=="void") {
+            call=`
+                ${callTarget}(${func.args.map((arg,i)=>"arg_"+i).join(",")});
+                return JS_UNDEFINED;
+            `;
+        }
+
+        else {
+            call=`
                 ${generateVarDecl(func.return,"ret")}
-                ret=${func.name}(${func.args.map((arg,i)=>"arg_"+i).join(",")});
+                ret=${callTarget}(${func.args.map((arg,i)=>"arg_"+i).join(",")});
                 JSValue retval;
                 ${generatePack(func.return,"retval","ret")}
                 return retval;
+            `;
+        }
+
+        return `
+            static JSValue ${name}(JSContext *ctx, JSValueConst thisobj, int argc, JSValueConst *argv) {
+                if (argc!=${func.args.length+argStart}) return JS_ThrowTypeError(ctx, "wrong arg count");
+                ${prelude}
+                ${func.args.map((arg,i)=>`
+                    ${generateVarDecl(arg,"arg_"+i)}
+                    ${generateUnpack(arg,"arg_"+i,"argv["+(i+argStart)+"]")}
+                `).join("")}
+                ${call}
             }
+        `;
+    }
+
+    generateClassDef(cls) {
+        return `
+            static JSValue ${this.prefix}${cls.name}_new(JSContext *ctx, JSValueConst thisobj, int argc, JSValueConst *argv) {
+                int id=store(std::make_shared<${cls.name}>());
+                return JS_NewInt32(ctx,id);
+            }
+
+            ${cls.methods.map(method=>this.generateFunctionDef(method,{cls})).join("\n")}
+        `;
+    }
+
+    getExportedFunctionNames() {
+        let exportedFunctionNames=[];
+
+        for (let func of this.idl.functions)
+            exportedFunctionNames.push(`${this.prefix}${func.name}`);
+
+        for (let cls of this.idl.classes) {
+            exportedFunctionNames.push(`${this.prefix}${cls.name}_new`);
+            for (let method of cls.methods)
+                exportedFunctionNames.push(`${this.prefix}${cls.name}_${method.name}`);
+        }
+
+        return exportedFunctionNames;
+    }
+
+    generateNamedFunctionReg(name) {
+        return `
+            JS_SetPropertyStr(ctx,global,"${name}",JS_NewCFunction(ctx,${name},"${name}",0));
         `;
     }
 
     generateCppSource() {
        return autoIndent(`
             #include "${this.projectName+".h"}"
+            ${peabindGenerateCpp({
+                idl: this.idl,
+                prefix: this.prefix
+            })}
 
             ${this.idl.functions.map(func=>this.generateFunctionDef(func)).join("\n")}
+            ${this.idl.classes.map(cls=>this.generateClassDef(cls)).join("\n")}
+
+            static const char *init_js="${escapeCString(peabindGenerateJs({
+                idl: this.idl, 
+                prefix: this.prefix,
+                mod: "",
+            }))}";
 
             void ${this.prefix}init(JSContext *ctx) {
                 JSValue global=JS_GetGlobalObject(ctx);
-                ${this.idl.functions.map(func=>this.generateFunctionReg(func)).join("\n")}
+
+                ${this.getExportedFunctionNames().map(name=>`
+                    ${this.generateNamedFunctionReg(name)}
+                `).join("\n")}
+
                 JS_FreeValue(ctx,global);
+
+                JSValue result=JS_Eval(
+                    ctx,
+                    init_js,
+                    strlen(init_js),
+                    "<input>",
+                    JS_EVAL_TYPE_GLOBAL
+                );
+
+                JS_FreeValue(ctx, result);
             }
         `); 
     }

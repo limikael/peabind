@@ -107,14 +107,13 @@ export function peabindGenerateCpp({idl, prefix}) {
 	return autoIndent(`
         ${idl.include.map(i=>`#include "${i}"`).join("\n")}
         #include <map>
-        #include <cstdio>
 
-        std::map<int, std::shared_ptr<void>> registry;
-        std::map<void*, int> reverseRegistry;
-        int registryIdCounter = 1;
+        static std::map<int, std::shared_ptr<void>> registry;
+        static std::map<void*, int> reverseRegistry;
+        static int registryIdCounter = 1;
 
         template<typename T>
-        int store(std::shared_ptr<T> obj) {
+        static int store(std::shared_ptr<T> obj) {
             void* key = obj.get();
             auto it = reverseRegistry.find(key);
             if (it != reverseRegistry.end())
@@ -126,14 +125,12 @@ export function peabindGenerateCpp({idl, prefix}) {
             return id;
         }
 
-        extern "C" {
-            void ${prefix}destroy(int id) {
-                auto it = registry.find(id);
-                if (it == registry.end()) return;
-                void* key = it->second.get();
-                reverseRegistry.erase(key);
-                registry.erase(it);
-            }
+        static void destroy(int id) {
+            auto it = registry.find(id);
+            if (it == registry.end()) return;
+            void* key = it->second.get();
+            reverseRegistry.erase(key);
+            registry.erase(it);
         }
     `);
 }
