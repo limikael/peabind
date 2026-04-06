@@ -2,7 +2,8 @@
 	"include": ["basic.h"],
 	"functions": {
 		"hello": {"return":"int", "args": ["int","int"]},
-		"hello2": {"return":"int"}
+		"hello2": {"return":"int"},
+		"createHello": {"return":"Hello"}
 	},
 	"classes": {
 		"Hello": {

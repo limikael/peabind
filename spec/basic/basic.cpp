@@ -8,8 +8,17 @@ int hello2() {
 	return 222;
 }
 
-std::shared_ptr<Hello> createHello() {
-	std::shared_ptr<Hello> h=std::make_shared<Hello>();
+std::shared_ptr<Hello> globalHello;
 
-	return h;
+std::shared_ptr<Hello> createHello() {
+	if (!globalHello) {
+		//printf("creating the global hello...\n");
+
+		globalHello=std::make_shared<Hello>();
+	}
+
+	//printf("setting the global hello...\n");
+	globalHello->setVal(666);
+
+	return globalHello;
 }
