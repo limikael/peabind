@@ -55,6 +55,8 @@ void test_basic() {
         let v4=h2.getVal();\
         JSON.stringify([h._handle,callret,v,v2,v3,v4]);\
     ");
+    //,FinalizationRegistry.toString()
+    //,WeakRef.toString()
     //std::string s=runjs(ctx,"hello(1,2); ");
     //printf("s: %s\n",s.c_str());
     assert(s=="[1,3,100,999,555,666]");
