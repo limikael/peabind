@@ -1,4 +1,4 @@
-import {peabindParse, isPrimitiveType} from "./peabind-idl.js";
+import {peabindNormalize, isPrimitiveType} from "./peabind-idl.js";
 import {runCommand} from "../utils/node-util.js";
 import {DeclaredError} from "../utils/js-util.js";
 import path from "path";
@@ -190,9 +190,8 @@ class PeabindWasmBuilder {
     }
 }
 
-export async function peabindWasm({idl, sources, output, prefix}) {
-    let idlDir=path.parse(idl).dir;
-    idl=peabindParse(fs.readFileSync(idl,"utf8"));
+export async function peabindWasm({idl, includePath, sources, output, prefix}) {
+    idl=peabindNormalize(idl);
 
     let outputPath=path.parse(output);
     if (outputPath.ext!=".js")
@@ -208,10 +207,14 @@ export async function peabindWasm({idl, sources, output, prefix}) {
     let stubFn=path.join(os.tmpdir(), "peabind-stub.cpp");
     fs.writeFileSync(stubFn,builder.generateCppSource());
 
+    let includePathOptions=[];
+    for (let i of includePath)
+        includePathOptions.push("-I",i);
+
     await runCommand("emcc",[
         ...sources,
         stubFn,
-        "-I",idlDir,
+        ...includePathOptions,
         "-o",outputBase+".wasm",
         "-s","STANDALONE_WASM=1",
         "-s",`EXPORTED_FUNCTIONS=${builder.getExportedFunctionNames().join(",")}`,

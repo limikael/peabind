@@ -1,4 +1,4 @@
-import {peabindWasm} from "../../src/peabind/peabind-wasm.js";
+import {peabind} from "../../src/peabind/peabind.js";
 import {dirnameFromImportMeta} from "../../src/utils/node-util.js";
 import fs, {promises as fsp} from "fs";
 import path from "path";
@@ -12,10 +12,11 @@ describe("basic-wasm",()=>{
 		fs.rmSync(path.join(__dirname,"basic.out.js"),{force: true});
 		fs.rmSync(path.join(__dirname,"basic.out.wasm"),{force: true});
 
-		await peabindWasm({
+		await peabind({
 			idl: path.join(__dirname,"basic.json"),
 			sources: [path.join(__dirname,"basic.cpp")],
-			output: path.join(__dirname,"basic.out.js")
+			output: path.join(__dirname,"basic.out.js"),
+			target: "wasm"
 		});
 
 		let mod=await import(path.join(__dirname,"basic.out.js"));

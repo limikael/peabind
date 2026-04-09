@@ -1,8 +1,25 @@
-import {peabindParse} from "../src/peabind/peabind-idl.js";
+import {peabindNormalize} from "../src/peabind/peabind-idl.js";
+import {peabindMerge} from "../src/peabind/peabind.js";
 
 describe("idl",()=>{
+	it("can merge",()=>{
+		let idl=peabindMerge({
+			include: "hello.h",
+			functions: {
+				hello: {args: ["int","int"]}
+			},
+		},{
+			include: ["helloagain.h","test.h"],
+			functions: {
+				hello2: {args: ["int","int"]}
+			},
+		});
+
+		//console.log(idl);
+	});
+
 	it("can parse",()=>{
-		let idl=peabindParse({
+		let idl=peabindNormalize({
 			functions: {
 				hello: {args: ["int","int"]}
 			},

@@ -1,4 +1,4 @@
-import {peabindParse} from "./peabind-idl.js";
+import {peabindNormalize} from "./peabind-idl.js";
 import {runCommand} from "../utils/node-util.js";
 import {DeclaredError} from "../utils/js-util.js";
 import path from "path";
@@ -209,8 +209,7 @@ class PeabindQuickjsBuilder {
 }
 
 export async function peabindQuickjs({idl, prefix, output}) {
-    let idlDir=path.parse(idl).dir;
-    idl=peabindParse(fs.readFileSync(idl,"utf8"));
+    idl=peabindNormalize(idl);
 
     let outputPath=path.parse(output);
     if (outputPath.ext!=".c" && outputPath.ext!=".cpp")

@@ -1,17 +1,35 @@
-import JSON5 from "json5";
-
 import {normalizeMapOrArray, normalizeArray, normalizeBuildIndex,
 		normalizeStringOrObject} from "../utils/normalize-util.js";
+import {arrayify} from "../utils/js-util.js";
 
 export function isPrimitiveType(t) {
     return ["int"].includes(t);
 }
 
-export function peabindParse(def) {
-	if (typeof def=="string")
-		def=JSON5.parse(def);
+export function peabindMerge(...confs) {
+	confs=arrayify(confs);
+	confs=confs.map(c=>peabindNormalize(c));
 
-	def.include=normalizeArray(def.include);
+	let resConf={
+		include: [],
+		functions: [],
+		classes: []
+	};
+
+	for (let conf of confs) {
+		resConf.include.push(...conf.include);
+		resConf.functions.push(...conf.functions);
+		resConf.classes.push(...conf.classes);
+	}
+
+	return peabindNormalize(resConf);
+}
+
+export function peabindNormalize(def) {
+	/*if (typeof def=="string")
+		def=JSON5.parse(def);*/
+
+	def.include=normalizeArray(arrayify(def.include));
 
 	def.functions=normalizeMapOrArray(def.functions,"name");
 	def.functionsByName=normalizeBuildIndex(def.functions,"name");
