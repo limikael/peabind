@@ -10,7 +10,11 @@
 		"Hello": {
 			"methods": {
 				"getVal": {"return":"int"},
-				"setVal": {"args":["int"]}
+				"setVal": {"args":["int"]},
+				"emitData": {"args":["int","int"]},
+			},
+			"events": {
+				"data": {"args": ["int","int"]}
 			}
 		}
 	}

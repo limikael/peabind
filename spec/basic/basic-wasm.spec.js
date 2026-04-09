@@ -28,6 +28,11 @@ describe("basic-wasm",()=>{
 		//console.log("calling...");
 
 		let h1=new mod.Hello();
+		h1.on("data",(d1,d2)=>{
+			console.log("got event: "+d1+","+d2);
+		});
+		h1.emitData(123,456);
+
 		let h2=new mod.Hello();
 
 		//console.log("h1._handle="+h1._handle+" h2._handle="+h2._handle);

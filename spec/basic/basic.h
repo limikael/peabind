@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include "peabind.h"
 
 int hello(int a, int b);
 int hello2();
@@ -25,7 +26,13 @@ public:
 		val=val_;
 	}
 
+	void emitData(int dataValue1, int dataValue2) {
+		//printf("emitting data: %d\n",dataValue);
+		data.emit(dataValue1,dataValue2);
+	}
+
 	int val;
+	Dispatcher<int,int> data;
 };
 
 std::shared_ptr<Hello> createHello();

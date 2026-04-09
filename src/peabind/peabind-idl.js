@@ -26,9 +26,6 @@ export function peabindMerge(...confs) {
 }
 
 export function peabindNormalize(def) {
-	/*if (typeof def=="string")
-		def=JSON5.parse(def);*/
-
 	def.include=normalizeArray(arrayify(def.include));
 
 	def.functions=normalizeMapOrArray(def.functions,"name");
@@ -49,6 +46,10 @@ export function peabindNormalize(def) {
 			m.args=normalizeArray(m.args).map(a=>normalizeStringOrObject(a,"type"));
 			m.return=normalizeStringOrObject(m.return,"type","void");
 		}
+
+		c.events=normalizeMapOrArray(c.events,"name");
+		for (let e of c.events)
+			e.args=normalizeArray(e.args).map(a=>normalizeStringOrObject(a,"type"));
 	}
 
 	return def;

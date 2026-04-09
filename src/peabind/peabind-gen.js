@@ -63,9 +63,45 @@ class PeabindjsBuilder {
         `;
     }
 
+    generateJsClassEvents(cls) {
+        if (!cls.events.length)
+            return;
+
+        return `
+            on(ev, fn) {
+                let cbId=${this.prefix}registerCallback(fn);
+                switch (ev) {
+                    ${cls.events.map(ev=>`
+                        case "${ev.name}":
+                        ${this.getModPrefix()}${cls.name}_on_${ev.name}(this._handle,cbId);
+                        break;
+                    `).join("\n")}
+                }
+            }
+
+            off(ev, fn) {
+
+            }
+        `
+    }
+
     generateJsSource() {
         return autoIndent(`
             let ${this.prefix}registry=new Map();
+            let ${this.prefix}callbackRegistry=new Map();
+            let ${this.prefix}reverseCallbackRegistry=new Map();
+            let ${this.prefix}nextCallbackId=1;
+
+            function ${this.prefix}registerCallback(fn) {
+                let cbId=${this.prefix}nextCallbackId++;
+                ${this.prefix}callbackRegistry.set(cbId,fn);
+                ${this.prefix}reverseCallbackRegistry.set(fn,cbId);
+                return cbId;
+            }
+
+            function ${this.prefix}getCallback(cbId) {
+                return ${this.prefix}callbackRegistry.get(cbId);
+            }
 
             function ${this.prefix}getRegistryObject(id,cls) {
                 if (!${this.prefix}registry.get(id)) {
@@ -92,6 +128,7 @@ class PeabindjsBuilder {
                     }
 
                     ${cls.methods.map(method=>this.generateJsFunction(method,{cls})).join("\n")}
+                    ${this.generateJsClassEvents(cls)}
                 }
             `).join("\n")}
         `);

@@ -6,7 +6,7 @@
   "scripts": {
     "test": "pnpm test:js && pnpm test:c",
     "test:js": "jasmine",
-    "test:c": "peabind spec/basic/basic.json -otest/basic.out.cpp -pbasic_ -tquickjs && g++ -o bin/testmain test/*.cpp spec/basic/basic.cpp -Ispec/basic -Iext/quickjs-2025-09-13 ext/quickjs-2025-09-13/libquickjs.a && ./bin/testmain",
+    "test:c": "peabind spec/basic/basic.json -otest/basic.out.cpp -pbasic_ -tquickjs && g++ -o bin/testmain test/*.cpp spec/basic/basic.cpp -Ispec/basic -Iext/quickjs-2025-09-13 -Iinclude ext/quickjs-2025-09-13/libquickjs.a && ./bin/testmain",
     "ext": "./src/peabind/ext.js"
   },
   "bin": {

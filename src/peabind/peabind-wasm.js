@@ -1,11 +1,13 @@
 import {peabindNormalize, isPrimitiveType} from "./peabind-idl.js";
-import {runCommand} from "../utils/node-util.js";
+import {runCommand,dirnameFromImportMeta} from "../utils/node-util.js";
 import {DeclaredError} from "../utils/js-util.js";
 import path from "path";
 import fs from "fs";
 import os from "os";
 import {autoIndent} from "../utils/auto-indent.js";
 import {peabindGenerateJs, peabindGenerateCpp} from "./peabind-gen.js";
+
+let __dirname=dirnameFromImportMeta(import.meta);
 
 class PeabindWasmBuilder {
     constructor({idl, prefix, projectName}) {
@@ -27,6 +29,11 @@ class PeabindWasmBuilder {
             exportedFunctionNames.push(`_${this.prefix}${cls.name}_new`);
             for (let method of cls.methods)
                 exportedFunctionNames.push(`_${this.prefix}${cls.name}_${method.name}`);
+
+            for (let event of cls.events) {
+                exportedFunctionNames.push(`_${this.prefix}${cls.name}_on_${event.name}`);
+                exportedFunctionNames.push(`_${this.prefix}${cls.name}_off_${event.name}`);
+            }
         }
 
         exportedFunctionNames.push(`_${this.prefix}destroy`);
@@ -104,6 +111,27 @@ class PeabindWasmBuilder {
         `;
     }
 
+    generateCppEvent(event, {cls}) {
+        let decl=event.args.map((arg,i)=>`int a${i}`).join(",");
+        let call=event.args.map((arg,i)=>`a${i}`).join(",");
+
+        return `
+            void ${this.prefix}${cls.name}_on_${event.name}(int id, int callbackId) {
+                std::shared_ptr<${cls.name}> instance=std::static_pointer_cast<${cls.name}>(registry[id]);
+                int listenerId=instance->${event.name}.on([id](${decl}){
+                    ${this.prefix}handle_${cls.name}_${event.name}(id,${call});
+                });
+                instance->${event.name}.setGlobalId(listenerId,callbackId);
+            }
+
+            void ${this.prefix}${cls.name}_off_${event.name}(int id, int callbackId) {
+                std::shared_ptr<${cls.name}> instance=std::static_pointer_cast<${cls.name}>(registry[id]);
+                int listenerId=instance->${event.name}.getIdByGlobalId(callbackId);
+                instance->${event.name}.off(listenerId);
+            }
+        `;
+    }
+
     generateCppClass(cls) {
         return `
             int ${this.prefix}${cls.name}_new() {
@@ -111,14 +139,31 @@ class PeabindWasmBuilder {
             }
 
             ${cls.methods.map(method=>this.generateCppFunction(method,{cls})).join("\n")}
+            ${cls.events.map(event=>this.generateCppEvent(event,{cls})).join("\n")}
+        `;
+    }
+
+    generateCppEventStub(ev, {cls}) {
+        let decl=ev.args.map((arg,i)=>`int a${i}`).join(",");
+
+        return `
+            EM_JS(void,${this.prefix}handle_${cls.name}_${ev.name},(int cbId, ${decl}),{});
         `;
     }
 
     generateCppSource() {
         return autoIndent(`
+            #include <emscripten.h>
+
             ${peabindGenerateCpp({
                 idl: this.idl
             })}
+
+            ${this.idl.classes.map(cls=>`
+                ${cls.events.map(ev=>`
+                    ${this.generateCppEventStub(ev,{cls})}
+                `).join("\n")}
+            `).join("")}
 
             extern "C" {
                 void ${this.prefix}destroy(int id) {
@@ -129,6 +174,26 @@ class PeabindWasmBuilder {
                 ${this.idl.classes.map(cls=>this.generateCppClass(cls)).join("\n")}
             }
         `);
+    }
+
+    generateJsCallbackReceiver(ev, {cls}) {
+        let params=ev.args.map((arg,i)=>`a${i}`).join(",");
+
+        return `
+            ${this.prefix}handle_${cls.name}_${ev.name}: (cbId,${params})=>{
+                ${this.prefix}getCallback(cbId)(${params});
+            }
+        `;
+    }
+
+    generateJsCallbackReceivers() {
+        return `
+            ${this.idl.classes.map(cls=>`
+                ${cls.events.map(ev=>`
+                    ${this.generateJsCallbackReceiver(ev,{cls})},
+                `).join("\n")}
+            `).join("")}
+        `;
     }
 
     generateJsSource() {
@@ -173,6 +238,9 @@ class PeabindWasmBuilder {
                     fd_fdstat_get: () => 0,     // optional
                     environ_sizes_get: () => 0, // optional
                     environ_get: () => 0,       // optional
+                },
+                env: {
+                    ${this.generateJsCallbackReceivers()}
                 }
             };
 
@@ -206,6 +274,9 @@ export async function peabindWasm({idl, includePath, sources, output, prefix}) {
 
     let stubFn=path.join(os.tmpdir(), "peabind-stub.cpp");
     fs.writeFileSync(stubFn,builder.generateCppSource());
+
+    includePath.push(path.join(__dirname,"../../include"));
+    //console.log(includePath);
 
     let includePathOptions=[];
     for (let i of includePath)
