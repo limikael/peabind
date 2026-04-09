@@ -19,7 +19,7 @@ function escapeCString(str) {
 function generateVarDecl(typeDef, name) {
     switch (typeDef.type) {
         case "int":
-            return `int ${name};\n`;
+            return `int32_t ${name};\n`;
             break;
 
         default:
@@ -196,6 +196,7 @@ class PeabindQuickjsBuilder {
     generateIncludeSource() {
         return autoIndent(`
             #pragma once
+            #include <memory>
             extern "C" {
             #include "quickjs.h"
             }
