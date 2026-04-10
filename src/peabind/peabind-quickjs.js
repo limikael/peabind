@@ -15,8 +15,6 @@ class PeabindQuickjsBuilder {
 
         if (!this.prefix)
             this.prefix=this.projectName.replaceAll(".","_")+"_";
-
-        this.idl.prefix=this.prefix; // remote later!!!
     }
 
     generateVarDecl(typeDef, name) {
