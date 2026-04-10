@@ -1,5 +1,5 @@
 import {autoIndent} from "../utils/auto-indent.js";
-import {isPrimitiveType} from "./peabind-idl.js";
+import {isPrimitiveType, idlGetClass} from "./peabind-idl.js";
 
 class PeabindjsBuilder {
 	constructor({idl, prefix, mod, exports}) {
@@ -13,11 +13,13 @@ class PeabindjsBuilder {
         if (func.return.type=="void")
             return `${call};`;
 
-        else if (isPrimitiveType(func.return.type))
+        else if (["int","float"].includes(func.return.type))
             return `return (${call});`;
 
-        else 
-            return `return (${this.prefix}getRegistryObject(${call},${func.return.type}));`;
+        if (!idlGetClass(this.idl,func.return.type))
+            throw new Error("Unknown type: "+func.return.type);
+
+        return `return (${this.prefix}getRegistryObject(${call},${func.return.type}));`;
     }
 
     generateJsFunctionDeclArgList(func) {
@@ -26,8 +28,11 @@ class PeabindjsBuilder {
 
     generateJsFunctionCallArgList(func) {
         return func.args.map((arg,i)=>{
-            if (isPrimitiveType(arg.type))
+            if (["int","float"].includes(arg.type))
                 return `a${i}`;
+
+            if (!idlGetClass(this.idl,arg.type))
+                throw new Error("Unknown type: "+arg.type);
 
             return `a${i}._handle`;
         }).join(",");
@@ -76,6 +81,9 @@ class PeabindjsBuilder {
                         ${this.getModPrefix()}${cls.name}_on_${ev.name}(this._handle,cbId);
                         break;
                     `).join("\n")}
+
+                    default:
+                        throw new Error("Unknown event: "+ev);
                 }
             }
 
@@ -86,11 +94,20 @@ class PeabindjsBuilder {
     }
 
     generateJsCallbackReceiver(ev, {cls}) {
-        let params=ev.args.map((arg,i)=>`a${i}`).join(",");
+        let decl=ev.args.map((arg,i)=>`a${i}`).join(",");
+        let call=ev.args.map((arg,i)=>{
+            if (["int","float"].includes(arg.type))
+                return `a${i}`;
+
+            if (!idlGetClass(this.idl,arg.type))
+                throw new Error("Unknown type: "+arg.type);
+
+            return `${this.prefix}getRegistryObject(a${i},${arg.type})`;
+        }).join(",");
 
         return `
-            globalThis.${this.prefix}handle_${cls.name}_${ev.name}=(cbId,${params})=>{
-                ${this.prefix}getCallback(cbId)(${params});
+            globalThis.${this.prefix}handle_${cls.name}_${ev.name}=(cbId,${decl})=>{
+                ${this.prefix}getCallback(cbId)(${call});
             }
         `;
     }

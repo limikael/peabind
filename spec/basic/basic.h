@@ -4,12 +4,8 @@
 
 int hello(int a, int b);
 int hello2();
-
-class Something {
-	int getSomeVal() {
-		return 1234;
-	}
-};
+int hellof(float f);
+float hellothird(int i);
 
 class Hello {
 public:
@@ -32,8 +28,16 @@ public:
 		data.emit(dataValue1,dataValue2);
 	}
 
-	void emitSomething() {
-		some.emit(something);
+	void emitDataVoid() {
+		dataVoid.emit();
+	}
+
+	void emitDataFloat(float f) {
+		dataFloat.emit(f);
+	}
+
+	void emitDataHello(std::shared_ptr<Hello> h) {
+		dataHello.emit(h);
 	}
 
 	static std::shared_ptr<Hello> create() {
@@ -43,16 +47,15 @@ public:
 	Hello() {
 		val=100;
 		//printf("creating hello, val=%d\n",val);
-
-		something=std::make_shared<Something>();
 	}
 
 	Dispatcher<int,int> data;
-	Dispatcher<std::shared_ptr<Something>> some;
+	Dispatcher<std::shared_ptr<Hello>> dataHello;
+	Dispatcher<> dataVoid;
+	Dispatcher<float> dataFloat;
 
 private:
 	int val;
-	std::shared_ptr<Something> something;
 };
 
 std::shared_ptr<Hello> createHello();

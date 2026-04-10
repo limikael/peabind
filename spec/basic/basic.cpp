@@ -27,3 +27,12 @@ std::shared_ptr<Hello> createHello() {
 void setHelloVal(std::shared_ptr<Hello> hello, int val) {
 	hello->setVal(val);
 }
+
+int hellof(float f) {
+	return (f*10.0);
+}
+
+float hellothird(int i) {
+	float f=((float)i)/3;
+	return f;
+}

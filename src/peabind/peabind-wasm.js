@@ -1,4 +1,4 @@
-import {peabindNormalize, isPrimitiveType} from "./peabind-idl.js";
+import {peabindNormalize, isPrimitiveType, idlGetClass} from "./peabind-idl.js";
 import {runCommand,dirnameFromImportMeta} from "../utils/node-util.js";
 import {DeclaredError} from "../utils/js-util.js";
 import path from "path";
@@ -45,29 +45,37 @@ class PeabindWasmBuilder {
         if (func.return.type=="void")
             return `void`;
 
-        else if (isPrimitiveType(func.return.type))
+        else if (["int","float"].includes(func.return.type))
             return `${func.return.type}`;
 
-        else 
-            return `int`;
+        if (!idlGetClass(this.idl,func.return.type))
+            throw new Error("Unknown type: "+func.return.type);
+
+        return `int`;
     }
 
     generateCppFunctionReturn(func, expr) {
         if (func.return.type=="void")
             return `${expr};`;
 
-        else if (isPrimitiveType(func.return.type))
+        else if (["int","float"].includes(func.return.type))
             return `return (${expr});`;
 
-        else
-            return `return store(${expr});`;
+        if (!idlGetClass(this.idl,func.return.type))
+            throw new Error("Unknown type: "+func.return.type);
+
+        return `return store(${expr});`;
     }
 
     generateCppFunctionDeclArgList(func, {cls}={}) {
         let l=func.args.map((arg,i)=>{
-            if (isPrimitiveType(arg.type))
+            if (["int","float"].includes(arg.type))
                 return `${arg.type} arg_${i}`
 
+            if (!idlGetClass(this.idl,arg.type))
+                throw new Error("Unknown type: "+arg.type);
+
+            // It is an object type
             return `int arg_${i}`;
         });
         if (cls)
@@ -78,8 +86,11 @@ class PeabindWasmBuilder {
 
     generateCppFunctionCallArgList(func) {
         return `${func.args.map((arg,i)=>{
-            if (isPrimitiveType(arg.type))
+            if (["int","float"].includes(arg.type))
                 return `arg_${i}`;
+
+            if (!idlGetClass(this.idl,arg.type))
+                throw new Error("Unknown type: "+arg.type);
 
             return `std::static_pointer_cast<${arg.type}>(registry[arg_${i}])`;
         }).join(",")}`;
@@ -112,14 +123,32 @@ class PeabindWasmBuilder {
     }
 
     generateCppEvent(event, {cls}) {
-        let decl=event.args.map((arg,i)=>`int a${i}`).join(",");
-        let call=event.args.map((arg,i)=>`a${i}`).join(",");
+        let decl=event.args.map((arg,i)=>{
+            if (["int","float"].includes(arg.type))
+                return `${arg.type} a${i}`;
+
+            if (!idlGetClass(this.idl,arg.type))
+                throw new Error("Unknown type for event: "+arg.type);
+
+            return `std::shared_ptr<${arg.type}> a${i}`;
+        }).join(",");
+        let call=event.args.map((arg,i)=>{
+            if (["int","float"].includes(arg.type))
+                return `a${i}`;
+
+            if (!idlGetClass(this.idl,arg.type))
+                throw new Error("Unknown type for event: "+arg.type);
+
+            return `store(a${i})`;
+        });
+        call.unshift("callbackId");
+        call=call.join(",");
 
         return `
             void ${this.prefix}${cls.name}_on_${event.name}(int id, int callbackId) {
                 std::shared_ptr<${cls.name}> instance=std::static_pointer_cast<${cls.name}>(registry[id]);
                 int listenerId=instance->${event.name}.on([callbackId](${decl}){
-                    ${this.prefix}handle_${cls.name}_${event.name}(callbackId,${call});
+                    ${this.prefix}handle_${cls.name}_${event.name}(${call});
                 });
                 instance->${event.name}.setGlobalId(listenerId,callbackId);
             }
@@ -144,10 +173,20 @@ class PeabindWasmBuilder {
     }
 
     generateCppEventStub(ev, {cls}) {
-        let decl=ev.args.map((arg,i)=>`int a${i}`).join(",");
+        let decl=ev.args.map((arg,i)=>{
+            if (["float","int"].includes(arg.type))
+                return `${arg.type} a${i}`;
+
+            if (!idlGetClass(this.idl,arg.type))
+                throw new Error("Unknown type for event: "+arg.type);
+
+            return `int a${i}`;
+        });
+        decl.unshift("int cbId");
+        decl=decl.join(",");
 
         return `
-            EM_JS(void,${this.prefix}handle_${cls.name}_${ev.name},(int cbId, ${decl}),{});
+            EM_JS(void,${this.prefix}handle_${cls.name}_${ev.name},(${decl}),{});
         `;
     }
 

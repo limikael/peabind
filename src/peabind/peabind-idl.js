@@ -6,6 +6,10 @@ export function isPrimitiveType(t) {
     return ["int"].includes(t);
 }
 
+export function idlGetClass(idl, className) {
+	return idl.classesByName[className];
+}
+
 export function peabindMerge(...confs) {
 	confs=arrayify(confs);
 	confs=confs.map(c=>peabindNormalize(c));

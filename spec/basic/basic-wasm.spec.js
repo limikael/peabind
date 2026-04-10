@@ -64,4 +64,48 @@ describe("basic-wasm",()=>{
 		expect(h3.getVal()).toEqual(999);
 		expect(h4.getVal()).toEqual(999);
 	});
+
+	it("can handle types",async ()=>{
+		fs.rmSync(path.join(__dirname,"basic.out.js"),{force: true});
+		fs.rmSync(path.join(__dirname,"basic.out.wasm"),{force: true});
+
+		await peabind({
+			idl: path.join(__dirname,"basic.json"),
+			sources: [path.join(__dirname,"basic.cpp")],
+			output: path.join(__dirname,"basic.out.js"),
+			target: "wasm"
+		});
+
+		let mod=await import(path.join(__dirname,"basic.out.js"));
+		let i=mod.hellof(1.5);
+		expect(i).toEqual(15);
+
+		let f=mod.hellothird(10);
+		expect(f).toBeCloseTo(3.3333333333333333333333,6);
+
+		let h=new mod.Hello();
+		let invokeCount=0;
+		h.on("dataVoid",()=>{
+			//expect(1).toEqual(2);
+			invokeCount++;
+		});
+		h.emitDataVoid();
+
+		h.on("dataFloat",f=>{
+			expect(f).toBeCloseTo(123.456,5);
+			invokeCount++;
+		});
+		h.emitDataFloat(123.456);
+
+		h.on("dataHello",ph=>{
+			expect(ph.getVal()).toEqual(777);
+			invokeCount++;
+		});
+
+		let eh=new mod.Hello();
+		eh.setVal(777);
+		h.emitDataHello(eh);
+
+		expect(invokeCount).toEqual(3);
+	});
 });
