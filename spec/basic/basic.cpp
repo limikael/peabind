@@ -14,7 +14,8 @@ std::shared_ptr<Hello> createHello() {
 	if (!globalHello) {
 		//printf("creating the global hello...\n");
 
-		globalHello=std::make_shared<Hello>();
+//		globalHello=std::make_shared<Hello>();
+		globalHello=Hello::create();//std::make_shared<Hello>();
 	}
 
 	//printf("setting the global hello...\n");

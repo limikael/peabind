@@ -5,13 +5,14 @@
 int hello(int a, int b);
 int hello2();
 
+class Something {
+	int getSomeVal() {
+		return 1234;
+	}
+};
+
 class Hello {
 public:
-	Hello() {
-		val=100;
-		//printf("creating hello, val=%d\n",val);
-	}
-
 	~Hello() {
 		//printf("destroying hello...\n");
 	}
@@ -31,8 +32,27 @@ public:
 		data.emit(dataValue1,dataValue2);
 	}
 
-	int val;
+	void emitSomething() {
+		some.emit(something);
+	}
+
+	static std::shared_ptr<Hello> create() {
+		return std::make_shared<Hello>();
+	}
+
+	Hello() {
+		val=100;
+		//printf("creating hello, val=%d\n",val);
+
+		something=std::make_shared<Something>();
+	}
+
 	Dispatcher<int,int> data;
+	Dispatcher<std::shared_ptr<Something>> some;
+
+private:
+	int val;
+	std::shared_ptr<Something> something;
 };
 
 std::shared_ptr<Hello> createHello();
