@@ -3,10 +3,10 @@
 	"functions": {
 		"hello": {"return":"int", "args": ["int","int"]},
 		"hello2": {"return":"int"},
+		"createHello": {"return":"Hello"},
+		"setHelloVal": {"args": ["Hello","int"]},
 		"hellof": {"return":"int","args": ["float"]},
 		"hellothird": {"return":"float","args": ["int"]},
-		"createHello": {"return":"Hello"},
-		"setHelloVal": {"args": ["Hello","int"]}
 	},
 	"classes": {
 		"Hello": {

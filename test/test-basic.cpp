@@ -82,3 +82,55 @@ void test_events() {
     JS_FreeContext(ctx);
     JS_FreeRuntime(rt);
 }
+
+void test_types() {
+    printf("- types\n");
+    JSRuntime *rt=JS_NewRuntime();
+    JSContext *ctx=JS_NewContext(rt);
+    basic_init(ctx);
+    std::string s;
+
+    s=runjs(ctx,"hellof(1.5)");
+    assert(s=="15");
+
+    s=runjs(ctx,"hellothird(10)");
+    //printf("s: %s\n",s.c_str());
+    assert(s=="3.3333332538604736");
+
+    basic_exit(ctx);
+    JS_FreeContext(ctx);
+    JS_FreeRuntime(rt);
+}
+
+void test_event_types() {
+    printf("- event types\n");
+    JSRuntime *rt=JS_NewRuntime();
+    JSContext *ctx=JS_NewContext(rt);
+    basic_init(ctx);
+    std::string s;
+
+    s=runjs(ctx,"globalThis.h=new Hello();");
+    s=runjs(ctx,"globalThis.h.on('dataVoid',()=>{globalThis.captured='yes';});");
+    s=runjs(ctx,"globalThis.h.emitDataVoid();");
+    s=runjs(ctx,"globalThis.captured");
+    assert(s=="yes");
+
+    s=runjs(ctx,"globalThis.h=new Hello();");
+    s=runjs(ctx,"globalThis.h.on('dataFloat',(f)=>{globalThis.captured=f;});");
+    s=runjs(ctx,"globalThis.h.emitDataFloat(321.123);");
+    s=runjs(ctx,"globalThis.captured");
+    //printf("s: %s\n",s.c_str());
+    assert(s=="321.12298583984375");
+
+    s=runjs(ctx,"globalThis.h=new Hello();");
+    s=runjs(ctx,"globalThis.h.setVal(999);");
+    s=runjs(ctx,"globalThis.h.on('dataHello',(h)=>{globalThis.captured=h.getVal();});");
+    s=runjs(ctx,"globalThis.h.emitDataHello(globalThis.h);");
+    s=runjs(ctx,"globalThis.captured");
+    //printf("s: %s\n",s.c_str());
+    assert(s=="999");
+
+    basic_exit(ctx);
+    JS_FreeContext(ctx);
+    JS_FreeRuntime(rt);
+}

@@ -1,4 +1,4 @@
-import {autoIndent} from "../utils/auto-indent.js";
+import {autoIndent} from "../utils/lang-util.js";
 import {isPrimitiveType, idlGetClass} from "./peabind-idl.js";
 
 class PeabindjsBuilder {

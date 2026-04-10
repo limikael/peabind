@@ -1,3 +1,12 @@
+export function escapeCString(str) {
+    return str
+        .replace(/\\/g, '\\\\')   // backslash
+        .replace(/"/g, '\\"')     // double quote
+        .replace(/\n/g, '\\n')    // newline
+        .replace(/\r/g, '\\r')    // carriage return
+        .replace(/\t/g, '\\t');   // tab
+}
+
 export function autoIndent(text, indentSize=4) {
     const lines = text.split('\n');
     let result = [];
