@@ -28,10 +28,14 @@ describe("basic-wasm",()=>{
 		//console.log("calling...");
 
 		let h1=new mod.Hello();
+		let a=[];
 		h1.on("data",(d1,d2)=>{
-			console.log("got event: "+d1+","+d2);
+			a.push(d1,d2);
+			//console.log("got event: "+d1+","+d2);
 		});
 		h1.emitData(123,456);
+
+		expect(a).toEqual([123,456]);
 
 		let h2=new mod.Hello();
 
