@@ -118,8 +118,8 @@ class PeabindWasmBuilder {
         return `
             void ${this.prefix}${cls.name}_on_${event.name}(int id, int callbackId) {
                 std::shared_ptr<${cls.name}> instance=std::static_pointer_cast<${cls.name}>(registry[id]);
-                int listenerId=instance->${event.name}.on([id](${decl}){
-                    ${this.prefix}handle_${cls.name}_${event.name}(id,${call});
+                int listenerId=instance->${event.name}.on([callbackId](${decl}){
+                    ${this.prefix}handle_${cls.name}_${event.name}(callbackId,${call});
                 });
                 instance->${event.name}.setGlobalId(listenerId,callbackId);
             }
@@ -176,21 +176,19 @@ class PeabindWasmBuilder {
         `);
     }
 
-    generateJsCallbackReceiver(ev, {cls}) {
-        let params=ev.args.map((arg,i)=>`a${i}`).join(",");
-
+    generateJsCallbackReceiverImport(ev, {cls}) {
         return `
-            ${this.prefix}handle_${cls.name}_${ev.name}: (cbId,${params})=>{
-                ${this.prefix}getCallback(cbId)(${params});
+            ${this.prefix}handle_${cls.name}_${ev.name}: (...args)=>{
+                globalThis.${this.prefix}handle_${cls.name}_${ev.name}(...args);
             }
-        `;
+        `
     }
 
-    generateJsCallbackReceivers() {
+    generateJsCallbackReceiverImports() {
         return `
             ${this.idl.classes.map(cls=>`
                 ${cls.events.map(ev=>`
-                    ${this.generateJsCallbackReceiver(ev,{cls})},
+                    ${this.generateJsCallbackReceiverImport(ev,{cls})},
                 `).join("\n")}
             `).join("")}
         `;
@@ -240,7 +238,7 @@ class PeabindWasmBuilder {
                     environ_get: () => 0,       // optional
                 },
                 env: {
-                    ${this.generateJsCallbackReceivers()}
+                    ${this.generateJsCallbackReceiverImports()}
                 }
             };
 

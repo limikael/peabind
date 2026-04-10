@@ -64,3 +64,21 @@ void test_basic() {
     JS_FreeContext(ctx);
     JS_FreeRuntime(rt);
 }
+
+void test_events() {
+    printf("- events\n");
+    JSRuntime *rt=JS_NewRuntime();
+    JSContext *ctx=JS_NewContext(rt);
+    basic_init(ctx);
+    std::string s;
+
+    s=runjs(ctx,"globalThis.h=new Hello();");
+    s=runjs(ctx,"globalThis.h.on('data',(v1,v2)=>{globalThis.captured1=v1; globalThis.captured2=v2;});");
+    s=runjs(ctx,"globalThis.h.emitData(1234,9999);");
+    s=runjs(ctx,"JSON.stringify([globalThis.captured1,globalThis.captured2])");
+    assert(s=="[1234,9999]");
+
+    basic_exit(ctx);
+    JS_FreeContext(ctx);
+    JS_FreeRuntime(rt);
+}

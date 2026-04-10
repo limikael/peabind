@@ -85,12 +85,22 @@ class PeabindjsBuilder {
         `
     }
 
+    generateJsCallbackReceiver(ev, {cls}) {
+        let params=ev.args.map((arg,i)=>`a${i}`).join(",");
+
+        return `
+            globalThis.${this.prefix}handle_${cls.name}_${ev.name}=(cbId,${params})=>{
+                ${this.prefix}getCallback(cbId)(${params});
+            }
+        `;
+    }
+
     generateJsSource() {
         return autoIndent(`
             let ${this.prefix}registry=new Map();
             let ${this.prefix}callbackRegistry=new Map();
             let ${this.prefix}reverseCallbackRegistry=new Map();
-            let ${this.prefix}nextCallbackId=1;
+            let ${this.prefix}nextCallbackId=100;
 
             function ${this.prefix}registerCallback(fn) {
                 let cbId=${this.prefix}nextCallbackId++;
@@ -130,6 +140,8 @@ class PeabindjsBuilder {
                     ${cls.methods.map(method=>this.generateJsFunction(method,{cls})).join("\n")}
                     ${this.generateJsClassEvents(cls)}
                 }
+
+                ${cls.events.map(event=>this.generateJsCallbackReceiver(event,{cls})).join("\n")}
             `).join("\n")}
         `);
     }

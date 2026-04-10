@@ -122,6 +122,62 @@ class PeabindQuickjsBuilder {
         `;
     }
 
+    generateEventDef(event, {cls}) {
+        let decl=event.args.map((arg,i)=>`int a${i}`).join(",");
+
+        let onName=`${this.prefix}${cls.name}_on_${event.name}`;
+        let offName=`${this.prefix}${cls.name}_off_${event.name}`;
+        let handlerName=`${this.prefix}handle_${cls.name}_${event.name}`;
+
+        //old:
+        //${this.prefix}handle_${cls.name}_${event.name}(id,${call});
+
+        return `
+            static JSValue ${onName}(JSContext *ctx, JSValueConst thisobj, int argc, JSValueConst *argv) {
+                int id,callbackId;
+                JS_ToInt32(ctx,&id,argv[0]);
+                JS_ToInt32(ctx,&callbackId,argv[1]);
+                std::shared_ptr<${cls.name}> instance=std::static_pointer_cast<${cls.name}>(registry[id]);
+
+                int listenerId=instance->${event.name}.on([ctx,callbackId](${decl}){
+                    JSValue global=JS_GetGlobalObject(ctx);
+                    JSValue cb=JS_GetPropertyStr(ctx,global,"${handlerName}");
+
+                    JSValue args[${event.args.length+1}];
+                    args[0] = JS_NewInt32(ctx, callbackId);
+
+                    ${event.args.map((arg,i)=>`
+                        args[${i+1}]=JS_NewInt32(ctx,a${i});
+                    `).join("")}
+
+                    JSValue result=JS_Call(ctx,cb,JS_UNDEFINED,${event.args.length+1},args);
+
+                    if (JS_IsException(result)) {
+                        // Handle JS errors here
+                        printf("unhandled!!!\\n");
+                    }
+
+                    for (int i=0; i<${event.args.length+1}; i++)
+                        JS_FreeValue(ctx,args[i]);
+
+                    JS_FreeValue(ctx,result);
+                    JS_FreeValue(ctx,cb);
+                    JS_FreeValue(ctx,global);
+
+                    //printf("on invoked...\\n");
+                });
+                instance->${event.name}.setGlobalId(listenerId,callbackId);
+                return JS_UNDEFINED;
+            }
+
+            /*void ${this.prefix}${cls.name}_off_${event.name}(int id, int callbackId) {
+                std::shared_ptr<${cls.name}> instance=std::static_pointer_cast<${cls.name}>(registry[id]);
+                int listenerId=instance->${event.name}.getIdByGlobalId(callbackId);
+                instance->${event.name}.off(listenerId);
+            }*/
+        `;
+    }
+
     generateClassDef(cls) {
         return `
             static JSValue ${this.prefix}${cls.name}_new(JSContext *ctx, JSValueConst thisobj, int argc, JSValueConst *argv) {
@@ -130,6 +186,7 @@ class PeabindQuickjsBuilder {
             }
 
             ${cls.methods.map(method=>this.generateFunctionDef(method,{cls})).join("\n")}
+            ${cls.events.map(event=>this.generateEventDef(event,{cls})).join("\n")}
         `;
     }
 
@@ -143,6 +200,11 @@ class PeabindQuickjsBuilder {
             exportedFunctionNames.push(`${this.prefix}${cls.name}_new`);
             for (let method of cls.methods)
                 exportedFunctionNames.push(`${this.prefix}${cls.name}_${method.name}`);
+
+            for (let event of cls.events) {
+                exportedFunctionNames.push(`${this.prefix}${cls.name}_on_${event.name}`);
+                //exportedFunctionNames.push(`${this.prefix}${cls.name}_off_${event.name}`);
+            }
         }
 
         return exportedFunctionNames;
@@ -189,6 +251,10 @@ class PeabindQuickjsBuilder {
                 );
 
                 JS_FreeValue(ctx, result);
+            }
+
+            void ${this.prefix}exit(JSContext *ctx) {
+                
             }
         `); 
     }
