@@ -103,6 +103,41 @@ class ObjectTypeStrategy {
     }
 }
 
+class StringTypeStrategy {
+    decl(name) {
+        return `std::string ${name};\n`;
+    }
+
+    unpack(dest, src) {
+        return `
+            size_t ${dest}_len;
+            const char *${dest}_ptr=JS_ToCStringLen(ctx, &${dest}_len, ${src});
+            ${dest}.assign(${dest}_ptr,${dest}_len);
+            JS_FreeCString(ctx,${dest}_ptr);
+        `;
+    }
+
+    nativeParam(name) {
+        return `std::string ${name}`;
+    }
+
+    pack(dest, src) {
+        return `${dest}=JS_NewString(ctx,${src}.c_str());\n`;
+    }
+
+    jsDecl(name) {
+        return `let ${name};`
+    }
+
+    jsPack(to, from) {
+        return `${to}=${from};\n`;
+    }
+
+    jsUnpack(to, from) {
+        return `${to}=${from};\n`;
+    }
+}
+
 export function createTypeStrategy(typeDef, {idl, prefix}) {
     switch (typeDef.type) {
         case "int":
@@ -111,6 +146,10 @@ export function createTypeStrategy(typeDef, {idl, prefix}) {
 
         case "float":
             return new FloatTypeStrategy();
+            break;
+
+        case "string":
+            return new StringTypeStrategy();
             break;
 
         default:

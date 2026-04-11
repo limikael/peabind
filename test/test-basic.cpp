@@ -130,6 +130,28 @@ void test_event_types() {
     //printf("s: %s\n",s.c_str());
     assert(s=="999");
 
+    s=runjs(ctx,"globalThis.h=new Hello();");
+    s=runjs(ctx,"globalThis.h.on('dataString',(s)=>{globalThis.captured=s;});");
+    s=runjs(ctx,"globalThis.h.emitDataString('testing');");
+    s=runjs(ctx,"globalThis.captured");
+    //printf("s: %s\n",s.c_str());
+    assert(s=="testing");
+
+    basic_exit(ctx);
+    JS_FreeContext(ctx);
+    JS_FreeRuntime(rt);
+}
+
+void test_strings() {
+    printf("- strings\n");
+    JSRuntime *rt=JS_NewRuntime();
+    JSContext *ctx=JS_NewContext(rt);
+    basic_init(ctx);
+    std::string s;
+
+    s=runjs(ctx,"hellos('a','b')");
+    assert(s=="ab");
+
     basic_exit(ctx);
     JS_FreeContext(ctx);
     JS_FreeRuntime(rt);

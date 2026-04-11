@@ -164,6 +164,7 @@ export function peabindGenerateCpp({idl, prefix}) {
 	return autoIndent(`
         ${idl.include.map(i=>`#include "${i}"`).join("\n")}
         #include <map>
+        #include <string>
 
         static std::map<int, std::shared_ptr<void>> registry;
         static std::map<void*, int> reverseRegistry;

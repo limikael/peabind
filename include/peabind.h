@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <functional>
+#include <string>
 
 typedef struct {
     void *pointer;
