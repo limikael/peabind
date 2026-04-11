@@ -132,11 +132,11 @@ class ObjectTypeStrategy {
 }
 
 class StringTypeStrategy {
-    /*abiType() {
-        return `int`;
+    abiType() {
+        return `TransferBuffer *`;
     }
 
-    nativeParam(name) {
+    /*nativeParam(name) {
         return `std::shared_ptr<${this.typeDef.type}> ${name}`;
     }*/
 
@@ -144,9 +144,9 @@ class StringTypeStrategy {
         return `TransferBuffer* ${name}`;
     }
 
-    /*abiDecl(name) {
-        return `int ${name};\n`;
-    }*/
+    abiDecl(name) {
+        return `TransferBuffer* ${name};\n`;
+    }
 
     nativeDecl(name) {
         return `std::string ${name};`;
@@ -159,13 +159,20 @@ class StringTypeStrategy {
         `;
     }
 
-    /*pack(to, from) {
-        return `${to}=store(${from});\n`;
+    pack(to, from) {
+        return `
+            ${to}=transferBufferCreate(${from}.size());
+            memcpy(transferBufferGetPointer(${to}),${from}.data(),${from}.size());
+        `;
     }
 
     jsUnpack(to, from) {
-        return `${to}=${this.prefix}getRegistryObject(${from},${this.typeDef.type});\n`;
-    }*/
+        return `
+            let ${to}_bytes=new Uint8Array(memory.buffer,exp.transferBufferGetPointer(${from}),exp.transferBufferGetSize(${from}));
+            ${to}=new TextDecoder("utf-8").decode(${to}_bytes);
+            exp.transferBufferDispose(${from});
+        `
+    }
 
     jsDecl(name) {
         return `let ${name};`

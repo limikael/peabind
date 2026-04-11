@@ -121,7 +121,7 @@ describe("basic-wasm",()=>{
 		});
 
 		let mod=await import(path.join(__dirname,"basic.out.js"));
-		let i=mod.hellos("123");
-		expect(i).toEqual(12300);
+		let i=mod.hellos("123","00");
+		expect(i).toEqual("12300");
 	});
 });
