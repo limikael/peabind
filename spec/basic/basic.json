@@ -17,13 +17,15 @@
 				"emitData": {"args":["int","int"]},
 				"emitDataVoid": {},
 				"emitDataFloat": {"args": ["float"]},
-				"emitDataHello": {"args": ["Hello"]}
+				"emitDataHello": {"args": ["Hello"]},
+				"emitDataString": {"args": ["string"]}
 			},
 			"events": {
 				"data": {"args": ["int","int"]},
 				"dataVoid": {},
 				"dataFloat": {"args": ["float"]},
-				"dataHello": {"args": ["Hello"]}
+				"dataHello": {"args": ["Hello"]},
+				"dataString": {"args": ["string"]},
 			}
 		}
 	}

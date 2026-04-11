@@ -41,6 +41,10 @@ public:
 		dataHello.emit(h);
 	}
 
+	void emitDataString(std::string s) {
+		dataString.emit(s);
+	}
+
 	static std::shared_ptr<Hello> create() {
 		return std::make_shared<Hello>();
 	}
@@ -54,6 +58,7 @@ public:
 	Dispatcher<std::shared_ptr<Hello>> dataHello;
 	Dispatcher<> dataVoid;
 	Dispatcher<float> dataFloat;
+	Dispatcher<std::string> dataString;
 
 private:
 	int val;

@@ -106,7 +106,14 @@ describe("basic-wasm",()=>{
 		eh.setVal(777);
 		h.emitDataHello(eh);
 
-		expect(invokeCount).toEqual(3);
+		h.on("dataString",s=>{
+			expect(s).toEqual("hello");
+			invokeCount++;
+		});
+
+		h.emitDataString("hello");
+
+		expect(invokeCount).toEqual(4);
 	});
 
 	it("can handle strings",async ()=>{

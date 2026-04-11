@@ -136,9 +136,9 @@ class StringTypeStrategy {
         return `TransferBuffer *`;
     }
 
-    /*nativeParam(name) {
-        return `std::shared_ptr<${this.typeDef.type}> ${name}`;
-    }*/
+    nativeParam(name) {
+        return `std::string ${name}`;
+    }
 
     abiParam(name) {
         return `TransferBuffer* ${name}`;
