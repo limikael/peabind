@@ -86,7 +86,7 @@ class PeabindWasmBuilder {
                 ${this.ts(func.return).abiDecl("retval")}
                 ${this.ts(func.return).pack("retval","ret")}
                 return retval;
-            `
+            `;
         }
 
         return `
