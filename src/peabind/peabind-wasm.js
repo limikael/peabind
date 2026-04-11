@@ -21,7 +21,10 @@ class PeabindWasmBuilder {
     }
 
     ts(typeDef) {
-        return createTypeStrategy(this.idl,typeDef);
+        return createTypeStrategy(typeDef,{
+            idl: this.idl, 
+            prefix: this.prefix
+        });
     }
 
     getExportedFunctionNames() {
@@ -248,7 +251,8 @@ class PeabindWasmBuilder {
                 idl: this.idl, 
                 prefix: this.prefix,
                 mod: "exp",
-                exports: true
+                exports: true,
+                typeStrategyFactory: type=>this.ts(type)
             })}
         `);
     }

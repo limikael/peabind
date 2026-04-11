@@ -28,6 +28,18 @@ class IntTypeStrategy {
     pack(to, from) {
         return `${to}=${from};\n`;
     }
+
+    jsDecl(name) {
+        return `let ${name};\n`;
+    }
+
+    jsPack(to, from) {
+        return `${to}=${from};\n`;
+    }
+
+    jsUnpack(to, from) {
+        return `${to}=${from};\n`;
+    }
 }
 
 class FloatTypeStrategy {
@@ -58,11 +70,24 @@ class FloatTypeStrategy {
     pack(to, from) {
         return `${to}=${from};\n`;
     }
+
+    jsDecl(name) {
+        return `let ${name};`
+    }
+
+    jsPack(to, from) {
+        return `${to}=${from};\n`;
+    }
+
+    jsUnpack(to, from) {
+        return `${to}=${from};\n`;
+    }
 }
 
 class ObjectTypeStrategy {
-    constructor(typeDef) {
+    constructor(typeDef, {idl, prefix}) {
         this.typeDef=typeDef;
+        this.prefix=prefix;
     }
 
     abiType() {
@@ -92,6 +117,18 @@ class ObjectTypeStrategy {
     pack(to, from) {
         return `${to}=store(${from});\n`;
     }
+
+    jsDecl(name) {
+        return `let ${name};`
+    }
+
+    jsPack(to, from) {
+        return `${to}=${from}._handle;\n`;
+    }
+
+    jsUnpack(to, from) {
+        return `${to}=${this.prefix}getRegistryObject(${from},${this.typeDef.type});\n`;
+    }
 }
 
 class VoidTypeStrategy {
@@ -100,7 +137,7 @@ class VoidTypeStrategy {
     }
 }
 
-export function createTypeStrategy(idl, typeDef) {
+export function createTypeStrategy(typeDef, {idl, prefix}) {
     switch (typeDef.type) {
         case "int":
             return new IntTypeStrategy();
@@ -118,7 +155,7 @@ export function createTypeStrategy(idl, typeDef) {
             if (!idlGetClass(idl,typeDef.type))
                 throw new Error("Unknown type: "+typeDef.type);
 
-            return new ObjectTypeStrategy(typeDef);
+            return new ObjectTypeStrategy(typeDef, {idl, prefix});
             break;
     }
 }

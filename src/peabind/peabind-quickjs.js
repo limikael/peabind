@@ -19,7 +19,10 @@ class PeabindQuickjsBuilder {
     }
 
     ts(typeDef) {
-        return createTypeStrategy(this.idl,typeDef);
+        return createTypeStrategy(typeDef,{
+            idl: this.idl, 
+            prefix: this.prefix
+        });
     }
 
     generateFunctionDef(func,{cls}={}) {
@@ -178,6 +181,7 @@ class PeabindQuickjsBuilder {
                 idl: this.idl, 
                 prefix: this.prefix,
                 mod: "",
+                typeStrategyFactory: type=>this.ts(type)
             }))}";
 
             void ${this.prefix}init(JSContext *ctx) {

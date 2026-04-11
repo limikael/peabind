@@ -2,40 +2,16 @@ import {autoIndent} from "../utils/lang-util.js";
 import {isPrimitiveType, idlGetClass} from "./peabind-idl.js";
 
 class PeabindjsBuilder {
-	constructor({idl, prefix, mod, exports}) {
+	constructor({idl, prefix, mod, exports, typeStrategyFactory}) {
 		this.idl=idl;
 		this.prefix=prefix;
 		this.mod=mod;
 		this.exports=exports;
+        this.typeStrategyFactory=typeStrategyFactory;
 	}
 
-    generateJsFunctionReturn(func, call) {
-        if (func.return.type=="void")
-            return `${call};`;
-
-        else if (["int","float"].includes(func.return.type))
-            return `return (${call});`;
-
-        if (!idlGetClass(this.idl,func.return.type))
-            throw new Error("Unknown type: "+func.return.type);
-
-        return `return (${this.prefix}getRegistryObject(${call},${func.return.type}));`;
-    }
-
-    generateJsFunctionDeclArgList(func) {
-        return func.args.map((arg,i)=>`a${i}`).join(",");
-    }
-
-    generateJsFunctionCallArgList(func) {
-        return func.args.map((arg,i)=>{
-            if (["int","float"].includes(arg.type))
-                return `a${i}`;
-
-            if (!idlGetClass(this.idl,arg.type))
-                throw new Error("Unknown type: "+arg.type);
-
-            return `a${i}._handle`;
-        }).join(",");
+    ts(typeDef) {
+        return this.typeStrategyFactory(typeDef);
     }
 
     getModPrefix() {
@@ -46,24 +22,43 @@ class PeabindjsBuilder {
     }
 
     generateJsFunction(func,{cls}={}) {
-        let declArgs=this.generateJsFunctionDeclArgList(func);
-        let callArgs=this.generateJsFunctionCallArgList(func);
+        let declArgs=func.args.map((arg,i)=>`a${i}`);
+        let callArgs=func.args.map((arg,i)=>`p${i}`);
 
-        let signature,call;
-
+        let signature,/*call,*/callTarget;
         if (cls) {
-            signature=`${func.name}(${declArgs})`;
-            call=`${this.getModPrefix()}${cls.name}_${func.name}(this._handle,${callArgs})`;
+            signature=`${func.name}`;
+            callArgs.unshift(`this._handle`);
+            callTarget=`${this.getModPrefix()}${cls.name}_${func.name}`;
         }
 
         else {
-            signature=`${this.exports?"export":""} function ${func.name}(${declArgs})`;
-            call=`${this.getModPrefix()}${func.name}(${callArgs})`;
+            signature=`${this.exports?"export":""} function ${func.name}`;
+            callTarget=`${this.getModPrefix()}${func.name}`;
+        }
+
+        let call;
+        if (func.return.type=="void") {
+            call=`
+                ${callTarget}(${callArgs.join(",")});
+            `;
+        }
+
+        else {
+            call=`
+                let retval,ret=${callTarget}(${callArgs.join(",")});
+                ${this.ts(func.return).jsUnpack(`retval`,`ret`)}
+                return retval;
+            `;
         }
 
         return `
-            ${signature} {
-                ${this.generateJsFunctionReturn(func,call)}
+            ${signature}(${declArgs.join(",")}) {
+                ${func.args.map((arg,i)=>`
+                    ${this.ts(arg).jsDecl(`p${i}`)}
+                    ${this.ts(arg).jsPack(`p${i}`,`a${i}`)}
+                `).join("\n")}
+                ${call}
             }
         `;
     }
@@ -164,8 +159,8 @@ class PeabindjsBuilder {
     }
 }
 
-export function peabindGenerateJs({idl, prefix, mod, exports}) {
-	let builder=new PeabindjsBuilder({idl, prefix, mod, exports});
+export function peabindGenerateJs({idl, prefix, mod, exports, typeStrategyFactory}) {
+	let builder=new PeabindjsBuilder({idl, prefix, mod, exports, typeStrategyFactory});
 	return builder.generateJsSource();
 }
 
