@@ -25,7 +25,7 @@ class PeabindjsBuilder {
         let declArgs=func.args.map((arg,i)=>`a${i}`);
         let callArgs=func.args.map((arg,i)=>`p${i}`);
 
-        let signature,/*call,*/callTarget;
+        let signature,callTarget;
         if (cls) {
             signature=`${func.name}`;
             callArgs.unshift(`this._handle`);
@@ -90,18 +90,14 @@ class PeabindjsBuilder {
 
     generateJsCallbackReceiver(ev, {cls}) {
         let decl=ev.args.map((arg,i)=>`a${i}`).join(",");
-        let call=ev.args.map((arg,i)=>{
-            if (["int","float"].includes(arg.type))
-                return `a${i}`;
-
-            if (!idlGetClass(this.idl,arg.type))
-                throw new Error("Unknown type: "+arg.type);
-
-            return `${this.prefix}getRegistryObject(a${i},${arg.type})`;
-        }).join(",");
+        let call=ev.args.map((arg,i)=>`c${i}`).join(",");
 
         return `
             globalThis.${this.prefix}handle_${cls.name}_${ev.name}=(cbId,${decl})=>{
+                ${ev.args.map((arg,i)=>`
+                    ${this.ts(arg).jsDecl(`c${i}`)}
+                    ${this.ts(arg).jsUnpack(`c${i}`,`a${i}`)}
+                `).join("\n")}
                 ${this.prefix}getCallback(cbId)(${call});
             }
         `;
