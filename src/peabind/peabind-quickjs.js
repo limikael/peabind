@@ -6,6 +6,7 @@ import fs from "fs";
 import os from "os";
 import {autoIndent, escapeCString} from "../utils/lang-util.js";
 import {peabindGenerateJs, peabindGenerateCpp} from "./peabind-gen.js";
+import {createTypeStrategy} from "./peabind-quickjs-types.js";
 
 class PeabindQuickjsBuilder {
     constructor({idl, prefix, projectName}) {
@@ -17,86 +18,8 @@ class PeabindQuickjsBuilder {
             this.prefix=this.projectName.replaceAll(".","_")+"_";
     }
 
-    generateVarDecl(typeDef, name) {
-        switch (typeDef.type) {
-            case "int":
-                return `int32_t ${name};\n`;
-                break;
-
-            case "float":
-                return `double ${name};\n`;
-                break;
-
-            default:
-                if (!idlGetClass(this.idl,typeDef.type))
-                    throw new Error("Unknown type: "+typeDef.type);
-
-                return `
-                    int ${name}_id;
-                    std::shared_ptr<${typeDef.type}> ${name}; 
-                `;
-                break;
-        }
-    }
-
-    generateParam(typeDef, name) {
-        switch (typeDef.type) {
-            case "int":
-                return `int ${name}`;
-
-            case "float":
-                return `float ${name}`;
-
-            default:
-                if (!idlGetClass(this.idl,typeDef.type))
-                    throw new Error("Unknown param type: "+typeDef.type);
-
-                return `std::shared_ptr<${typeDef.type}> ${name}`;
-                break;
-        }
-    }
-
-    generatePack(typeDef, dest, src) {
-        switch (typeDef.type) {
-            case "int":
-                return `${dest}=JS_NewInt32(ctx,${src});\n`;
-                break;
-
-            case "float":
-                return `${dest}=JS_NewFloat64(ctx,${src});\n`;
-                break;
-
-            default:
-                if (!idlGetClass(this.idl,typeDef.type))
-                    throw new Error("Unknown type: "+typeDef.type);
-
-                return `
-                    ${dest}=JS_NewInt32(ctx,store(${src}));
-                `;
-                break;
-        }
-    }
-
-    generateUnpack(typeDef, dest, src) {
-        switch (typeDef.type) {
-            case "int":
-                return `JS_ToInt32(ctx,&${dest},${src});\n`;
-                break;
-
-            case "float":
-                return `JS_ToFloat64(ctx,&${dest},${src});\n`;
-                break;
-
-            default:
-                if (!idlGetClass(this.idl,typeDef.type))
-                    throw new Error("Unknown type: "+typeDef.type);
-
-                return `
-                    JS_ToInt32(ctx,&${dest}_id,${src});\n
-                    ${dest}=std::static_pointer_cast<${typeDef.type}>(registry[${dest}_id]);\n
-                `;
-                break;
-        }
+    ts(typeDef) {
+        return createTypeStrategy(this.idl,typeDef);
     }
 
     generateFunctionDef(func,{cls}={}) {
@@ -129,10 +52,10 @@ class PeabindQuickjsBuilder {
 
         else {
             call=`
-                ${this.generateVarDecl(func.return,"ret")}
+                ${this.ts(func.return).decl("ret")}
                 ret=${callTarget}(${func.args.map((arg,i)=>"arg_"+i).join(",")});
                 JSValue retval;
-                ${this.generatePack(func.return,"retval","ret")}
+                ${this.ts(func.return).pack("retval","ret")}
                 return retval;
             `;
         }
@@ -142,8 +65,8 @@ class PeabindQuickjsBuilder {
                 if (argc!=${func.args.length+argStart}) return JS_ThrowTypeError(ctx, "wrong arg count");
                 ${prelude}
                 ${func.args.map((arg,i)=>`
-                    ${this.generateVarDecl(arg,"arg_"+i)}
-                    ${this.generateUnpack(arg,"arg_"+i,"argv["+(i+argStart)+"]")}
+                    ${this.ts(arg).decl("arg_"+i)}
+                    ${this.ts(arg).unpack("arg_"+i,"argv["+(i+argStart)+"]")}
                 `).join("")}
                 ${call}
             }
@@ -151,7 +74,7 @@ class PeabindQuickjsBuilder {
     }
 
     generateEventDef(event, {cls}) {
-        let decl=event.args.map((arg,i)=>this.generateParam(arg,`a${i}`)).join(",");
+        let decl=event.args.map((arg,i)=>this.ts(arg).param(`a${i}`)).join(",");
         let onName=`${this.prefix}${cls.name}_on_${event.name}`;
         let offName=`${this.prefix}${cls.name}_off_${event.name}`;
         let handlerName=`${this.prefix}handle_${cls.name}_${event.name}`;
@@ -171,7 +94,7 @@ class PeabindQuickjsBuilder {
                     args[0] = JS_NewInt32(ctx, callbackId);
 
                     ${event.args.map((arg,i)=>`
-                        ${this.generatePack(arg,`args[${i+1}]`,`a${i}`)}
+                        ${this.ts(arg).pack(`args[${i+1}]`,`a${i}`)}
                     `).join("")}
 
                     JSValue result=JS_Call(ctx,cb,JS_UNDEFINED,${event.args.length+1},args);
