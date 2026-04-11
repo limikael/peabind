@@ -6,6 +6,7 @@ import fs from "fs";
 import os from "os";
 import {autoIndent} from "../utils/lang-util.js";
 import {peabindGenerateJs, peabindGenerateCpp} from "./peabind-gen.js";
+import {createTypeStrategy} from "./peabind-wasm-types.js";
 
 let __dirname=dirnameFromImportMeta(import.meta);
 
@@ -17,6 +18,10 @@ class PeabindWasmBuilder {
 
         if (!this.prefix)
             this.prefix=this.projectName.replaceAll(".","_")+"_";
+    }
+
+    ts(typeDef) {
+        return createTypeStrategy(this.idl,typeDef);
     }
 
     getExportedFunctionNames() {
@@ -41,65 +46,18 @@ class PeabindWasmBuilder {
         return exportedFunctionNames;
     }
 
-    generateCppFunctionReturnType(func) {
-        if (func.return.type=="void")
-            return `void`;
-
-        else if (["int","float"].includes(func.return.type))
-            return `${func.return.type}`;
-
-        if (!idlGetClass(this.idl,func.return.type))
-            throw new Error("Unknown type: "+func.return.type);
-
-        return `int`;
-    }
-
-    generateCppFunctionReturn(func, expr) {
-        if (func.return.type=="void")
-            return `${expr};`;
-
-        else if (["int","float"].includes(func.return.type))
-            return `return (${expr});`;
-
-        if (!idlGetClass(this.idl,func.return.type))
-            throw new Error("Unknown type: "+func.return.type);
-
-        return `return store(${expr});`;
-    }
-
     generateCppFunctionDeclArgList(func, {cls}={}) {
-        let l=func.args.map((arg,i)=>{
-            if (["int","float"].includes(arg.type))
-                return `${arg.type} arg_${i}`
+        let l=func.args.map((arg,i)=>this.ts(arg).abiParam(`a${i}`));
 
-            if (!idlGetClass(this.idl,arg.type))
-                throw new Error("Unknown type: "+arg.type);
-
-            // It is an object type
-            return `int arg_${i}`;
-        });
         if (cls)
             l.unshift("int id");
 
         return l.join(",")
     }
 
-    generateCppFunctionCallArgList(func) {
-        return `${func.args.map((arg,i)=>{
-            if (["int","float"].includes(arg.type))
-                return `arg_${i}`;
-
-            if (!idlGetClass(this.idl,arg.type))
-                throw new Error("Unknown type: "+arg.type);
-
-            return `std::static_pointer_cast<${arg.type}>(registry[arg_${i}])`;
-        }).join(",")}`;
-    }
-
     generateCppFunction(func, {cls}={}) {
-        let returnType=this.generateCppFunctionReturnType(func);
         let declArgList=this.generateCppFunctionDeclArgList(func,{cls});
-        let callArgList=this.generateCppFunctionCallArgList(func);
+        let callArgList=func.args.map((arg,i)=>`p${i}`).join(",");
 
         let name,prelude,callTarget;
         if (cls) {
@@ -114,33 +72,38 @@ class PeabindWasmBuilder {
             callTarget=`${func.name}`;
         }
 
+        let call;
+        if (func.return.type=="void") {
+            call=`
+                ${callTarget}(${callArgList});
+            `;
+        }
+
+        else {
+            call=`
+                ${this.ts(func.return).nativeDecl("ret")}
+                ret=${callTarget}(${callArgList});
+                ${this.ts(func.return).abiDecl("retval")}
+                ${this.ts(func.return).pack("retval","ret")}
+                return retval;
+            `
+        }
+
         return `
-            ${returnType} ${name}(${declArgList}) {
+            ${this.ts(func.return).abiType()} ${name}(${declArgList}) {
                 ${prelude}
-                ${this.generateCppFunctionReturn(func,`${callTarget}(${callArgList})`)}
+                ${func.args.map((arg,i)=>`
+                    ${this.ts(arg).nativeDecl(`p${i}`)}
+                    ${this.ts(arg).unpack(`p${i}`,`a${i}`)}
+                `).join("\n")}
+                ${call}
             }
         `;
     }
 
     generateCppEvent(event, {cls}) {
-        let decl=event.args.map((arg,i)=>{
-            if (["int","float"].includes(arg.type))
-                return `${arg.type} a${i}`;
-
-            if (!idlGetClass(this.idl,arg.type))
-                throw new Error("Unknown type for event: "+arg.type);
-
-            return `std::shared_ptr<${arg.type}> a${i}`;
-        }).join(",");
-        let call=event.args.map((arg,i)=>{
-            if (["int","float"].includes(arg.type))
-                return `a${i}`;
-
-            if (!idlGetClass(this.idl,arg.type))
-                throw new Error("Unknown type for event: "+arg.type);
-
-            return `store(a${i})`;
-        });
+        let decl=event.args.map((arg,i)=>this.ts(arg).nativeParam(`a${i}`)).join(",");
+        let call=event.args.map((arg,i)=>`p${i}`);
         call.unshift("callbackId");
         call=call.join(",");
 
@@ -148,6 +111,10 @@ class PeabindWasmBuilder {
             void ${this.prefix}${cls.name}_on_${event.name}(int id, int callbackId) {
                 std::shared_ptr<${cls.name}> instance=std::static_pointer_cast<${cls.name}>(registry[id]);
                 int listenerId=instance->${event.name}.on([callbackId](${decl}){
+                    ${event.args.map((arg,i)=>`
+                        ${this.ts(arg).abiDecl(`p${i}`)}
+                        ${this.ts(arg).pack(`p${i}`,`a${i}`)}
+                    `).join("\n")}
                     ${this.prefix}handle_${cls.name}_${event.name}(${call});
                 });
                 instance->${event.name}.setGlobalId(listenerId,callbackId);
@@ -173,15 +140,7 @@ class PeabindWasmBuilder {
     }
 
     generateCppEventStub(ev, {cls}) {
-        let decl=ev.args.map((arg,i)=>{
-            if (["float","int"].includes(arg.type))
-                return `${arg.type} a${i}`;
-
-            if (!idlGetClass(this.idl,arg.type))
-                throw new Error("Unknown type for event: "+arg.type);
-
-            return `int a${i}`;
-        });
+        let decl=ev.args.map((arg,i)=>this.ts(arg).abiParam(`a${i}`));
         decl.unshift("int cbId");
         decl=decl.join(",");
 

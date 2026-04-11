@@ -74,7 +74,7 @@ class PeabindQuickjsBuilder {
     }
 
     generateEventDef(event, {cls}) {
-        let decl=event.args.map((arg,i)=>this.ts(arg).param(`a${i}`)).join(",");
+        let params=event.args.map((arg,i)=>this.ts(arg).nativeParam(`a${i}`)).join(",");
         let onName=`${this.prefix}${cls.name}_on_${event.name}`;
         let offName=`${this.prefix}${cls.name}_off_${event.name}`;
         let handlerName=`${this.prefix}handle_${cls.name}_${event.name}`;
@@ -86,7 +86,7 @@ class PeabindQuickjsBuilder {
                 JS_ToInt32(ctx,&callbackId,argv[1]);
                 std::shared_ptr<${cls.name}> instance=std::static_pointer_cast<${cls.name}>(registry[id]);
 
-                int listenerId=instance->${event.name}.on([ctx,callbackId](${decl}){
+                int listenerId=instance->${event.name}.on([ctx,callbackId](${params}){
                     JSValue global=JS_GetGlobalObject(ctx);
                     JSValue cb=JS_GetPropertyStr(ctx,global,"${handlerName}");
 

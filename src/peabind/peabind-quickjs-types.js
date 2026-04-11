@@ -9,7 +9,7 @@ class IntTypeStrategy {
         return `JS_ToInt32(ctx,&${dest},${src});\n`;
     }
 
-    param(name) {
+    nativeParam(name) {
         return `int ${name}`;
     }
 
@@ -27,7 +27,7 @@ class FloatTypeStrategy {
         return `JS_ToFloat64(ctx,&${dest},${src});\n`;
     }
 
-    param(name) {
+    nativeParam(name) {
         return `float ${name}`;
     }
 
@@ -55,7 +55,7 @@ class ObjectTypeStrategy {
         `;
     }
 
-    param(name) {
+    nativeParam(name) {
         return `std::shared_ptr<${this.typeDef.type}> ${name}`;
     }
 
