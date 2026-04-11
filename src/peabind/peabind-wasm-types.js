@@ -131,6 +131,57 @@ class ObjectTypeStrategy {
     }
 }
 
+class StringTypeStrategy {
+    /*abiType() {
+        return `int`;
+    }
+
+    nativeParam(name) {
+        return `std::shared_ptr<${this.typeDef.type}> ${name}`;
+    }*/
+
+    abiParam(name) {
+        return `TransferBuffer* ${name}`;
+    }
+
+    /*abiDecl(name) {
+        return `int ${name};\n`;
+    }*/
+
+    nativeDecl(name) {
+        return `std::string ${name};`;
+    }
+
+    unpack(to, from) {
+        return `
+            ${to}=std::string(static_cast<const char*>(transferBufferGetPointer(${from})),transferBufferGetSize(${from}));
+            transferBufferDispose(${from});
+        `;
+    }
+
+    /*pack(to, from) {
+        return `${to}=store(${from});\n`;
+    }
+
+    jsUnpack(to, from) {
+        return `${to}=${this.prefix}getRegistryObject(${from},${this.typeDef.type});\n`;
+    }*/
+
+    jsDecl(name) {
+        return `let ${name};`
+    }
+
+    jsPack(to, from) {
+        return `
+            let ${from}_encoder=new TextEncoder();
+            let ${from}_bytes=${from}_encoder.encode(${from});
+            ${to}=exp.transferBufferCreate(${from}_bytes.length);
+            let ${to}_mem=new Uint8Array(memory.buffer,exp.transferBufferGetPointer(${to}),${from}_bytes.length);
+            ${to}_mem.set(${from}_bytes)
+        `;
+    }
+}
+
 class VoidTypeStrategy {
     abiType() {
         return `void`;
@@ -149,6 +200,10 @@ export function createTypeStrategy(typeDef, {idl, prefix}) {
 
         case "void":
             return new VoidTypeStrategy();
+            break;
+
+        case "string":
+            return new StringTypeStrategy();
             break;
 
         default:

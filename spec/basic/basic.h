@@ -6,6 +6,7 @@ int hello(int a, int b);
 int hello2();
 int hellof(float f);
 float hellothird(int i);
+int hellos(std::string s);
 
 class Hello {
 public:

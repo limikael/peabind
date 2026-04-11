@@ -189,5 +189,25 @@ export function peabindGenerateCpp({idl, prefix}) {
             reverseRegistry.erase(key);
             registry.erase(it);
         }
+
+        TransferBuffer *transferBufferCreate(size_t size) {
+            TransferBuffer *t=(TransferBuffer *)malloc(sizeof(TransferBuffer));
+            t->pointer=malloc(size);
+            t->size=size;
+            return t;
+        }
+
+        void *transferBufferGetPointer(TransferBuffer *t) {
+            return t->pointer;
+        }
+
+        size_t transferBufferGetSize(TransferBuffer *t) {
+            return t->size;
+        }
+
+        void transferBufferDispose(TransferBuffer *t) {
+            free(t->pointer);
+            free(t);
+        }
     `);
 }

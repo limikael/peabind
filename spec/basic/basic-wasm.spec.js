@@ -65,7 +65,7 @@ describe("basic-wasm",()=>{
 		expect(h4.getVal()).toEqual(999);
 	});
 
-	it("can handle types",async ()=>{
+	it("can handle types and events",async ()=>{
 		fs.rmSync(path.join(__dirname,"basic.out.js"),{force: true});
 		fs.rmSync(path.join(__dirname,"basic.out.wasm"),{force: true});
 
@@ -107,5 +107,21 @@ describe("basic-wasm",()=>{
 		h.emitDataHello(eh);
 
 		expect(invokeCount).toEqual(3);
+	});
+
+	it("can handle strings",async ()=>{
+		fs.rmSync(path.join(__dirname,"basic.out.js"),{force: true});
+		fs.rmSync(path.join(__dirname,"basic.out.wasm"),{force: true});
+
+		await peabind({
+			idl: path.join(__dirname,"basic.json"),
+			sources: [path.join(__dirname,"basic.cpp")],
+			output: path.join(__dirname,"basic.out.js"),
+			target: "wasm"
+		});
+
+		let mod=await import(path.join(__dirname,"basic.out.js"));
+		let i=mod.hellos("123");
+		expect(i).toEqual(12300);
 	});
 });

@@ -30,6 +30,13 @@ class PeabindWasmBuilder {
     getExportedFunctionNames() {
         let exportedFunctionNames=[];
 
+        exportedFunctionNames.push(...[
+            "_transferBufferCreate",
+            "_transferBufferGetPointer",
+            "_transferBufferGetSize",
+            "_transferBufferDispose",
+        ]);
+
         for (let func of this.idl.functions)
             exportedFunctionNames.push(`_${this.prefix}${func.name}`);
 

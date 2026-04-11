@@ -2,6 +2,19 @@
 #include <vector>
 #include <functional>
 
+typedef struct {
+    void *pointer;
+    size_t size;
+} TransferBuffer;
+
+extern "C" {
+    TransferBuffer *transferBufferCreate(size_t size);
+    void *transferBufferGetPointer(TransferBuffer *t);
+    size_t transferBufferGetSize(TransferBuffer *t);
+    void transferBufferDispose(TransferBuffer *t);
+}
+
+
 template<typename... Args>
 class Dispatcher {
     struct Listener {

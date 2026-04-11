@@ -8,6 +8,11 @@ int hello2() {
 	return 222;
 }
 
+int hellos(std::string s) {
+	std::string t=s+"00";
+	return atoi(t.c_str());
+}
+
 std::shared_ptr<Hello> globalHello;
 
 std::shared_ptr<Hello> createHello() {
