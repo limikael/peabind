@@ -156,3 +156,30 @@ void test_strings() {
     JS_FreeContext(ctx);
     JS_FreeRuntime(rt);
 }
+
+void test_gc() {
+    printf("- gc\n");
+    JSRuntime *rt=JS_NewRuntime();
+    JSContext *ctx=JS_NewContext(rt);
+    basic_init(ctx);
+    std::string s;
+
+    s=runjs(ctx,"getLiveHelloCount()");
+    //printf("live: %s\n",s.c_str());
+    assert(s=="0");
+
+    s=runjs(ctx,"globalThis.h=new Hello()");
+    s=runjs(ctx,"getLiveHelloCount()");
+    //printf("live: %s\n",s.c_str());
+    assert(s=="1");
+
+    s=runjs(ctx,"globalThis.h=null");
+    JS_RunGC(rt);
+    s=runjs(ctx,"getLiveHelloCount()");
+    assert(s=="0");
+
+
+    basic_exit(ctx);
+    JS_FreeContext(ctx);
+    JS_FreeRuntime(rt);
+}
