@@ -5,9 +5,10 @@
   "main": "index.js",
   "scripts": {
     "test": "pnpm test:js && pnpm test:c",
-    "test:js": "jasmine",
+    "test:js": "node --expose-gc node_modules/jasmine/bin/jasmine.js",
     "test:c": "peabind spec/basic/basic.json -otest/basic.out.cpp -pbasic_ -tquickjs && g++ -o bin/testmain test/*.cpp spec/basic/basic.cpp -Ispec/basic -Iext/quickjs-2025-09-13 -Iinclude ext/quickjs-2025-09-13/libquickjs.a && ./bin/testmain",
-    "ext": "./src/peabind/ext.js"
+    "ext": "./src/peabind/ext.js",
+    "minilab": "peabind spec/mini/mini.json -olab/mini.out.js -pmini_ -twasm && node --expose-gc lab/mini-lab.js"
   },
   "bin": {
     "peabind": "./src/peabind/peabind-cli.js"

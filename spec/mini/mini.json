@@ -1,0 +1,6 @@
+{
+	"include": ["mini.h"],
+	"classes": {
+		"Mini": {}
+	}
+}

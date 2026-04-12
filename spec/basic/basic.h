@@ -8,10 +8,20 @@ int hellof(float f);
 float hellothird(int i);
 std::string hellos(std::string s, std::string t);
 
+extern int liveHelloCount;
+int getLiveHelloCount();
+
 class Hello {
 public:
+	Hello() {
+		val=100;
+		liveHelloCount++;
+		//printf("creating hello, val=%d\n",val);
+	}
+
 	~Hello() {
-		//printf("destroying hello...\n");
+		liveHelloCount--;
+		//printf("destroying hello, val=%d\n",getVal());
 	}
 
 	int getVal() {
@@ -47,11 +57,6 @@ public:
 
 	static std::shared_ptr<Hello> create() {
 		return std::make_shared<Hello>();
-	}
-
-	Hello() {
-		val=100;
-		//printf("creating hello, val=%d\n",val);
 	}
 
 	Dispatcher<int,int> data;

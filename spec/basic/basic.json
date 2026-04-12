@@ -7,7 +7,8 @@
 		"setHelloVal": {"args": ["Hello","int"]},
 		"hellof": {"return":"int","args": ["float"]},
 		"hellothird": {"return":"float","args": ["int"]},
-		"hellos": {"return": "string","args":["string","string"]}
+		"hellos": {"return": "string","args":["string","string"]},
+		"getLiveHelloCount": {"return": "int"}
 	},
 	"classes": {
 		"Hello": {

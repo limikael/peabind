@@ -106,6 +106,11 @@ class PeabindjsBuilder {
     generateJsSource() {
         return autoIndent(`
             let ${this.prefix}registry=new Map();
+            let ${this.prefix}finalizationRegistry=new FinalizationRegistry(handle=>{
+                ${this.getModPrefix()}destroy(handle);
+                ${this.prefix}registry.delete(handle);
+            });
+
             let ${this.prefix}callbackRegistry=new Map();
             let ${this.prefix}reverseCallbackRegistry=new Map();
             let ${this.prefix}nextCallbackId=100;
@@ -122,13 +127,15 @@ class PeabindjsBuilder {
             }
 
             function ${this.prefix}getRegistryObject(id,cls) {
-                if (!${this.prefix}registry.get(id)) {
+                if (!${this.prefix}registry.get(id) ||
+                        !${this.prefix}registry.get(id).deref()) {
                     let o=Object.create(cls.prototype);
                     o._handle=id;
-                    ${this.prefix}registry.set(id,o);
+                    ${this.prefix}registry.set(id,new WeakRef(o));
+                    ${this.prefix}finalizationRegistry.register(o,o._handle);
                 }
 
-                return ${this.prefix}registry.get(id);
+                return ${this.prefix}registry.get(id).deref();
             }
 
             ${this.idl.functions.map(func=>this.generateJsFunction(func)).join("\n")}
@@ -137,12 +144,8 @@ class PeabindjsBuilder {
                 ${this.exports?"export":""} class ${cls.name} {
                     constructor() {
                         this._handle=${this.getModPrefix()}${cls.name}_new();
-                        ${this.prefix}registry.set(this._handle,this);
-                    }
-
-                    destroy() {
-                        ${this.getModPrefix()}destroy(this._handle);
-                        this._handle=null;
+                        ${this.prefix}registry.set(this._handle,new WeakRef(this));
+                        ${this.prefix}finalizationRegistry.register(this,this._handle);
                     }
 
                     ${cls.methods.map(method=>this.generateJsFunction(method,{cls})).join("\n")}

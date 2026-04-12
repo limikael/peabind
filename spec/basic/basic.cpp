@@ -1,5 +1,11 @@
 #include "basic.h"
 
+int liveHelloCount=0;
+
+int getLiveHelloCount() {
+	return liveHelloCount;
+}
+
 int hello(int a, int b) {
 	return a+b;
 }

@@ -2,6 +2,7 @@ import {peabind} from "../../src/peabind/peabind.js";
 import {dirnameFromImportMeta} from "../../src/utils/node-util.js";
 import fs, {promises as fsp} from "fs";
 import path from "path";
+import {forceGc} from "../../src/utils/test-util.js";
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL=10000;
 
@@ -45,8 +46,8 @@ describe("basic-wasm",()=>{
 		//console.log("h1 val="+h1.getVal());
 		expect(h1.getVal()).toEqual(100);
 
-		h2.destroy();
-		h1.destroy();
+		/*h2.destroy();
+		h1.destroy();*/
 
 		let h3=mod.createHello();
 		let h4=mod.createHello();
@@ -130,5 +131,33 @@ describe("basic-wasm",()=>{
 		let mod=await import(path.join(__dirname,"basic.out.js"));
 		let i=mod.hellos("123","00");
 		expect(i).toEqual("12300");
+	});
+
+	it("works with gc",async()=>{
+		fs.rmSync(path.join(__dirname,"basic.out.gc.js"),{force: true});
+		fs.rmSync(path.join(__dirname,"basic.out.gc.wasm"),{force: true});
+
+		await peabind({
+			idl: path.join(__dirname,"basic.json"),
+			sources: [path.join(__dirname,"basic.cpp")],
+			output: path.join(__dirname,"basic.out.gc.js"),
+			target: "wasm"
+		});
+
+		let mod=await import(path.join(__dirname,"basic.out.gc.js"));
+
+		expect(mod.getLiveHelloCount()).toEqual(0);
+		let h1=new mod.Hello();
+		expect(mod.getLiveHelloCount()).toEqual(1);
+		let h2=new mod.Hello();
+		expect(mod.getLiveHelloCount()).toEqual(2);
+
+		await forceGc();
+		h2=null;
+		await forceGc();
+		expect(mod.getLiveHelloCount()).toEqual(1);
+		h1=null;
+		await forceGc();
+		expect(mod.getLiveHelloCount()).toEqual(0);
 	});
 });
