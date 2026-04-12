@@ -5,7 +5,8 @@ import path from "path";
 import fs from "fs";
 import os from "os";
 import {autoIndent} from "../utils/lang-util.js";
-import {peabindGenerateJs, peabindGenerateCpp} from "./peabind-gen.js";
+import {peabindGenerateJs} from "./peabind-js.js";
+import {peabindGenerateCpp} from "./peabind-cpp.js";
 import {createTypeStrategy} from "./peabind-wasm-types.js";
 
 let __dirname=dirnameFromImportMeta(import.meta);
