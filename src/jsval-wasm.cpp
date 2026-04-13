@@ -3,6 +3,7 @@
 #include <cstring>
 #include <map>
 
+std::map<JSVAL,void*> opaques;
 std::map<JSVAL,void*> internalOpaques;
 
 JSVAL *jsvalReadArray(JSVAL a, JSVAL *dest) {
@@ -21,6 +22,16 @@ void jsvalSetInternalOpaque(JSVAL v, void *opaque) {
 
 void *jsvalGetInternalOpaque(JSVAL v) {
 	return internalOpaques[v];
+}
+
+void jsvalSetOpaque(JSVAL v, void *opaque) {
+	//printf("setting opaque for v=%d f=%p\n",v,opaque);
+
+	opaques[v]=opaque;
+}
+
+void *jsvalGetOpaque(JSVAL v) {
+	return opaques[v];
 }
 
 JSVAL jsvalCallNative(JSVAL stub, JSVAL thisobj, JSVAL params) {

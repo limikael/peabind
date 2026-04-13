@@ -37,6 +37,8 @@ describe("jsval",()=>{
         expect(s2).toEqual("helloworld");
 
         let my=new mod.MyClass();
+        expect(my.getVal()).toEqual(100);
+        my.setVal(123);
         expect(my.getVal()).toEqual(123);
     });
 })

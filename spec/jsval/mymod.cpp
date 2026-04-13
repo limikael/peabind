@@ -44,20 +44,41 @@ JSVAL concat(JSVAL thisobj, JSVAL args) {
 	return jsvalCreateString(res.c_str());
 }
 
-JSVAL MyClass(JSVAL thisobj, JSVAL args) {
+class MyClass {
+public:
+	MyClass() {
+		val=100;
+	}
+	int val;
+};
+
+JSVAL MyClass_constructor(JSVAL thisobj, JSVAL args) {
+	jsvalSetOpaque(thisobj,new MyClass());
+
 	return 0;
 }
 
 JSVAL MyClass_getVal(JSVAL thisobj, JSVAL args) {
-	return jsvalCreateInt(123);
+	MyClass *my=(MyClass*)jsvalGetOpaque(thisobj);
+	return jsvalCreateInt(my->val);
+}
+
+JSVAL MyClass_setVal(JSVAL thisobj, JSVAL args) {
+	JSVAL argv[jsvalGetSize(args)];
+	jsvalReadArray(args,argv);
+	MyClass *my=(MyClass*)jsvalGetOpaque(thisobj);
+
+	my->val=jsvalGetInt(argv[0]);
+	return 0;
 }
 
 extern "C" void init() {
 	JSVAL mod=jsvalGetModule();
 
-	JSVAL cls=jsvalCreateClass(MyClass);
+	JSVAL cls=jsvalCreateClass(MyClass_constructor);
 	jsvalSetProp(mod,"MyClass",cls);
 	jsvalSetProtoProp(cls,"getVal",jsvalCreateFunc(MyClass_getVal));
+	jsvalSetProtoProp(cls,"setVal",jsvalCreateFunc(MyClass_setVal));
 
 	jsvalSetProp(mod,"add",jsvalCreateFunc(add));
 	jsvalSetProp(mod,"makecall",jsvalCreateFunc(makecall));

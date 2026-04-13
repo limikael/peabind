@@ -30,5 +30,9 @@ JSVAL jsvalCallNative(JSVAL func, JSVAL thisobj, JSVAL params);
 void jsvalSetProp(JSVAL o, const char *s, JSVAL val);
 void jsvalSetProtoProp(JSVAL o, const char *s, JSVAL val);
 JSVAL *jsvalReadArray(JSVAL a, JSVAL *dest);
+void jsvalSetInternalOpaque(JSVAL v, void *opaque);
+void *jsvalGetInternalOpaque(JSVAL v);
+void jsvalSetOpaque(JSVAL v, void *opaque);
+void *jsvalGetOpaque(JSVAL v);
 
 }
