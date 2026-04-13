@@ -2,8 +2,11 @@
 #include "jsval-wasm.h"
 
 JSVAL add(JSVAL thisobj, JSVAL args) {
-	JSVAL a=jsvalGetInt(jsvalGetItemAt(args,0));
-	JSVAL b=jsvalGetInt(jsvalGetItemAt(args,1));
+	JSVAL argv[jsvalGetSize(args)];
+	jsvalReadArray(args,argv);
+
+	JSVAL a=jsvalGetInt(argv[0]);
+	JSVAL b=jsvalGetInt(argv[1]);
 
 	return jsvalCreateInt(a+b);
 }
@@ -15,9 +18,17 @@ JSVAL makecall(JSVAL thisobj, JSVAL args) {
 	return ret;
 }
 
+JSVAL getstringlen(JSVAL thisobj, JSVAL args) {
+	int len=jsvalGetSize(jsvalGetItemAt(args,0));
+	//printf("len: %d\n",len);
+
+	return jsvalCreateInt(len);
+}
+
 extern "C" void init() {
 	JSVAL mod=jsvalGetModule();
 
 	jsvalSetProp(mod,"add",jsvalCreateFunc(add));
 	jsvalSetProp(mod,"makecall",jsvalCreateFunc(makecall));
+	jsvalSetProp(mod,"getstringlen",jsvalCreateFunc(getstringlen));
 }

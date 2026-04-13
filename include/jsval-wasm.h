@@ -24,5 +24,6 @@ extern "C" {
 JSVAL jsvalCreateFunc(JSVAL_FUNC *f);
 JSVAL jsvalCallNative(JSVAL func, JSVAL thisobj, JSVAL params);
 void jsvalSetProp(JSVAL o, const char *s, JSVAL val);
+JSVAL *jsvalReadArray(JSVAL a, JSVAL *dest);
 
 }

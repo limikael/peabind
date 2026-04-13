@@ -27,6 +27,9 @@ describe("jsval",()=>{
 
         let s=mod.makecall(hello);
         expect(s).toEqual("testing");
+ 
+        let i=mod.getstringlen("test");
+        expect(i).toEqual(4);
     });
 })
 

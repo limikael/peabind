@@ -5,6 +5,14 @@
 
 std::map<JSVAL,void*> opaques;
 
+JSVAL *jsvalReadArray(JSVAL a, JSVAL *dest) {
+	int size=jsvalGetSize(a);
+	for (int i=0; i<size; i++)
+		dest[i]=jsvalGetItemAt(a,i);
+
+	return dest;
+}
+
 void jsvalSetOpaque(JSVAL v, void *opaque) {
 	//printf("setting opaque for v=%d f=%p\n",v,opaque);
 
