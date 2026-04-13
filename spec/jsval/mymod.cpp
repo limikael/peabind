@@ -44,8 +44,20 @@ JSVAL concat(JSVAL thisobj, JSVAL args) {
 	return jsvalCreateString(res.c_str());
 }
 
+JSVAL MyClass(JSVAL thisobj, JSVAL args) {
+	return 0;
+}
+
+JSVAL MyClass_getVal(JSVAL thisobj, JSVAL args) {
+	return jsvalCreateInt(123);
+}
+
 extern "C" void init() {
 	JSVAL mod=jsvalGetModule();
+
+	JSVAL cls=jsvalCreateClass(MyClass);
+	jsvalSetProp(mod,"MyClass",cls);
+	jsvalSetProtoProp(cls,"getVal",jsvalCreateFunc(MyClass_getVal));
 
 	jsvalSetProp(mod,"add",jsvalCreateFunc(add));
 	jsvalSetProp(mod,"makecall",jsvalCreateFunc(makecall));

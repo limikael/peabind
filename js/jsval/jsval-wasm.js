@@ -15,9 +15,11 @@ class JsvalWasmModule {
                 jsvalGetSize: this.jsvalGetSize,
                 jsvalGetItemAt: this.jsvalGetItemAt,
                 jsvalCreateFuncStub: this.jsvalCreateFuncStub,
+                jsvalCreateClassStub: this.jsvalCreateClassStub,
                 jsvalCall: this.jsvalCall,
                 jsvalCreateString: this.jsvalCreateString,
                 jsvalSetPropJsval: this.jsvalSetPropJsval,
+                jsvalGetPropJsval: this.jsvalGetPropJsval,
                 jsvalGetInt: this.jsvalGetInt,
                 jsvalGetModule: this.jsvalGetModule,
                 jsvalCreateInt: this.jsvalCreateInt,
@@ -95,6 +97,12 @@ class JsvalWasmModule {
         o[prop]=val;
     }
 
+    jsvalGetPropJsval=(oid, propid)=>{
+        let o=this.unpack(oid);
+        let prop=this.unpack(propid);
+        return this.pack(o[prop]);
+    }
+
     jsvalCreateFuncStub=()=>{
         let id;
         let that=this;
@@ -110,6 +118,32 @@ class JsvalWasmModule {
 
         return id;
     }
+
+    jsvalCreateClassStub = () => {
+        let id;
+        let that = this;
+
+        function C(...args) {
+            let thisid = that.pack(this);
+            let aid = that.pack(args);
+            let retid = that.instance.exports.jsvalCallNative(id, thisid, aid);
+            let ret = that.unpack(retid);
+
+            // JS constructor semantics:
+            if (ret !== null && (typeof ret === "object" || typeof ret === "function")) {
+                return ret;
+            }
+
+            return this;
+        }
+
+        // important: give it a prototype
+        C.prototype = {};
+
+        id = this.pack(C);
+
+        return id;
+    };
 
     jsvalGetInt=(oid)=>{
         return this.unpack(oid);

@@ -38,7 +38,19 @@ JSVAL jsvalCreateFunc(JSVAL_FUNC *func) {
 	return stub;
 }
 
+JSVAL jsvalCreateClass(JSVAL_FUNC *func) {
+	JSVAL stub=jsvalCreateClassStub();
+	jsvalSetOpaque(stub,(void *)func);
+
+	return stub;
+}
+
 void jsvalSetProp(JSVAL o, const char *prop, JSVAL val) {
 	JSVAL propVal=jsvalCreateString(prop);
 	jsvalSetPropJsval(o,propVal,val);
+}
+
+void jsvalSetProtoProp(JSVAL o, const char *prop, JSVAL val) {
+	JSVAL proto=jsvalGetPropJsval(o,jsvalCreateString("prototype"));
+	jsvalSetPropJsval(proto,jsvalCreateString(prop),val);
 }

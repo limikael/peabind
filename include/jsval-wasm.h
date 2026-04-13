@@ -14,17 +14,21 @@ JS_IMPORT(jsvalGetItemAt) JSVAL jsvalGetItemAt(JSVAL v, int index);
 JS_IMPORT(jsvalCall) JSVAL jsvalCall(JSVAL fn, JSVAL thisobj, JSVAL args);
 JS_IMPORT(jsvalCreateString) JSVAL jsvalCreateString(const char *p);
 JS_IMPORT(jsvalSetPropJsval) JSVAL jsvalSetPropJsval(JSVAL o, JSVAL prop, JSVAL val);
+JS_IMPORT(jsvalGetPropJsval) JSVAL jsvalGetPropJsval(JSVAL o, JSVAL prop);
 JS_IMPORT(jsvalGetInt) JSVAL jsvalGetInt(JSVAL o);
 JS_IMPORT(jsvalGetModule) JSVAL jsvalGetModule();
 JS_IMPORT(jsvalCreateFuncStub) JSVAL jsvalCreateFuncStub();
+JS_IMPORT(jsvalCreateClassStub) JSVAL jsvalCreateClassStub();
 JS_IMPORT(jsvalCreateInt) JSVAL jsvalCreateInt(int i);
 JS_IMPORT(jsvalReadString) char *jsvalReadString(JSVAL s, char *dest);
 
 extern "C" {
 
 JSVAL jsvalCreateFunc(JSVAL_FUNC *f);
+JSVAL jsvalCreateClass(JSVAL_FUNC *f);
 JSVAL jsvalCallNative(JSVAL func, JSVAL thisobj, JSVAL params);
 void jsvalSetProp(JSVAL o, const char *s, JSVAL val);
+void jsvalSetProtoProp(JSVAL o, const char *s, JSVAL val);
 JSVAL *jsvalReadArray(JSVAL a, JSVAL *dest);
 
 }

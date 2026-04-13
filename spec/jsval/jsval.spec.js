@@ -35,6 +35,9 @@ describe("jsval",()=>{
         let s2=mod.concat("hello","world");
         //console.log("s2=",s2,s2.length);
         expect(s2).toEqual("helloworld");
+
+        let my=new mod.MyClass();
+        expect(my.getVal()).toEqual(123);
     });
 })
 
