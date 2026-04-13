@@ -39,6 +39,6 @@ JSVAL jsvalCreateFunc(JSVAL_FUNC *func) {
 }
 
 void jsvalSetProp(JSVAL o, const char *prop, JSVAL val) {
-	JSVAL propVal=jsvalCreateString(prop,strlen(prop));
+	JSVAL propVal=jsvalCreateString(prop);
 	jsvalSetPropJsval(o,propVal,val);
 }

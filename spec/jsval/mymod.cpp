@@ -1,5 +1,7 @@
 #include <cstdio>
 #include "jsval-wasm.h"
+#include <string>
+#include <cstring>
 
 JSVAL add(JSVAL thisobj, JSVAL args) {
 	JSVAL argv[jsvalGetSize(args)];
@@ -25,10 +27,28 @@ JSVAL getstringlen(JSVAL thisobj, JSVAL args) {
 	return jsvalCreateInt(len);
 }
 
+JSVAL concat(JSVAL thisobj, JSVAL args) {
+	JSVAL argv[jsvalGetSize(args)];
+	jsvalReadArray(args,argv);
+
+	char a[jsvalGetSize(argv[0])+1];
+	jsvalReadString(argv[0],a);
+
+	char b[jsvalGetSize(argv[1])+1];
+	jsvalReadString(argv[1],b);
+
+	std::string res=std::string(a)+std::string(b);
+	int len=strlen(res.c_str());
+	//printf("concat: %s len=%d\n",res.c_str(),len);
+
+	return jsvalCreateString(res.c_str());
+}
+
 extern "C" void init() {
 	JSVAL mod=jsvalGetModule();
 
 	jsvalSetProp(mod,"add",jsvalCreateFunc(add));
 	jsvalSetProp(mod,"makecall",jsvalCreateFunc(makecall));
 	jsvalSetProp(mod,"getstringlen",jsvalCreateFunc(getstringlen));
+	jsvalSetProp(mod,"concat",jsvalCreateFunc(concat));
 }

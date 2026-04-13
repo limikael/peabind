@@ -12,12 +12,13 @@ typedef JSVAL JSVAL_FUNC(JSVAL thisobj, JSVAL args);
 JS_IMPORT(jsvalGetSize) JSVAL jsvalGetSize(JSVAL v);
 JS_IMPORT(jsvalGetItemAt) JSVAL jsvalGetItemAt(JSVAL v, int index);
 JS_IMPORT(jsvalCall) JSVAL jsvalCall(JSVAL fn, JSVAL thisobj, JSVAL args);
-JS_IMPORT(jsvalCreateString) JSVAL jsvalCreateString(const char *p, size_t size);
+JS_IMPORT(jsvalCreateString) JSVAL jsvalCreateString(const char *p);
 JS_IMPORT(jsvalSetPropJsval) JSVAL jsvalSetPropJsval(JSVAL o, JSVAL prop, JSVAL val);
 JS_IMPORT(jsvalGetInt) JSVAL jsvalGetInt(JSVAL o);
 JS_IMPORT(jsvalGetModule) JSVAL jsvalGetModule();
 JS_IMPORT(jsvalCreateFuncStub) JSVAL jsvalCreateFuncStub();
 JS_IMPORT(jsvalCreateInt) JSVAL jsvalCreateInt(int i);
+JS_IMPORT(jsvalReadString) char *jsvalReadString(JSVAL s, char *dest);
 
 extern "C" {
 

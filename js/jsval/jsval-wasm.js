@@ -21,6 +21,7 @@ class JsvalWasmModule {
                 jsvalGetInt: this.jsvalGetInt,
                 jsvalGetModule: this.jsvalGetModule,
                 jsvalCreateInt: this.jsvalCreateInt,
+                jsvalReadString: this.jsvalReadString,
             }
         });
 
@@ -75,9 +76,11 @@ class JsvalWasmModule {
         return this.pack(ret);
     }
 
-    jsvalCreateString=(ptr, size)=>{
-        let bytes=new Uint8Array(this.instance.exports.memory.buffer, ptr, size);
-        let s=new TextDecoder("utf-8").decode(bytes);
+    jsvalCreateString=(ptr)=>{
+        let mem=new Uint8Array(this.instance.exports.memory.buffer);
+        let end=ptr;
+        while (mem[end]!==0) end++;
+        let s=new TextDecoder("utf-8").decode(mem.subarray(ptr, end));
         return this.pack(s);
     }
 
@@ -110,6 +113,16 @@ class JsvalWasmModule {
 
     jsvalGetInt=(oid)=>{
         return this.unpack(oid);
+    }
+
+    jsvalReadString=(id, dest)=>{
+        let o=this.objectById.get(id);
+        let bytes=new TextEncoder().encode(o);
+        let mem=new Uint8Array(this.instance.exports.memory.buffer);
+        mem.set(bytes,dest);
+        mem[dest+bytes.length]=0;
+
+        return dest;
     }
 }
 

@@ -3,6 +3,7 @@ import {loadJsvalWasm} from "../../js/jsval/jsval-wasm.js";
 import {dirnameFromImportMeta} from "../../js/utils/node-util.js";
 import path from "path";
 
+jasmine.DEFAULT_TIMEOUT_INTERVAL=10000;
 let __dirname=dirnameFromImportMeta(import.meta);
 
 describe("jsval",()=>{
@@ -30,6 +31,10 @@ describe("jsval",()=>{
  
         let i=mod.getstringlen("test");
         expect(i).toEqual(4);
+
+        let s2=mod.concat("hello","world");
+        //console.log("s2=",s2,s2.length);
+        expect(s2).toEqual("helloworld");
     });
 })
 
