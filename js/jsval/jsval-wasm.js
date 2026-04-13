@@ -62,9 +62,12 @@ class JsvalWasmModule {
 	    return this.pack(o);
 	}
 
-	jsvalCall=(oid, arg)=>{
-	    let fn=this.unpack(oid);
-	    return fn(arg);
+	jsvalCall=(fid, thisid, argid)=>{
+	    let fn=this.unpack(fid);
+	    let thisobj=this.unpack(thisid);
+	    let arg=this.unpack(argid);
+	    let ret=fn.apply(thisobj,arg);
+	    return this.pack(ret);
 	}
 
 	jsvalCreateString=(ptr, size)=>{
@@ -86,11 +89,13 @@ class JsvalWasmModule {
 
 	jsvalCreateFuncStub=()=>{
 	    let id;
-	    let fn=(...args)=>{
-	        let aid=this.pack(args);
-	    	//console.log("calling...",args," id="+id);
-	        let retid=this.instance.exports.jsvalCallNative(id,aid)
-	        return this.unpack(retid);
+	    let that=this;
+
+	    function fn(...args) {
+	    	let thisid=that.pack(this);
+	        let aid=that.pack(args);
+	        let retid=that.instance.exports.jsvalCallNative(id,thisid,aid);
+	        return that.unpack(retid);
 	    }
 
 	    id=this.pack(fn);

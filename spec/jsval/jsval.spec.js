@@ -20,6 +20,13 @@ describe("jsval",()=>{
 
         let v=mod.add(1,2);
         expect(v).toEqual(3);
+
+        function hello() {
+            return "testing";
+        }
+
+        let s=mod.makecall(hello);
+        expect(s).toEqual("testing");
     });
 })
 

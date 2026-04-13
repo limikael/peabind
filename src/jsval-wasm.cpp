@@ -15,12 +15,12 @@ void *jsvalGetOpaque(JSVAL v) {
 	return opaques[v];
 }
 
-JSVAL jsvalCallNative(JSVAL stub, JSVAL params) {
+JSVAL jsvalCallNative(JSVAL stub, JSVAL thisobj, JSVAL params) {
 	JSVAL_FUNC *func=(JSVAL_FUNC *)jsvalGetOpaque(stub);
 
 	//printf("going to call.. f=%p\n",func);
 
-	return func(params);
+	return func(thisobj, params);
 }
 
 JSVAL jsvalCreateFunc(JSVAL_FUNC *func) {

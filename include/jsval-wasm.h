@@ -3,7 +3,7 @@
 
 typedef int JSVAL;
 
-typedef JSVAL JSVAL_FUNC(JSVAL args);
+typedef JSVAL JSVAL_FUNC(JSVAL thisobj, JSVAL args);
 
 #define JS_IMPORT(name) \
     __attribute__((import_module("env"), import_name(#name))) \
@@ -11,7 +11,7 @@ typedef JSVAL JSVAL_FUNC(JSVAL args);
 
 JS_IMPORT(jsvalGetSize) JSVAL jsvalGetSize(JSVAL v);
 JS_IMPORT(jsvalGetItemAt) JSVAL jsvalGetItemAt(JSVAL v, int index);
-JS_IMPORT(jsvalCall) JSVAL jsvalCall(JSVAL v);
+JS_IMPORT(jsvalCall) JSVAL jsvalCall(JSVAL fn, JSVAL thisobj, JSVAL args);
 JS_IMPORT(jsvalCreateString) JSVAL jsvalCreateString(const char *p, size_t size);
 JS_IMPORT(jsvalSetPropJsval) JSVAL jsvalSetPropJsval(JSVAL o, JSVAL prop, JSVAL val);
 JS_IMPORT(jsvalGetInt) JSVAL jsvalGetInt(JSVAL o);
@@ -22,7 +22,7 @@ JS_IMPORT(jsvalCreateInt) JSVAL jsvalCreateInt(int i);
 extern "C" {
 
 JSVAL jsvalCreateFunc(JSVAL_FUNC *f);
-JSVAL jsvalCallNative(JSVAL func, JSVAL params);
+JSVAL jsvalCallNative(JSVAL func, JSVAL thisobj, JSVAL params);
 void jsvalSetProp(JSVAL o, const char *s, JSVAL val);
 
 }
