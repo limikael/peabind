@@ -3,7 +3,7 @@
 #include <cstring>
 #include <map>
 
-std::map<JSVAL,void*> opaques;
+std::map<JSVAL,void*> internalOpaques;
 
 JSVAL *jsvalReadArray(JSVAL a, JSVAL *dest) {
 	int size=jsvalGetSize(a);
@@ -13,18 +13,18 @@ JSVAL *jsvalReadArray(JSVAL a, JSVAL *dest) {
 	return dest;
 }
 
-void jsvalSetOpaque(JSVAL v, void *opaque) {
+void jsvalSetInternalOpaque(JSVAL v, void *opaque) {
 	//printf("setting opaque for v=%d f=%p\n",v,opaque);
 
-	opaques[v]=opaque;
+	internalOpaques[v]=opaque;
 }
 
-void *jsvalGetOpaque(JSVAL v) {
-	return opaques[v];
+void *jsvalGetInternalOpaque(JSVAL v) {
+	return internalOpaques[v];
 }
 
 JSVAL jsvalCallNative(JSVAL stub, JSVAL thisobj, JSVAL params) {
-	JSVAL_FUNC *func=(JSVAL_FUNC *)jsvalGetOpaque(stub);
+	JSVAL_FUNC *func=(JSVAL_FUNC *)jsvalGetInternalOpaque(stub);
 
 	//printf("going to call.. f=%p\n",func);
 
@@ -33,14 +33,14 @@ JSVAL jsvalCallNative(JSVAL stub, JSVAL thisobj, JSVAL params) {
 
 JSVAL jsvalCreateFunc(JSVAL_FUNC *func) {
 	JSVAL stub=jsvalCreateFuncStub();
-	jsvalSetOpaque(stub,(void *)func);
+	jsvalSetInternalOpaque(stub,(void *)func);
 
 	return stub;
 }
 
 JSVAL jsvalCreateClass(JSVAL_FUNC *func) {
 	JSVAL stub=jsvalCreateClassStub();
-	jsvalSetOpaque(stub,(void *)func);
+	jsvalSetInternalOpaque(stub,(void *)func);
 
 	return stub;
 }
