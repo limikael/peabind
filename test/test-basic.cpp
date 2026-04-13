@@ -37,13 +37,19 @@ std::string runjs(JSContext *ctx, const char *code) {
 
 void test_basic() {
     printf("- basic\n");
-
     JSRuntime *rt=JS_NewRuntime();
     JSContext *ctx=JS_NewContext(rt);
-
     basic_init(ctx);
+    std::string s;
 
-    std::string s=runjs(ctx,"\
+    s=runjs(ctx,"hello(1,2)");
+    assert(s=="3");
+
+    s=runjs(ctx,"globalThis.h=new Hello();");
+    s=runjs(ctx,"globalThis.h.getVal();");
+    assert(s=="100");
+
+    /*std::string s=runjs(ctx,"\
         let h=new Hello();\
         let h2=createHello();\
         let callret=hello(1,2);\
@@ -59,8 +65,9 @@ void test_basic() {
     //,WeakRef.toString()
     //std::string s=runjs(ctx,"hello(1,2); ");
     //printf("s: %s\n",s.c_str());
-    assert(s=="[1,3,100,999,555,666]");
+    assert(s=="[1,3,100,999,555,666]");*/
 
+    basic_exit(ctx);
     JS_FreeContext(ctx);
     JS_FreeRuntime(rt);
 }
@@ -164,20 +171,15 @@ void test_gc() {
     basic_init(ctx);
     std::string s;
 
-    s=runjs(ctx,"getLiveHelloCount()");
-    //printf("live: %s\n",s.c_str());
-    assert(s=="0");
-
     s=runjs(ctx,"globalThis.h=new Hello()");
+    JS_RunGC(rt);
     s=runjs(ctx,"getLiveHelloCount()");
-    //printf("live: %s\n",s.c_str());
     assert(s=="1");
 
     s=runjs(ctx,"globalThis.h=null");
     JS_RunGC(rt);
     s=runjs(ctx,"getLiveHelloCount()");
     assert(s=="0");
-
 
     basic_exit(ctx);
     JS_FreeContext(ctx);

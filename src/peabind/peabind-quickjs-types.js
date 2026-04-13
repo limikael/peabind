@@ -1,7 +1,11 @@
 import {peabindNormalize, idlGetClass} from "./peabind-idl.js";
 
 class IntTypeStrategy {
-    decl(name) {
+    nativeParam(name) {
+        return `int ${name}`;
+    }
+
+    nativeDecl(name) {
         return `int32_t ${name};\n`;
     }
 
@@ -9,29 +13,17 @@ class IntTypeStrategy {
         return `JS_ToInt32(ctx,&${dest},${src});\n`;
     }
 
-    nativeParam(name) {
-        return `int ${name}`;
-    }
-
     pack(dest, src) {
         return `${dest}=JS_NewInt32(ctx,${src});\n`;
-    }
-
-    jsDecl(name) {
-        return `let ${name};`
-    }
-
-    jsPack(to, from) {
-        return `${to}=${from};\n`;
-    }
-
-    jsUnpack(to, from) {
-        return `${to}=${from};\n`;
     }
 }
 
 class FloatTypeStrategy {
-    decl(name) {
+    nativeParam(name) {
+        return `float ${name}`;
+    }
+
+    nativeDecl(name) {
         return `double ${name};\n`;
     }
 
@@ -39,24 +31,8 @@ class FloatTypeStrategy {
         return `JS_ToFloat64(ctx,&${dest},${src});\n`;
     }
 
-    nativeParam(name) {
-        return `float ${name}`;
-    }
-
     pack(dest, src) {
         return `${dest}=JS_NewFloat64(ctx,${src});\n`;
-    }
-
-    jsDecl(name) {
-        return `let ${name};`
-    }
-
-    jsPack(to, from) {
-        return `${to}=${from};\n`;
-    }
-
-    jsUnpack(to, from) {
-        return `${to}=${from};\n`;
     }
 }
 
@@ -66,7 +42,11 @@ class ObjectTypeStrategy {
         this.prefix=prefix;
     }
 
-    decl(name) {
+    nativeParam(name) {
+        return `std::shared_ptr<${this.typeDef.type}> ${name}`;
+    }
+
+    nativeDecl(name) {
         return `
             int ${name}_id;
             std::shared_ptr<${this.typeDef.type}> ${name}; 
@@ -80,31 +60,19 @@ class ObjectTypeStrategy {
         `;
     }
 
-    nativeParam(name) {
-        return `std::shared_ptr<${this.typeDef.type}> ${name}`;
-    }
-
     pack(dest, src) {
         return `
             ${dest}=JS_NewInt32(ctx,store(${src}));
         `;
     }
-
-    jsDecl(name) {
-        return `let ${name};`
-    }
-
-    jsPack(to, from) {
-        return `${to}=${from}._handle;\n`;
-    }
-
-    jsUnpack(to, from) {
-        return `${to}=${this.prefix}getRegistryObject(${from},${this.typeDef.type});\n`;
-    }
 }
 
 class StringTypeStrategy {
-    decl(name) {
+    nativeParam(name) {
+        return `std::string ${name}`;
+    }
+
+    nativeDecl(name) {
         return `std::string ${name};\n`;
     }
 
@@ -117,24 +85,8 @@ class StringTypeStrategy {
         `;
     }
 
-    nativeParam(name) {
-        return `std::string ${name}`;
-    }
-
     pack(dest, src) {
         return `${dest}=JS_NewString(ctx,${src}.c_str());\n`;
-    }
-
-    jsDecl(name) {
-        return `let ${name};`
-    }
-
-    jsPack(to, from) {
-        return `${to}=${from};\n`;
-    }
-
-    jsUnpack(to, from) {
-        return `${to}=${from};\n`;
     }
 }
 

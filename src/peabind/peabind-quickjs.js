@@ -1,12 +1,9 @@
 import {peabindNormalize, idlGetClass} from "./peabind-idl.js";
-import {runCommand} from "../utils/node-util.js";
 import {DeclaredError} from "../utils/js-util.js";
 import path from "path";
 import fs from "fs";
 import os from "os";
 import {autoIndent, escapeCString} from "../utils/lang-util.js";
-import {peabindGenerateJs} from "./peabind-js.js";
-import {peabindGenerateCpp} from "./peabind-cpp.js";
 import {createTypeStrategy} from "./peabind-quickjs-types.js";
 
 class PeabindQuickjsBuilder {
@@ -26,38 +23,69 @@ class PeabindQuickjsBuilder {
         });
     }
 
-    generateFunctionDef(func,{cls}={}) {
+    generateClassDef(cls) {
+        return `
+            static JSClassID ${this.prefix}${cls.name}_classid=0;
+            static void ${this.prefix}${cls.name}_finalizer(JSRuntime *rt, JSValue obj) {
+                Opaque* opaque=(Opaque*)JS_GetOpaque(obj,${this.prefix}${cls.name}_classid);
+                delete opaque;
+            }
+            static JSValue ${this.prefix}${cls.name}_ctor(JSContext *ctx, JSValueConst new_target, int argc, JSValueConst *argv) {
+                if (argc!=${cls.ctorArgs.length}) return JS_ThrowTypeError(ctx, "wrong arg count");
+                ${cls.ctorArgs.map((a,i)=>this.ts(a).nativeDecl(`a${i}`)).join("\n")}
+                ${cls.ctorArgs.map((a,i)=>this.ts(a).unpack(`a${i}`,`argv[${i}]`)).join("\n")}
+                std::shared_ptr<${cls.name}> instance=std::make_shared<${cls.name}>(${cls.ctorArgs.map(a=>a.name).join(",")});
+                JSValue obj=JS_NewObjectClass(ctx,${this.prefix}${cls.name}_classid);
+                JS_SetOpaque(obj,new Opaque(instance));
+                return obj;
+            }
+            ${cls.methods.map(m=>this.generateFunctionDef(m)).join("\n")}
+        `;
+    }
+
+    generateClassReg(cls) {
+        return `
+            if (!${this.prefix}${cls.name}_classid) JS_NewClassID(&${this.prefix}${cls.name}_classid);
+            JSClassDef ${cls.name}_def={.class_name="${cls.name}", .finalizer=${this.prefix}${cls.name}_finalizer};
+            JS_NewClass(JS_GetRuntime(ctx),${this.prefix}${cls.name}_classid,&${cls.name}_def);
+            JSValue ${cls.name}_proto=JS_NewObject(ctx);
+            JS_SetClassProto(ctx, ${this.prefix}${cls.name}_classid,${cls.name}_proto);
+            JSValue ${cls.name}_ctorval=JS_NewCFunction2(ctx,${this.prefix}${cls.name}_ctor,"${cls.name}",0,JS_CFUNC_constructor,0);
+            JS_SetConstructor(ctx,${cls.name}_ctorval,${cls.name}_proto);
+            JS_SetPropertyStr(ctx,global,"${cls.name}",${cls.name}_ctorval);
+            ${cls.methods.map(m=>this.generateFunctionReg(m)).join("\n")}
+        `;
+    }
+
+    generateFunctionDef(func) {
         let name,prelude,callTarget,argStart;
-        if (cls) {
-            name=`${this.prefix}${cls.name}_${func.name}`;
+        if (func.className) {
+            name=`${this.prefix}${func.className}_${func.name}`;
             prelude=`
-                int id;
-                JS_ToInt32(ctx,&id,argv[0]);
-                std::shared_ptr<${cls.name}> instance=std::static_pointer_cast<${cls.name}>(registry[id]);
+                Opaque* opaque=(Opaque*)JS_GetOpaque(thisobj,${this.prefix}${func.className}_classid);
+                std::shared_ptr<${func.className}> instance=std::static_pointer_cast<${func.className}>(opaque->instance);
             `;
             callTarget=`instance->${func.name}`;
-            argStart=1;
         }
 
         else {
             name=`${this.prefix}${func.name}`;
             prelude="";
             callTarget=`${func.name}`;
-            argStart=0;
         }
 
         let call;
         if (func.return.type=="void") {
             call=`
-                ${callTarget}(${func.args.map((arg,i)=>"arg_"+i).join(",")});
+                ${callTarget}(${func.args.map((arg,i)=>`a${i}`).join(",")});
                 return JS_UNDEFINED;
             `;
         }
 
         else {
             call=`
-                ${this.ts(func.return).decl("ret")}
-                ret=${callTarget}(${func.args.map((arg,i)=>"arg_"+i).join(",")});
+                ${this.ts(func.return).nativeDecl("ret")}
+                ret=${callTarget}(${func.args.map((arg,i)=>`a${i}`).join(",")});
                 JSValue retval;
                 ${this.ts(func.return).pack("retval","ret")}
                 return retval;
@@ -66,147 +94,56 @@ class PeabindQuickjsBuilder {
 
         return `
             static JSValue ${name}(JSContext *ctx, JSValueConst thisobj, int argc, JSValueConst *argv) {
-                if (argc!=${func.args.length+argStart}) return JS_ThrowTypeError(ctx, "wrong arg count");
+                if (argc!=${func.args.length}) return JS_ThrowTypeError(ctx, "wrong arg count");
                 ${prelude}
-                ${func.args.map((arg,i)=>`
-                    ${this.ts(arg).decl("arg_"+i)}
-                    ${this.ts(arg).unpack("arg_"+i,"argv["+(i+argStart)+"]")}
-                `).join("")}
+                ${func.args.map((a,i)=>this.ts(a).nativeDecl(`a${i}`)).join("\n")}
+                ${func.args.map((a,i)=>this.ts(a).unpack(`a${i}`,`argv[${i}]`)).join("\n")}
                 ${call}
             }
         `;
     }
 
-    generateEventDef(event, {cls}) {
-        let params=event.args.map((arg,i)=>this.ts(arg).nativeParam(`a${i}`)).join(",");
-        let onName=`${this.prefix}${cls.name}_on_${event.name}`;
-        let offName=`${this.prefix}${cls.name}_off_${event.name}`;
-        let handlerName=`${this.prefix}handle_${cls.name}_${event.name}`;
-
-        return `
-            static JSValue ${onName}(JSContext *ctx, JSValueConst thisobj, int argc, JSValueConst *argv) {
-                int id,callbackId;
-                JS_ToInt32(ctx,&id,argv[0]);
-                JS_ToInt32(ctx,&callbackId,argv[1]);
-                std::shared_ptr<${cls.name}> instance=std::static_pointer_cast<${cls.name}>(registry[id]);
-
-                int listenerId=instance->${event.name}.on([ctx,callbackId](${params}){
-                    JSValue global=JS_GetGlobalObject(ctx);
-                    JSValue cb=JS_GetPropertyStr(ctx,global,"${handlerName}");
-
-                    JSValue args[${event.args.length+1}];
-                    args[0] = JS_NewInt32(ctx, callbackId);
-
-                    ${event.args.map((arg,i)=>`
-                        ${this.ts(arg).pack(`args[${i+1}]`,`a${i}`)}
-                    `).join("")}
-
-                    JSValue result=JS_Call(ctx,cb,JS_UNDEFINED,${event.args.length+1},args);
-
-                    if (JS_IsException(result)) {
-                        // Handle JS errors here
-                        printf("unhandled!!!\\n");
-                    }
-
-                    for (int i=0; i<${event.args.length+1}; i++)
-                        JS_FreeValue(ctx,args[i]);
-
-                    JS_FreeValue(ctx,result);
-                    JS_FreeValue(ctx,cb);
-                    JS_FreeValue(ctx,global);
-
-                    //printf("on invoked...\\n");
-                });
-                instance->${event.name}.setGlobalId(listenerId,callbackId);
-                return JS_UNDEFINED;
-            }
-
-            /*void ${this.prefix}${cls.name}_off_${event.name}(int id, int callbackId) {
-                std::shared_ptr<${cls.name}> instance=std::static_pointer_cast<${cls.name}>(registry[id]);
-                int listenerId=instance->${event.name}.getIdByGlobalId(callbackId);
-                instance->${event.name}.off(listenerId);
-            }*/
-        `;
-    }
-
-    generateClassDef(cls) {
-        return `
-            static JSValue ${this.prefix}${cls.name}_new(JSContext *ctx, JSValueConst thisobj, int argc, JSValueConst *argv) {
-                int id=store(std::make_shared<${cls.name}>());
-                return JS_NewInt32(ctx,id);
-            }
-
-            ${cls.methods.map(method=>this.generateFunctionDef(method,{cls})).join("\n")}
-            ${cls.events.map(event=>this.generateEventDef(event,{cls})).join("\n")}
-        `;
-    }
-
-    getExportedFunctionNames() {
-        let exportedFunctionNames=[];
-
-        for (let func of this.idl.functions)
-            exportedFunctionNames.push(`${this.prefix}${func.name}`);
-
-        for (let cls of this.idl.classes) {
-            exportedFunctionNames.push(`${this.prefix}${cls.name}_new`);
-            for (let method of cls.methods)
-                exportedFunctionNames.push(`${this.prefix}${cls.name}_${method.name}`);
-
-            for (let event of cls.events) {
-                exportedFunctionNames.push(`${this.prefix}${cls.name}_on_${event.name}`);
-                //exportedFunctionNames.push(`${this.prefix}${cls.name}_off_${event.name}`);
-            }
+    generateFunctionReg(func) {
+        if (func.className) {
+            return `
+                JS_SetPropertyStr(ctx,${func.className}_proto,"${func.name}",JS_NewCFunction(ctx, ${this.prefix}${func.className}_${func.name},"${func.name}",0));
+            `;
         }
 
-        return exportedFunctionNames;
-    }
-
-    generateNamedFunctionReg(name) {
-        return `
-            JS_SetPropertyStr(ctx,global,"${name}",JS_NewCFunction(ctx,${name},"${name}",0));
-        `;
+        else {
+            return `
+                JS_SetPropertyStr(ctx,global,"${func.name}",JS_NewCFunction(ctx,${this.prefix}${func.name},"${func.name}",0));
+            `;
+        }
     }
 
     generateCppSource() {
-       return autoIndent(`
+        return autoIndent(`
             #include "${this.projectName+".h"}"
-            ${peabindGenerateCpp({
-                idl: this.idl,
-                prefix: this.prefix
-            })}
+            ${this.idl.include.map(i=>`#include "${i}"`).join("\n")}
+            #include <string>
 
-            ${this.idl.functions.map(func=>this.generateFunctionDef(func)).join("\n")}
-            ${this.idl.classes.map(cls=>this.generateClassDef(cls)).join("\n")}
+            class Opaque {
+            public:
+                Opaque(std::shared_ptr<void> instance_) {
+                    instance=instance_;
+                }
+                std::shared_ptr<void> instance;
+            };
 
-            static const char *init_js="${escapeCString(peabindGenerateJs({
-                idl: this.idl, 
-                prefix: this.prefix,
-                mod: "",
-                typeStrategyFactory: type=>this.ts(type)
-            }))}";
+            //map<void*, Opaque*> opaqueByPointer;
+
+            ${this.idl.functions.map(f=>this.generateFunctionDef(f)).join("\n")}
+            ${this.idl.classes.map(c=>this.generateClassDef(c)).join("\n")}
 
             void ${this.prefix}init(JSContext *ctx) {
                 JSValue global=JS_GetGlobalObject(ctx);
-
-                ${this.getExportedFunctionNames().map(name=>`
-                    ${this.generateNamedFunctionReg(name)}
-                `).join("\n")}
-
+                ${this.idl.functions.map(f=>this.generateFunctionReg(f)).join("\n")}
+                ${this.idl.classes.map(c=>this.generateClassReg(c)).join("\n")}
                 JS_FreeValue(ctx,global);
-
-                JSValue result=JS_Eval(
-                    ctx,
-                    init_js,
-                    strlen(init_js),
-                    "<input>",
-                    JS_EVAL_TYPE_GLOBAL
-                );
-
-                JS_FreeValue(ctx, result);
             }
 
             void ${this.prefix}exit(JSContext *ctx) {
-                
             }
         `); 
     }
@@ -232,7 +169,7 @@ export async function peabindQuickjs({idl, prefix, output}) {
 
     let outputPath=path.parse(output);
     if (outputPath.ext!=".c" && outputPath.ext!=".cpp")
-        throw new DeclaredError("Expected .js output");
+        throw new DeclaredError("Expected .c or .cpp output");
 
     let projectName=outputPath.name;
     let builder=new PeabindQuickjsBuilder({idl, prefix, projectName});
