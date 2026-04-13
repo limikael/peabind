@@ -1,8 +1,8 @@
-import {peabind} from "../../src/peabind/peabind.js";
-import {dirnameFromImportMeta} from "../../src/utils/node-util.js";
+import {peabind} from "../../js/peabind/peabind.js";
+import {dirnameFromImportMeta} from "../../js/utils/node-util.js";
 import fs, {promises as fsp} from "fs";
 import path from "path";
-import {forceGc} from "../../src/utils/test-util.js";
+import {forceGc} from "../../js/utils/test-util.js";
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL=10000;
 

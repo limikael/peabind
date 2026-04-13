@@ -1,4 +1,4 @@
-import {normalizeStringOrObject} from "../src/utils/normalize-util.js";
+import {normalizeStringOrObject} from "../js/utils/normalize-util.js";
 
 describe("normalize-util",()=>{
 	it("can normalize",()=>{

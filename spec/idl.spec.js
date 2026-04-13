@@ -1,5 +1,5 @@
-import {peabindNormalize} from "../src/peabind/peabind-idl.js";
-import {peabindMerge} from "../src/peabind/peabind.js";
+import {peabindNormalize} from "../js/peabind/peabind-idl.js";
+import {peabindMerge} from "../js/peabind/peabind.js";
 
 describe("idl",()=>{
 	it("can merge",()=>{
