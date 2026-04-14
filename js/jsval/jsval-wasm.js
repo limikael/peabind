@@ -3,6 +3,7 @@ import {loadWasmInstance} from "../utils/wasm-util.js";
 class JsvalWasmModule {
     constructor({url}) {
         this.objectById=new Map();
+        this.strongById=new Map();
         this.idByObject=new WeakMap();
         this.finalizationRegistry=new FinalizationRegistry(({classId,id})=>{
             this.objectById.delete(id);
@@ -33,10 +34,38 @@ class JsvalWasmModule {
                 jsvalGetModule: this.jsvalGetModule,
                 jsvalCreateInt: this.jsvalCreateInt,
                 jsvalReadString: this.jsvalReadString,
+                jsvalDup: this.jsvalDup,
+                jsvalFree: this.jsvalFree,
             }
         });
 
         this.mod={...this.instance.exports};
+    }
+
+    jsvalDup=(id)=>{
+        //console.log("dup: "+id);
+        if (!this.strongById.has(id)) {
+            this.strongById.set(id,{
+                count: 0,
+                object: this.unpack(id)
+            });
+        }
+
+        this.strongById.get(id).count++;
+        return id;
+    }
+
+    jsvalFree=(id)=>{
+        //console.log("free: "+id);
+        let strong=this.strongById.get(id);
+        if (!strong) {
+            console.log("warning! double free!")
+            return;
+        }
+
+        strong.count--;
+        if (!strong.count)
+            this.strongById.delete(id);
     }
 
     pack=(o)=>{
@@ -102,6 +131,8 @@ class JsvalWasmModule {
         let fn=this.unpack(fid);
         let thisobj=this.unpack(thisid);
         let arg=this.unpack(argid);
+        if (!arg)
+            arg=[];
         let ret=fn.apply(thisobj,arg);
         return this.pack(ret);
     }

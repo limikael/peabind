@@ -22,6 +22,8 @@ JS_IMPORT(jsvalCreateFuncStub) JSVAL jsvalCreateFuncStub();
 JS_IMPORT(jsvalCreateClassStub) JSVAL jsvalCreateClassStub();
 JS_IMPORT(jsvalCreateInt) JSVAL jsvalCreateInt(int i);
 JS_IMPORT(jsvalReadString) char *jsvalReadString(JSVAL s, char *dest);
+JS_IMPORT(jsvalDup) JSVAL jsvalDup(JSVAL id);
+JS_IMPORT(jsvalFree) void jsvalFree(JSVAL id);
 
 extern "C" {
 

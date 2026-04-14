@@ -98,5 +98,37 @@ describe("jsval",()=>{
         expect(mod.getNumLiveMyClass()).toEqual(0);
         //console.log("removing after MyClass...");
     });
+
+    it("can call callbacks",async ()=>{
+        await buildJsvalWasm({
+            output: path.join(__dirname,"mymod.out.wasm"),
+            sources: [path.join(__dirname,"mymod.cpp")]
+        });
+
+        let mod=await loadJsvalWasm({
+            url: new URL('./mymod.out.wasm', import.meta.url),
+        });
+
+        mod.init();
+
+        let callCount=0;
+
+        let my=new mod.MyClass();
+        my.setCallback(()=>{
+            callCount++;
+            //console.log("hello");
+        });
+
+        my.triggerCallback();
+        expect(callCount).toEqual(1);
+        await forceGc();
+        my.triggerCallback();
+        expect(callCount).toEqual(2);
+
+        my=null;
+        await forceGc();
+
+        expect(mod.__jsvalWasmModule.strongById.keys().toArray().length).toEqual(0);
+    });
 });
 

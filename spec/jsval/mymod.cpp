@@ -54,6 +54,7 @@ class MyClass {
 public:
 	MyClass() {
 		val=100;
+		callback=0;
 		numLiveMyClass++;
 	}
 	~MyClass() {
@@ -61,6 +62,7 @@ public:
 	}
 
 	int val;
+	JSVAL callback;
 };
 
 JSVAL MyClass_constructor(JSVAL thisobj, JSVAL args) {
@@ -85,8 +87,28 @@ JSVAL MyClass_setVal(JSVAL thisobj, JSVAL args) {
 
 void MyClass_finalizer(JSVAL thisobj) {
 	MyClass *my=(MyClass*)jsvalGetOpaque(thisobj);
+	//printf("finalizing %d, val=%d, cb=%d\n",thisobj,my->val,my->callback);
+
+	if (my->callback)
+		jsvalFree(my->callback);
 	delete my;
-	//printf("finalizing %d, val=%d\n",thisobj,my->val);
+}
+
+JSVAL MyClass_setCallback(JSVAL thisobj, JSVAL args) {
+	JSVAL argv[jsvalGetSize(args)];
+	jsvalReadArray(args,argv);
+	MyClass *my=(MyClass*)jsvalGetOpaque(thisobj);
+
+	jsvalDup(argv[0]);
+	my->callback=argv[0];
+	return 0;
+}
+
+JSVAL MyClass_triggerCallback(JSVAL thisobj, JSVAL args) {
+	MyClass *my=(MyClass*)jsvalGetOpaque(thisobj);
+
+	jsvalCall(my->callback,0,0);//=argv[0];
+	return 0;
 }
 
 extern "C" void init() {
@@ -97,6 +119,8 @@ extern "C" void init() {
 	jsvalSetClassFinalizer(cls,MyClass_finalizer);
 	jsvalSetProtoProp(cls,"getVal",jsvalCreateFunc(MyClass_getVal));
 	jsvalSetProtoProp(cls,"setVal",jsvalCreateFunc(MyClass_setVal));
+	jsvalSetProtoProp(cls,"setCallback",jsvalCreateFunc(MyClass_setCallback));
+	jsvalSetProtoProp(cls,"triggerCallback",jsvalCreateFunc(MyClass_triggerCallback));
 
 	jsvalSetProp(mod,"add",jsvalCreateFunc(add));
 	jsvalSetProp(mod,"makecall",jsvalCreateFunc(makecall));
