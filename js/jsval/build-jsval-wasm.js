@@ -8,7 +8,7 @@ export async function buildJsvalWasm({output, sources}) {
 		"-o",output,
 		"-I",path.join(__dirname,"../../include"),
 		"-sSTANDALONE_WASM=1",
-		"-sEXPORTED_FUNCTIONS=_init,_jsvalCallNative",
+		"-sEXPORTED_FUNCTIONS=_init,_jsvalCallNative,_jsvalNotifyFinalize",
 		"--no-entry",
 		path.join(__dirname,"../../src/jsval-wasm.cpp"),
 		...sources

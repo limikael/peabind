@@ -5,6 +5,7 @@
 
 std::map<JSVAL,void*> opaques;
 std::map<JSVAL,void*> internalOpaques;
+std::map<JSVAL,JSVAL_FINALIZER*> classFinalizers;
 
 JSVAL *jsvalReadArray(JSVAL a, JSVAL *dest) {
 	int size=jsvalGetSize(a);
@@ -64,4 +65,17 @@ void jsvalSetProp(JSVAL o, const char *prop, JSVAL val) {
 void jsvalSetProtoProp(JSVAL o, const char *prop, JSVAL val) {
 	JSVAL proto=jsvalGetPropJsval(o,jsvalCreateString("prototype"));
 	jsvalSetPropJsval(proto,jsvalCreateString(prop),val);
+}
+
+void jsvalSetClassFinalizer(JSVAL clsid, JSVAL_FINALIZER *f) {
+	classFinalizers[clsid]=f;
+}
+
+// TODO! remove opaques!! (also for non-class objects?)
+void jsvalNotifyFinalize(JSVAL clsid, JSVAL oid) {
+	if (clsid) {
+		JSVAL_FINALIZER *f=classFinalizers[clsid];
+		if (f)
+			f(oid);
+	}
 }

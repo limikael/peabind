@@ -4,6 +4,7 @@
 typedef int JSVAL;
 
 typedef JSVAL JSVAL_FUNC(JSVAL thisobj, JSVAL args);
+typedef void JSVAL_FINALIZER(JSVAL thisobj);
 
 #define JS_IMPORT(name) \
     __attribute__((import_module("env"), import_name(#name))) \
@@ -34,5 +35,7 @@ void jsvalSetInternalOpaque(JSVAL v, void *opaque);
 void *jsvalGetInternalOpaque(JSVAL v);
 void jsvalSetOpaque(JSVAL v, void *opaque);
 void *jsvalGetOpaque(JSVAL v);
+void jsvalNotifyFinalize(JSVAL clsid, JSVAL oid);
+void jsvalSetClassFinalizer(JSVAL clsid, JSVAL_FINALIZER *f);
 
 }

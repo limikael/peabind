@@ -44,11 +44,22 @@ JSVAL concat(JSVAL thisobj, JSVAL args) {
 	return jsvalCreateString(res.c_str());
 }
 
+int numLiveMyClass=0;
+
+JSVAL getNumLiveMyClass(JSVAL thisobj, JSVAL args) {
+	return jsvalCreateInt(numLiveMyClass);
+}
+
 class MyClass {
 public:
 	MyClass() {
 		val=100;
+		numLiveMyClass++;
 	}
+	~MyClass() {
+		numLiveMyClass--;
+	}
+
 	int val;
 };
 
@@ -72,11 +83,18 @@ JSVAL MyClass_setVal(JSVAL thisobj, JSVAL args) {
 	return 0;
 }
 
+void MyClass_finalizer(JSVAL thisobj) {
+	MyClass *my=(MyClass*)jsvalGetOpaque(thisobj);
+	delete my;
+	//printf("finalizing %d, val=%d\n",thisobj,my->val);
+}
+
 extern "C" void init() {
 	JSVAL mod=jsvalGetModule();
 
 	JSVAL cls=jsvalCreateClass(MyClass_constructor);
 	jsvalSetProp(mod,"MyClass",cls);
+	jsvalSetClassFinalizer(cls,MyClass_finalizer);
 	jsvalSetProtoProp(cls,"getVal",jsvalCreateFunc(MyClass_getVal));
 	jsvalSetProtoProp(cls,"setVal",jsvalCreateFunc(MyClass_setVal));
 
@@ -84,4 +102,5 @@ extern "C" void init() {
 	jsvalSetProp(mod,"makecall",jsvalCreateFunc(makecall));
 	jsvalSetProp(mod,"getstringlen",jsvalCreateFunc(getstringlen));
 	jsvalSetProp(mod,"concat",jsvalCreateFunc(concat));
+	jsvalSetProp(mod,"getNumLiveMyClass",jsvalCreateFunc(getNumLiveMyClass));
 }

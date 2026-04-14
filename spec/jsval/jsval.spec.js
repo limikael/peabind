@@ -66,5 +66,37 @@ describe("jsval",()=>{
         /*for (let id of mod.__jsvalWasmModule.objectById.keys())
             console.log(id,mod.__jsvalWasmModule.objectById.get(id).deref())*/
     });
-})
+
+    it("calls finalizers",async ()=>{
+        await buildJsvalWasm({
+            output: path.join(__dirname,"mymod.out.wasm"),
+            sources: [path.join(__dirname,"mymod.cpp")]
+        });
+
+        let mod=await loadJsvalWasm({
+            url: new URL('./mymod.out.wasm', import.meta.url),
+        });
+
+        mod.init();
+
+        await forceGc();
+
+        expect(mod.getNumLiveMyClass()).toEqual(0);
+        //console.log("creating myclass");
+        let c=new mod.MyClass();
+        expect(mod.getNumLiveMyClass()).toEqual(1);
+        let c2=new mod.MyClass();
+        expect(mod.getNumLiveMyClass()).toEqual(2);
+        await forceGc();
+        expect(mod.getNumLiveMyClass()).toEqual(2);
+        //console.log("removing before MyClass...");
+        c=null;
+        await forceGc();
+        expect(mod.getNumLiveMyClass()).toEqual(1);
+        c2=null;
+        await forceGc();
+        expect(mod.getNumLiveMyClass()).toEqual(0);
+        //console.log("removing after MyClass...");
+    });
+});
 

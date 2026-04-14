@@ -4,10 +4,14 @@ class JsvalWasmModule {
     constructor({url}) {
         this.objectById=new Map();
         this.idByObject=new WeakMap();
-        this.finalizationRegistry=new FinalizationRegistry(id=>{
+        this.finalizationRegistry=new FinalizationRegistry(({classId,id})=>{
             this.objectById.delete(id);
-            /*let o=this.objectById.get(id).deref();
-            console.log("cleaning up: ",id,o);*/
+            //let o=this.objectById.get(id).deref();
+
+            if (classId) {
+                //console.log("finalizing from JS: ",id);
+                this.instance.exports.jsvalNotifyFinalize(classId,id);
+            }
         });
         this.nextRegistryId=1;
         this.url=url;
@@ -45,9 +49,11 @@ class JsvalWasmModule {
                 [true,false,null,undefined].includes(o))
             o={__jsval_boxed: o};
 
+        let classId=Object.getPrototypeOf(o).__classId;
+
         this.objectById.set(id,new WeakRef(o));
         this.idByObject.set(o,id);
-        this.finalizationRegistry.register(o,id);
+        this.finalizationRegistry.register(o,{classId,id});
 
         return id;
     }
@@ -147,6 +153,7 @@ class JsvalWasmModule {
 
         function C(...args) {
             let thisid = that.pack(this);
+            //console.log("created instance=",thisid," classid=",id);
             let aid = that.pack(args);
             let retid = that.instance.exports.jsvalCallNative(id, thisid, aid);
             let ret = that.unpack(retid);
@@ -159,10 +166,10 @@ class JsvalWasmModule {
             return this;
         }
 
-        // important: give it a prototype
-        C.prototype = {};
-
-        id = this.pack(C);
+        let o={};
+        C.prototype=o; //{__classId: id};
+        id=this.pack(C);
+        o.__classId=id;
 
         return id;
     };
