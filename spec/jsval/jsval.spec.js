@@ -1,6 +1,7 @@
 import {buildJsvalWasm} from "../../js/jsval/build-jsval-wasm.js";
 import {loadJsvalWasm} from "../../js/jsval/jsval-wasm.js";
 import {dirnameFromImportMeta} from "../../js/utils/node-util.js";
+import {forceGc} from "../../js/utils/test-util.js";
 import path from "path";
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL=10000;
@@ -40,6 +41,30 @@ describe("jsval",()=>{
         expect(my.getVal()).toEqual(100);
         my.setVal(123);
         expect(my.getVal()).toEqual(123);
+    });
+
+    it("does gc properly",async ()=>{
+        await buildJsvalWasm({
+            output: path.join(__dirname,"mymod.out.wasm"),
+            sources: [path.join(__dirname,"mymod.cpp")]
+        });
+
+        let mod=await loadJsvalWasm({
+            url: new URL('./mymod.out.wasm', import.meta.url),
+        });
+
+        mod.init();
+        let numObjsBefore=mod.__jsvalWasmModule.objectById.keys().toArray().length;
+        //console.log("objs before gc: "+numObjsBefore);
+
+        await forceGc();
+        let numObjsAfter=mod.__jsvalWasmModule.objectById.keys().toArray().length;
+        //console.log("objs after gc: "+numObjsBefore);
+
+        expect(numObjsAfter).toBeLessThan(numObjsBefore*.8);
+
+        /*for (let id of mod.__jsvalWasmModule.objectById.keys())
+            console.log(id,mod.__jsvalWasmModule.objectById.get(id).deref())*/
     });
 })
 

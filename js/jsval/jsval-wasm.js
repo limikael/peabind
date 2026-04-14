@@ -3,7 +3,12 @@ import {loadWasmInstance} from "../utils/wasm-util.js";
 class JsvalWasmModule {
     constructor({url}) {
         this.objectById=new Map();
-        this.idByObject=new Map();
+        this.idByObject=new WeakMap();
+        this.finalizationRegistry=new FinalizationRegistry(id=>{
+            this.objectById.delete(id);
+            /*let o=this.objectById.get(id).deref();
+            console.log("cleaning up: ",id,o);*/
+        });
         this.nextRegistryId=1;
         this.url=url;
     }
@@ -35,14 +40,31 @@ class JsvalWasmModule {
             return this.idByObject.get(o);
 
         let id=this.nextRegistryId++;
-        this.objectById.set(id,o);
+        if (typeof o=="string" ||
+                typeof o=="number" ||
+                [true,false,null,undefined].includes(o))
+            o={__jsval_boxed: o};
+
+        this.objectById.set(id,new WeakRef(o));
         this.idByObject.set(o,id);
+        this.finalizationRegistry.register(o,id);
 
         return id;
     }
 
     unpack=(id)=>{
-        return this.objectById.get(id);
+        if (id===0)
+            return 0;
+
+        let o=this.objectById.get(id).deref();
+        if (o===undefined) {
+            console.log("warning!!! unpacking undefined id: "+id);
+        }
+
+        if (typeof o=="object" && o.hasOwnProperty("__jsval_boxed"))
+            return o.__jsval_boxed;
+
+        return o;
     }
 
     jsvalGetModule=()=>{
@@ -50,7 +72,7 @@ class JsvalWasmModule {
     }
 
     jsvalGetSize=(id)=>{
-        let o=this.objectById.get(id);
+        let o=this.unpack(id);
 
         if (Array.isArray(o))
             return o.length;
@@ -150,7 +172,7 @@ class JsvalWasmModule {
     }
 
     jsvalReadString=(id, dest)=>{
-        let o=this.objectById.get(id);
+        let o=this.unpack(id);
         let bytes=new TextEncoder().encode(o);
         let mem=new Uint8Array(this.instance.exports.memory.buffer);
         mem.set(bytes,dest);
@@ -163,6 +185,8 @@ class JsvalWasmModule {
 export async function loadJsvalWasm({url}) {
     let mod=new JsvalWasmModule({url});
     await mod.load();
+
+    mod.mod.__jsvalWasmModule=mod;
 
     return mod.mod;
 }
