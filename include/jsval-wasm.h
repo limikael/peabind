@@ -41,3 +41,27 @@ void jsvalNotifyFinalize(JSVAL clsid, JSVAL oid);
 void jsvalSetClassFinalizer(JSVAL clsid, JSVAL_FINALIZER *f);
 
 }
+
+// TODO
+/*
+bool jsvalNull()
+bool jsvalUndefined()
+bool jsvalTrue()
+bool jsvalFalse()
+
+JSVAL jsvalCreateFloat(float f);
+float jsvalGetFloat(JSVAL v);
+bool jsvalGetBool(JSVAL b)
+JSVAL jsvalCreateArray(int len);
+void jsvalSetItemAt(JSVAL a, int index, JSVAL val);
+JSVAL jsvalCreateObject(int classId);
+
+bool jsvalIsInt(JSVAL v);
+bool jsvalIsFloat(JSVAL v);
+bool jsvalIsBool(JSVAL v);
+bool jsvalIsNull(JSVAL v);
+bool jsvalIsUndefined(JSVAL v);
+
+char *jsvalReadBuffer(JSVAL s, char *dest);
+JSVAL jsvalCreateBuffer(void *data, size_t size);
+*/
