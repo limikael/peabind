@@ -8,10 +8,24 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL=10000;
 let __dirname=dirnameFromImportMeta(import.meta);
 
 describe("jsval",()=>{
+    it("can generate a module",async ()=>{
+        await buildJsvalWasm({
+            output: path.join(__dirname,"mymod.out.js"),
+            sources: [path.join(__dirname,"mymod.cpp")],
+            exportedSymbols: ["add"],
+            initFunction: "init"
+        });
+
+        let mod=await import(path.join(__dirname,"mymod.out.js"));
+
+        expect(mod.add(1,2)).toEqual(3);
+    });
+
     it("can compile and run wasm",async ()=>{
         await buildJsvalWasm({
             output: path.join(__dirname,"mymod.out.wasm"),
-            sources: [path.join(__dirname,"mymod.cpp")]
+            sources: [path.join(__dirname,"mymod.cpp")],
+            initFunction: "init"
         });
 
         let mod=await loadJsvalWasm({
@@ -46,7 +60,8 @@ describe("jsval",()=>{
     it("does gc properly",async ()=>{
         await buildJsvalWasm({
             output: path.join(__dirname,"mymod.out.wasm"),
-            sources: [path.join(__dirname,"mymod.cpp")]
+            sources: [path.join(__dirname,"mymod.cpp")],
+            initFunction: "init"
         });
 
         let mod=await loadJsvalWasm({
@@ -70,7 +85,8 @@ describe("jsval",()=>{
     it("calls finalizers",async ()=>{
         await buildJsvalWasm({
             output: path.join(__dirname,"mymod.out.wasm"),
-            sources: [path.join(__dirname,"mymod.cpp")]
+            sources: [path.join(__dirname,"mymod.cpp")],
+            initFunction: "init"
         });
 
         let mod=await loadJsvalWasm({
@@ -102,7 +118,8 @@ describe("jsval",()=>{
     it("can call callbacks",async ()=>{
         await buildJsvalWasm({
             output: path.join(__dirname,"mymod.out.wasm"),
-            sources: [path.join(__dirname,"mymod.cpp")]
+            sources: [path.join(__dirname,"mymod.cpp")],
+            initFunction: "init"
         });
 
         let mod=await loadJsvalWasm({

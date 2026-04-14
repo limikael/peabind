@@ -78,7 +78,9 @@ class JsvalWasmModule {
                 [true,false,null,undefined].includes(o))
             o={__jsval_boxed: o};
 
-        let classId=Object.getPrototypeOf(o).__classId;
+        let classId;
+        if (Object.getPrototypeOf(o))
+            classId=Object.getPrototypeOf(o).__classId;
 
         this.objectById.set(id,new WeakRef(o));
         this.idByObject.set(o,id);

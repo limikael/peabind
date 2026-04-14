@@ -1,17 +1,59 @@
 import {runCommand, dirnameFromImportMeta} from "../utils/node-util.js";
 import path from "path";
+import fs, {promises as fsp} from "fs";
 
 let __dirname=dirnameFromImportMeta(import.meta);
 
-export async function buildJsvalWasm({output, sources}) {
+export async function buildJsvalWasm({output, sources, exportedSymbols, initFunction}) {
+	if (!exportedSymbols)
+		exportedSymbols=[];
+
+	let wasmOutput="";
+
+	if (output.endsWith(".wasm"))
+		wasmOutput=output;
+
+	else if (output.endsWith(".js"))
+		wasmOutput=output.slice(0,output.lastIndexOf("."))+".wasm";
+
+	else
+		throw new Error("Expected .js or .wasm output");
+
+	let exportedFunctions="_jsvalCallNative,_jsvalNotifyFinalize";
+	if (initFunction)
+		exportedFunctions+=`,_${initFunction}`;
+
 	await runCommand("emcc",[
-		"-o",output,
+		"-o",wasmOutput,
 		"-I",path.join(__dirname,"../../include"),
 		"-sSTANDALONE_WASM=1",
-		"-sEXPORTED_FUNCTIONS=_init,_jsvalCallNative,_jsvalNotifyFinalize",
+		`-sEXPORTED_FUNCTIONS=${exportedFunctions}`,
 		"--no-entry",
 		path.join(__dirname,"../../src/jsval-wasm.cpp"),
 		...sources
 	]);
-    //"build": "emcc -olab/mymod.wasm -Isrc -sSTANDALONE_WASM=1 -sEXPORTED_FUNCTIONS=_init,_jsvalCallNative --no-entry lab/mymod.cpp src/jsval-wasm.cpp"
+
+	if (output.endsWith(".js")) {
+		let initCall="";
+		if (initFunction)
+			initCall=`mod.${initFunction}();`
+
+		let modSource=`
+			import {loadJsvalWasm} from "/home/micke/Repo/peabind/js/jsval/jsval-wasm.js";
+
+	        let mod=await loadJsvalWasm({
+	            url: new URL('./${path.basename(wasmOutput)}', import.meta.url),
+	        });
+
+			${initCall}
+
+			export default mod;
+
+			${exportedSymbols.map(sym=>`
+				export const ${sym}=mod.${sym};
+			`).join("\n")}
+		`;
+
+		await fsp.writeFile(output,modSource);
+	}
 }
