@@ -6,7 +6,7 @@
 		"setHelloVal": {"args": ["Hello","int"]},
 		"createHello": {"return":"Hello"},
 		"hellof": {"return":"int","args": ["float"]},
-		//"hellothird": {"return":"float","args": ["int"]},*/
+		"hellothird": {"return":"float","args": ["int"]},
 		"hellos": {"return": "string","args":["string","string"]},
 		"getLiveHelloCount": {"return": "int"}
 	},
@@ -15,18 +15,18 @@
 			"methods": {
 				"getVal": {"return":"int"},
 				"setVal": {"args":["int"]},
-				//"emitData": {"args":["int","int"]},
+				"emitData": {"args":["int","int"]},
 				"emitDataVoid": {},
-				/*"emitDataFloat": {"args": ["float"]},
+				"emitDataFloat": {"args": ["float"]},
 				"emitDataHello": {"args": ["Hello"]},
-				"emitDataString": {"args": ["string"]}*/
+				"emitDataString": {"args": ["string"]}
 			},
 			"events": {
-				//"data": {"args": ["int","int"]},
+				"data": {"args": ["int","int"]},
 				"dataVoid": {},
-				/*"dataFloat": {"args": ["float"]},
+				"dataFloat": {"args": ["float"]},
 				"dataHello": {"args": ["Hello"]},
-				"dataString": {"args": ["string"]},*/
+				"dataString": {"args": ["string"]},
 			}
 		}
 	}

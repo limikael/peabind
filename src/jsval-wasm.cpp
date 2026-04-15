@@ -75,6 +75,14 @@ void jsvalSetClassFinalizer(JSVAL clsid, JSVAL_FINALIZER *f) {
 	classFinalizers[clsid]=f;
 }
 
+JSVAL jsvalCall(JSVAL fn, JSVAL thisobj, int argc, JSVAL *argv) {
+	int a=jsvalCreateArray(argc);
+	for (int i=0; i<argc; i++)
+		jsvalSetItemAt(a,i,argv[i]);
+
+	return jsvalCallArray(fn,thisobj,a);
+}
+
 // TODO! remove opaques!! (also for non-class objects?)
 void jsvalNotifyFinalize(JSVAL clsid, JSVAL oid) {
 	if (clsid) {

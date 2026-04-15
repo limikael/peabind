@@ -54,9 +54,9 @@ class ObjectTypeStrategy {
         return `std::shared_ptr<${this.typeDef.type}> ${name};\n`;
     }
 
-    /*nativeParam(name) {
-        return `int ${name}`;
-    }*/
+    nativeParam(name) {
+        return `std::shared_ptr<${this.typeDef.type}> ${name}`;
+    }
 
     abiDecl(name) {
         return `JSVAL ${name};\n`;
@@ -77,9 +77,9 @@ class StringTypeStrategy {
         return `std::string ${name};\n`;
     }
 
-    /*nativeParam(name) {
+    nativeParam(name) {
         return `std::string ${name}`;
-    }*/
+    }
 
     abiDecl(name) {
         return `JSVAL ${name};\n`;

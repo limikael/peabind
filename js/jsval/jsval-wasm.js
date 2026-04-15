@@ -28,6 +28,7 @@ class JsvalWasmModule {
             env: {
                 jsvalGetSize: this.jsvalGetSize,
                 jsvalGetItemAt: this.jsvalGetItemAt,
+                jsvalSetItemAt: this.jsvalSetItemAt,
                 jsvalCreateFuncStub: this.jsvalCreateFuncStub,
                 jsvalCreateClassStub: this.jsvalCreateClassStub,
                 jsvalCallArray: this.jsvalCallArray,
@@ -39,6 +40,7 @@ class JsvalWasmModule {
                 //jsvalGetModule: this.jsvalGetModule,
                 jsvalCreateInt: this.jsvalCreateInt,
                 jsvalCreateFloat: this.jsvalCreateFloat,
+                jsvalCreateArray: this.jsvalCreateArray,
                 jsvalReadString: this.jsvalReadString,
                 jsvalDup: this.jsvalDup,
                 jsvalFree: this.jsvalFree,
@@ -140,6 +142,11 @@ class JsvalWasmModule {
         return this.pack(o);
     }
 
+    jsvalSetItemAt=(oid, index, val)=>{
+        let array=this.unpack(oid);
+        array[index]=this.unpack(val);
+    }
+
     jsvalCallArray=(fid, thisid, argid)=>{
         let fn=this.unpack(fid);
         let thisobj=this.unpack(thisid);
@@ -151,9 +158,9 @@ class JsvalWasmModule {
     }
 
     jsvalCreateObject=(classId)=>{
-        let cls=this.unpack(classId);
-        console.log("creating class, classid="+classId);
+        //console.log("creating class, classid="+classId);
 
+        let cls=this.unpack(classId);
         let instance=Object.create(cls.prototype);
         return this.pack(instance);
     }
@@ -164,6 +171,10 @@ class JsvalWasmModule {
         while (mem[end]!==0) end++;
         let s=new TextDecoder("utf-8").decode(mem.subarray(ptr, end));
         return this.pack(s);
+    }
+
+    jsvalCreateArray=(size)=>{
+        return this.pack(new Array(size));
     }
 
     jsvalCreateFloat=(i)=>{

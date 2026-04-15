@@ -96,7 +96,8 @@ static JSVAL MyClass_setCallback(JSVAL thisobj, int argc, JSVAL *argv) {
 static JSVAL MyClass_triggerCallback(JSVAL thisobj, int argc, JSVAL *argv) {
 	MyClass *my=(MyClass*)jsvalGetOpaque(thisobj);
 
-	jsvalCallArray(my->callback,0,0);//=argv[0];
+	//jsvalCallArray(my->callback,0,0);//=argv[0];
+	jsvalCall(my->callback,0,argc,argv);
 	return 0;
 }
 

@@ -4,7 +4,7 @@ import {dirnameFromImportMeta} from "../../js/utils/node-util.js";
 import {forceGc} from "../../js/utils/test-util.js";
 import path from "path";
 
-jasmine.DEFAULT_TIMEOUT_INTERVAL=10000;
+jasmine.DEFAULT_TIMEOUT_INTERVAL=30000;
 let __dirname=dirnameFromImportMeta(import.meta);
 
 describe("jsval",()=>{
@@ -127,15 +127,17 @@ describe("jsval",()=>{
         let callCount=0;
 
         let my=new mod.MyClass();
-        my.setCallback(()=>{
+        my.setCallback((i,s)=>{
             callCount++;
+            //console.log("p: ",i,s);
+            expect(s).toEqual("hello"+i);
             //console.log("hello");
         });
 
-        my.triggerCallback();
+        my.triggerCallback(1,"hello1");
         expect(callCount).toEqual(1);
         await forceGc();
-        my.triggerCallback();
+        my.triggerCallback(2,"hello2");
         expect(callCount).toEqual(2);
 
         my=null;

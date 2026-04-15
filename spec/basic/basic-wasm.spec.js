@@ -54,14 +54,14 @@ describe("basic-wasm",()=>{
 		mod.setHelloVal(h1,999);
 		expect(h1.getVal()).toEqual(999);
 
-		/*let a=[];
+		let a=[];
 		h1.on("data",(d1,d2)=>{
 			a.push(d1,d2);
 			//console.log("got event: "+d1+","+d2);
 		});
 		h1.emitData(123,456);
 
-		expect(a).toEqual([123,456]);*/
+		expect(a).toEqual([123,456]);
 
 		let h2=new mod.Hello();
 		expect(h2.getVal()).toEqual(100);
@@ -112,7 +112,7 @@ describe("basic-wasm",()=>{
 		let i=mod.hellof(1.5);
 		expect(i).toEqual(15);
 
-		/*let f=mod.hellothird(10);
+		let f=mod.hellothird(10);
 		expect(f).toBeCloseTo(3.3333333333333333333333,6);
 
 		h.on("dataFloat",f=>{
@@ -137,7 +137,7 @@ describe("basic-wasm",()=>{
 
 		h.emitDataString("hello");
 
-		expect(invokeCount).toEqual(4);*/
+		expect(invokeCount).toEqual(4);
 	});
 
 	it("can handle strings",async ()=>{
