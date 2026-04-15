@@ -83,6 +83,106 @@ class PeabindJsvalBuilder {
 
 	}
 
+    /*generateEventDef(event) {
+        let onName=`${this.prefix}${event.className}_on_${event.name}`;
+        let offName=`${this.prefix}${event.className}_off_${event.name}`;
+
+        return `
+            static JSVAL ${this.prefix}${event.className}_on(JSVAL thisobj, int argc, JSVAL *argv) {
+                int id,callbackId;
+                JS_ToInt32(ctx,&id,argv[0]);
+                JS_ToInt32(ctx,&callbackId,argv[1]);
+                std::shared_ptr<${cls.name}> instance=std::static_pointer_cast<${cls.name}>(registry[id]);
+
+                int listenerId=instance->${event.name}.on([ctx,callbackId](${params}){
+                    JSValue global=JS_GetGlobalObject(ctx);
+                    JSValue cb=JS_GetPropertyStr(ctx,global,"${handlerName}");
+
+                    JSValue args[${event.args.length+1}];
+                    args[0] = JS_NewInt32(ctx, callbackId);
+
+                    ${event.args.map((arg,i)=>`
+                        ${this.ts(arg).pack(`args[${i+1}]`,`a${i}`)}
+                    `).join("")}
+
+                    JSValue result=JS_Call(ctx,cb,JS_UNDEFINED,${event.args.length+1},args);
+
+                    if (JS_IsException(result)) {
+                        // Handle JS errors here
+                        printf("unhandled!!!\\n");
+                    }
+
+                    for (int i=0; i<${event.args.length+1}; i++)
+                        JS_FreeValue(ctx,args[i]);
+
+                    JS_FreeValue(ctx,result);
+                    JS_FreeValue(ctx,cb);
+                    JS_FreeValue(ctx,global);
+
+                    //printf("on invoked...\\n");
+                });
+                instance->${event.name}.setGlobalId(listenerId,callbackId);
+                return JS_UNDEFINED;
+            }
+
+            //void ${this.prefix}${cls.name}_off_${event.name}(int id, int callbackId) {
+             //   std::shared_ptr<${cls.name}> instance=std::static_pointer_cast<${cls.name}>(registry[id]);
+            //    int listenerId=instance->${event.name}.getIdByGlobalId(callbackId);
+             //   instance->${event.name}.off(listenerId);
+            //}
+        `;
+    }*/
+
+    generateEventOnDef(event) {
+        return `
+            if (!strcmp(eventName,"${event.name}")) {
+                int handleId=instance->${event.name}.on([cbId]{
+                    jsvalCallArray(cbId,0,0);
+                    //printf("event triggered!!!\\n");
+                });
+
+                instance->${event.name}.setGlobalId(handleId,cbId);
+            }
+        `
+    }
+
+    generateEventOffDef(event) {
+        return `
+            if (!strcmp(eventName,"${event.name}")) {
+                int id=instance->${event.name}.getIdByGlobalId(cbId);
+                instance->${event.name}.off(id);
+            }
+        `
+    }
+
+    generateEventDefs(cls) {
+        return `
+            static JSVAL ${this.prefix}${cls.name}_on(JSVAL thisobj, int argc, JSVAL *argv) {
+                std::shared_ptr<${cls.name}> instance=unpack<${cls.name}>(thisobj);
+                char eventName[jsvalGetSize(argv[0])+1];
+                jsvalReadString(argv[0],eventName);
+                JSVAL cbId=argv[1];
+                jsvalDup(cbId);
+
+                ${cls.events.map(event=>this.generateEventOnDef(event))}
+
+                return 0;
+            }
+
+            static JSVAL ${this.prefix}${cls.name}_off(JSVAL thisobj, int argc, JSVAL *argv) {
+                std::shared_ptr<${cls.name}> instance=unpack<${cls.name}>(thisobj);
+                char eventName[jsvalGetSize(argv[0])+1];
+                jsvalReadString(argv[0],eventName);
+                JSVAL cbId=argv[1];
+                jsvalFree(cbId);
+
+                ${cls.events.map(event=>this.generateEventOffDef(event))}
+
+                return 0;
+            }
+        `
+    }
+
     generateClassDef(cls) {
         return `
             static JSVAL ${this.prefix}${cls.name}_constructor(JSVAL thisobj, int argc, JSVAL *argv) {
@@ -100,6 +200,8 @@ class PeabindJsvalBuilder {
             }
 
             ${cls.methods.map(m=>this.generateFunctionDef(m)).join("\n")}
+
+            ${this.generateEventDefs(cls)}
         `;
     }
 
@@ -116,6 +218,11 @@ class PeabindJsvalBuilder {
             jsvalSetProp(mod,"${cls.name}",${this.prefix}${cls.name}_id);
 
             ${cls.methods.map(m=>this.generateFunctionReg(m)).join("\n")}
+
+            ${cls.events.length?`
+                jsvalSetProtoProp(${this.prefix}${cls.name}_id,"on",jsvalCreateFunc(${this.prefix}${cls.name}_on));
+                jsvalSetProtoProp(${this.prefix}${cls.name}_id,"off",jsvalCreateFunc(${this.prefix}${cls.name}_off));
+            `:""}
         `;
     }
 

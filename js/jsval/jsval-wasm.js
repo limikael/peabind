@@ -35,8 +35,10 @@ class JsvalWasmModule {
                 jsvalSetPropJsval: this.jsvalSetPropJsval,
                 jsvalGetPropJsval: this.jsvalGetPropJsval,
                 jsvalGetInt: this.jsvalGetInt,
-                jsvalGetModule: this.jsvalGetModule,
+                jsvalGetFloat: this.jsvalGetFloat,
+                //jsvalGetModule: this.jsvalGetModule,
                 jsvalCreateInt: this.jsvalCreateInt,
+                jsvalCreateFloat: this.jsvalCreateFloat,
                 jsvalReadString: this.jsvalReadString,
                 jsvalDup: this.jsvalDup,
                 jsvalFree: this.jsvalFree,
@@ -164,6 +166,10 @@ class JsvalWasmModule {
         return this.pack(s);
     }
 
+    jsvalCreateFloat=(i)=>{
+        return this.pack(i);
+    }
+
     jsvalCreateInt=(i)=>{
         return this.pack(i);
     }
@@ -225,6 +231,10 @@ class JsvalWasmModule {
     };
 
     jsvalGetInt=(oid)=>{
+        return this.unpack(oid);
+    }
+
+    jsvalGetFloat=(oid)=>{
         return this.unpack(oid);
     }
 

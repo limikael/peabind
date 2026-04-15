@@ -22,35 +22,27 @@ class IntTypeStrategy {
     }
 }
 
-/*class FloatTypeStrategy {
-    decl(name) {
-        return `double ${name};\n`;
-    }
-
-    unpack(dest, src) {
-        return `JS_ToFloat64(ctx,&${dest},${src});\n`;
+class FloatTypeStrategy {
+    nativeDecl(name) {
+        return `float ${name};\n`;
     }
 
     nativeParam(name) {
         return `float ${name}`;
     }
 
+    abiDecl(name) {
+        return `JSVAL ${name};\n`;
+    }
+
+    unpack(dest, src) {
+        return `${dest}=jsvalGetFloat(${src});\n`;
+    }
+
     pack(dest, src) {
-        return `${dest}=JS_NewFloat64(ctx,${src});\n`;
+        return `${dest}=jsvalCreateFloat(${src});\n`;
     }
-
-    jsDecl(name) {
-        return `let ${name};`
-    }
-
-    jsPack(to, from) {
-        return `${to}=${from};\n`;
-    }
-
-    jsUnpack(to, from) {
-        return `${to}=${from};\n`;
-    }
-}*/
+}
 
 class ObjectTypeStrategy {
     constructor(typeDef, {idl, prefix}) {
@@ -80,40 +72,32 @@ class ObjectTypeStrategy {
     }
 }
 
-/*class StringTypeStrategy {
-    decl(name) {
+class StringTypeStrategy {
+    nativeDecl(name) {
         return `std::string ${name};\n`;
+    }
+
+    /*nativeParam(name) {
+        return `std::string ${name}`;
+    }*/
+
+    abiDecl(name) {
+        return `JSVAL ${name};\n`;
+    }
+
+    pack(dest, src) {
+        return `${dest}=jsvalCreateString(${src}.c_str());\n`;
     }
 
     unpack(dest, src) {
         return `
-            size_t ${dest}_len;
-            const char *${dest}_ptr=JS_ToCStringLen(ctx, &${dest}_len, ${src});
-            ${dest}.assign(${dest}_ptr,${dest}_len);
-            JS_FreeCString(ctx,${dest}_ptr);
+            int ${dest}_len=jsvalGetSize(${src});
+            char ${dest}_str[${dest}_len+1];
+            jsvalReadString(${src},${dest}_str);
+            ${dest}=std::string(${dest}_str);
         `;
     }
-
-    nativeParam(name) {
-        return `std::string ${name}`;
-    }
-
-    pack(dest, src) {
-        return `${dest}=JS_NewString(ctx,${src}.c_str());\n`;
-    }
-
-    jsDecl(name) {
-        return `let ${name};`
-    }
-
-    jsPack(to, from) {
-        return `${to}=${from};\n`;
-    }
-
-    jsUnpack(to, from) {
-        return `${to}=${from};\n`;
-    }
-}*/
+}
 
 export function createTypeStrategy(typeDef, {idl, prefix}) {
     switch (typeDef.type) {
@@ -121,13 +105,13 @@ export function createTypeStrategy(typeDef, {idl, prefix}) {
             return new IntTypeStrategy();
             break;
 
-        /*case "float":
+        case "float":
             return new FloatTypeStrategy();
             break;
 
         case "string":
             return new StringTypeStrategy();
-            break;*/
+            break;
 
         default:
             if (!idlGetClass(idl,typeDef.type))
