@@ -5,7 +5,10 @@ import {autoIndent, stripImportsAndExports} from "../utils/lang-util.js";
 
 let __dirname=dirnameFromImportMeta(import.meta);
 
-export async function buildJsvalWasm({output, sources, exportedFunctions, initFunction, hoistedSymbols}) {
+export async function buildJsvalWasm({output, sources, exportedFunctions, initFunction, hoistedSymbols, includePath}) {
+	if (!includePath)
+		includePath=[];
+
 	if (!initFunction)
 		initFunction="init";
 
@@ -37,6 +40,7 @@ export async function buildJsvalWasm({output, sources, exportedFunctions, initFu
 	await runCommand("emcc",[
 		"-o",wasmOutput,
 		"-I",path.join(__dirname,"../../include"),
+		...includePath.map(i=>`-I${i}`),
 		"-sSTANDALONE_WASM=1",
 		`-sEXPORTED_FUNCTIONS=${exportedFunctions.join(",")}`,
 		"--no-entry",

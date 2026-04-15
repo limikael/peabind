@@ -50,7 +50,7 @@ class IntTypeStrategy {
     jsUnpack(to, from) {
         return `${to}=${from};\n`;
     }
-}
+}*/
 
 class ObjectTypeStrategy {
     constructor(typeDef, {idl, prefix}) {
@@ -58,44 +58,29 @@ class ObjectTypeStrategy {
         this.prefix=prefix;
     }
 
-    decl(name) {
-        return `
-            int ${name}_id;
-            std::shared_ptr<${this.typeDef.type}> ${name}; 
-        `;
+    nativeDecl(name) {
+        return `std::shared_ptr<${this.typeDef.type}> ${name};\n`;
+    }
+
+    /*nativeParam(name) {
+        return `int ${name}`;
+    }*/
+
+    abiDecl(name) {
+        return `JSVAL ${name};\n`;
     }
 
     unpack(dest, src) {
-        return `
-            JS_ToInt32(ctx,&${dest}_id,${src});\n
-            ${dest}=std::static_pointer_cast<${this.typeDef.type}>(registry[${dest}_id]);\n
-        `;
-    }
-
-    nativeParam(name) {
-        return `std::shared_ptr<${this.typeDef.type}> ${name}`;
+        return `${dest}=unpack<${this.typeDef.type}>(${src});`;
     }
 
     pack(dest, src) {
-        return `
-            ${dest}=JS_NewInt32(ctx,store(${src}));
-        `;
-    }
-
-    jsDecl(name) {
-        return `let ${name};`
-    }
-
-    jsPack(to, from) {
-        return `${to}=${from}._handle;\n`;
-    }
-
-    jsUnpack(to, from) {
-        return `${to}=${this.prefix}getRegistryObject(${from},${this.typeDef.type});\n`;
+        let id=`${this.prefix}${this.typeDef.type}_id`;
+        return `${dest}=pack<${this.typeDef.type}>(${src},${id});`
     }
 }
 
-class StringTypeStrategy {
+/*class StringTypeStrategy {
     decl(name) {
         return `std::string ${name};\n`;
     }
@@ -142,13 +127,13 @@ export function createTypeStrategy(typeDef, {idl, prefix}) {
 
         case "string":
             return new StringTypeStrategy();
-            break;
+            break;*/
 
         default:
             if (!idlGetClass(idl,typeDef.type))
                 throw new Error("Unknown type: "+typeDef.type);
 
             return new ObjectTypeStrategy(typeDef, {idl, prefix});
-            break;*/
+            break;
     }
 }

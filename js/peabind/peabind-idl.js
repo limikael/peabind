@@ -49,11 +49,14 @@ export function peabindNormalize(def) {
 		for (let m of c.methods) {
 			m.args=normalizeArray(m.args).map(a=>normalizeStringOrObject(a,"type"));
 			m.return=normalizeStringOrObject(m.return,"type","void");
+			m.className=c.name
 		}
 
 		c.events=normalizeMapOrArray(c.events,"name");
-		for (let e of c.events)
+		for (let e of c.events) {
 			e.args=normalizeArray(e.args).map(a=>normalizeStringOrObject(a,"type"));
+			e.className=c.name;
+		}
 	}
 
 	return def;

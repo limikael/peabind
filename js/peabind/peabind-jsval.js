@@ -3,10 +3,13 @@ import {peabindNormalize} from "./peabind-idl.js";
 import {autoIndent} from "../utils/lang-util.js";
 
 class PeabindJsvalBuilder {
-	constructor({idl, projectName, prefix}) {
+	constructor({idl, projectName, prefix, include}) {
 		this.idl=peabindNormalize(idl);
 		this.projectName=projectName;
 		this.prefix=prefix;
+        this.include=include;
+        if (!this.include)
+            this.include=[];
 
         if (!this.prefix)
             this.prefix=this.projectName.replaceAll(".","_")+"_";
@@ -22,10 +25,9 @@ class PeabindJsvalBuilder {
 	generateFunctionDef(func) {
         let name,prelude,callTarget,argStart;
         if (func.className) {
-        	// FIX FIX FIX
             name=`${this.prefix}${func.className}_${func.name}`;
             prelude=`
-                Opaque* opaque=(Opaque*)JS_GetOpaque(thisobj,${this.prefix}${func.className}_classid);
+                Opaque *opaque=(Opaque *)jsvalGetOpaque(thisobj);
                 std::shared_ptr<${func.className}> instance=std::static_pointer_cast<${func.className}>(opaque->instance);
             `;
             callTarget=`instance->${func.name}`;
@@ -41,7 +43,7 @@ class PeabindJsvalBuilder {
         if (func.return.type=="void") {
             call=`
                 ${callTarget}(${func.args.map((arg,i)=>`a${i}`).join(",")});
-                return jsvalUndefined();
+                return 0;//jsvalUndefined();
             `;
         }
 
@@ -56,11 +58,11 @@ class PeabindJsvalBuilder {
         }
 
         return `
-            static JSVAL ${name}(JSVAL thisobj, JSVAL args) {
-                if (jsvalGetSize(args)!=${func.args.length}) return jsvalThrow();
+            static JSVAL ${name}(JSVAL thisobj, int argc, JSVAL *argv) {
+                if (argc!=${func.args.length}) return 0; //jsvalThrow();
                 ${prelude}
                 ${func.args.map((a,i)=>this.ts(a).nativeDecl(`a${i}`)).join("\n")}
-                ${func.args.map((a,i)=>this.ts(a).unpack(`a${i}`,`jsvalGetItemAt(args,${i})`)).join("\n")}
+                ${func.args.map((a,i)=>this.ts(a).unpack(`a${i}`,`argv[${i}]`)).join("\n")}
                 ${call}
             }
         `;
@@ -69,7 +71,7 @@ class PeabindJsvalBuilder {
 	generateFunctionReg(func) {
         if (func.className) {
             return `
-                jsvalSetProtoProp(mod,"${func.name}",jsvalCreateFunc(${this.prefix}${func.className}_${func.name}));
+                jsvalSetProtoProp(${this.prefix}${func.className}_id,"${func.name}",jsvalCreateFunc(${this.prefix}${func.className}_${func.name}));
             `;
         }
 
@@ -81,23 +83,97 @@ class PeabindJsvalBuilder {
 
 	}
 
+    generateClassDef(cls) {
+        return `
+            static JSVAL ${this.prefix}${cls.name}_constructor(JSVAL thisobj, int argc, JSVAL *argv) {
+                auto instance=std::make_shared<${cls.name}>();
+                jsvalByPointer[instance.get()]=thisobj;
+                Opaque *opaque=new Opaque(instance);
+                jsvalSetOpaque(thisobj,opaque);
+                return 0;
+            }
+
+            static void ${this.prefix}${cls.name}_finalizer(JSVAL thisobj) {
+                Opaque *opaque=(Opaque *)jsvalGetOpaque(thisobj);
+                jsvalByPointer.erase(opaque->instance.get());
+                delete opaque;
+            }
+
+            ${cls.methods.map(m=>this.generateFunctionDef(m)).join("\n")}
+        `;
+    }
+
+    generateClassId(cls) {
+        return `
+            JSVAL ${this.prefix}${cls.name}_id;
+        `;
+    }
+
+    generateClassReg(cls) {
+        return `
+            ${this.prefix}${cls.name}_id=jsvalCreateClass(${this.prefix}${cls.name}_constructor);
+            jsvalSetClassFinalizer(${this.prefix}${cls.name}_id,${this.prefix}${cls.name}_finalizer);
+            jsvalSetProp(mod,"${cls.name}",${this.prefix}${cls.name}_id);
+
+            ${cls.methods.map(m=>this.generateFunctionReg(m)).join("\n")}
+        `;
+    }
+
     generateSource() {
         return autoIndent(`
-            #include "${this.projectName+".h"}"
+            ${this.include.map(i=>`#include "${i}"`).join("\n")}
             ${this.idl.include.map(i=>`#include "${i}"`).join("\n")}
             #include <string>
+            #include <map>
+
+            class Opaque {
+            public:
+                Opaque(std::shared_ptr<void> instance_) { instance=instance_; };
+                std::shared_ptr<void> instance;
+            };
+
+            static std::map<void *,JSVAL> jsvalByPointer;
+
+            template<typename T>
+            static std::shared_ptr<T> unpack(JSVAL v) {
+                Opaque *opaque=(Opaque *)jsvalGetOpaque(v);
+                std::shared_ptr<T> p=std::static_pointer_cast<T>(opaque->instance);
+                return p;
+            }
+
+            template<typename T>
+            static JSVAL pack(std::shared_ptr<T> instance, JSVAL classId) {
+                if (jsvalByPointer.find(instance.get())!=jsvalByPointer.end())
+                    return jsvalByPointer[instance.get()];
+
+                JSVAL val=jsvalCreateObject(classId);
+                jsvalByPointer[instance.get()]=val;
+                Opaque *opaque=new Opaque(instance);
+                jsvalSetOpaque(val,opaque);
+
+                return val;
+            }
+
+            ${this.idl.classes.map(c=>this.generateClassId(c)).join("\n")}
 
             ${this.idl.functions.map(f=>this.generateFunctionDef(f)).join("\n")}
             ${this.idl.classes.map(c=>this.generateClassDef(c)).join("\n")}
 
-            void ${this.prefix}init(JSVAL mod) {
+            extern "C" void ${this.prefix}init(JSVAL mod) {
                 ${this.idl.functions.map(f=>this.generateFunctionReg(f)).join("\n")}
                 ${this.idl.classes.map(c=>this.generateClassReg(c)).join("\n")}
             }
         `); 
     }
+
+    getSymbolNames() {
+        return [
+            ...this.idl.functions.map(f=>f.name),
+            ...this.idl.classes.map(f=>f.name)
+        ];
+    }
 }
 
-export function createPeabindJsvalBuilder({idl, projectName, prefix}) {
-	return new PeabindJsvalBuilder({idl, projectName, prefix});
+export function createPeabindJsvalBuilder({idl, projectName, prefix, include}) {
+	return new PeabindJsvalBuilder({idl, projectName, prefix, include});
 }

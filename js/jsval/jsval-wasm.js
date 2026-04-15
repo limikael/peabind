@@ -40,6 +40,7 @@ class JsvalWasmModule {
                 jsvalReadString: this.jsvalReadString,
                 jsvalDup: this.jsvalDup,
                 jsvalFree: this.jsvalFree,
+                jsvalCreateObject: this.jsvalCreateObject
             }
         });
 
@@ -48,7 +49,7 @@ class JsvalWasmModule {
         this.mod.__jsvalWasmModule=this;
 
         return this.mod;
-   }
+    }
 
     jsvalDup=(id)=>{
         //console.log("dup: "+id);
@@ -145,6 +146,14 @@ class JsvalWasmModule {
             arg=[];
         let ret=fn.apply(thisobj,arg);
         return this.pack(ret);
+    }
+
+    jsvalCreateObject=(classId)=>{
+        let cls=this.unpack(classId);
+        console.log("creating class, classid="+classId);
+
+        let instance=Object.create(cls.prototype);
+        return this.pack(instance);
     }
 
     jsvalCreateString=(ptr)=>{

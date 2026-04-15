@@ -14,6 +14,7 @@ JS_IMPORT(jsvalGetSize) JSVAL jsvalGetSize(JSVAL v);
 JS_IMPORT(jsvalGetItemAt) JSVAL jsvalGetItemAt(JSVAL v, int index);
 JS_IMPORT(jsvalCallArray) JSVAL jsvalCallArray(JSVAL fn, JSVAL thisobj, JSVAL args);
 JS_IMPORT(jsvalCreateString) JSVAL jsvalCreateString(const char *p);
+JS_IMPORT(jsvalCreateObject) JSVAL jsvalCreateObject(JSVAL classId);
 JS_IMPORT(jsvalSetPropJsval) JSVAL jsvalSetPropJsval(JSVAL o, JSVAL prop, JSVAL val);
 JS_IMPORT(jsvalGetPropJsval) JSVAL jsvalGetPropJsval(JSVAL o, JSVAL prop);
 JS_IMPORT(jsvalGetInt) JSVAL jsvalGetInt(JSVAL o);

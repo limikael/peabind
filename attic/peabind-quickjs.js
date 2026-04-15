@@ -31,9 +31,7 @@ class PeabindQuickjsBuilder {
         if (cls) {
             name=`${this.prefix}${cls.name}_${func.name}`;
             prelude=`
-                int id;
-                JS_ToInt32(ctx,&id,argv[0]);
-                std::shared_ptr<${cls.name}> instance=std::static_pointer_cast<${cls.name}>(registry[id]);
+                std::shared_ptr<${cls.name}> instance=std::static_pointer_cast<${cls.name}>(jsvalGetOpaque(thisid));
             `;
             callTarget=`instance->${func.name}`;
             argStart=1;
@@ -65,7 +63,7 @@ class PeabindQuickjsBuilder {
         }
 
         return `
-            static JSValue ${name}(JSContext *ctx, JSValueConst thisobj, int argc, JSValueConst *argv) {
+            static JSValue ${name}(JSVAL thisid, int argc, JSValueConst *argv) {
                 if (argc!=${func.args.length+argStart}) return JS_ThrowTypeError(ctx, "wrong arg count");
                 ${prelude}
                 ${func.args.map((arg,i)=>`

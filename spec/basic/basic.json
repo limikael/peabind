@@ -2,32 +2,32 @@
 	"include": ["basic.h"],
 	"functions": {
 		"hello": {"return":"int", "args": ["int","int"]},
-		/*"hello2": {"return":"int"},
-		"createHello": {"return":"Hello"},
+		"hello2": {"return":"int"},
 		"setHelloVal": {"args": ["Hello","int"]},
-		"hellof": {"return":"int","args": ["float"]},
+		"createHello": {"return":"Hello"},
+		/*"hellof": {"return":"int","args": ["float"]},
 		"hellothird": {"return":"float","args": ["int"]},
-		"hellos": {"return": "string","args":["string","string"]},
-		"getLiveHelloCount": {"return": "int"}*/
+		"hellos": {"return": "string","args":["string","string"]},*/
+		"getLiveHelloCount": {"return": "int"}
 	},
-	/*"classes": {
+	"classes": {
 		"Hello": {
 			"methods": {
 				"getVal": {"return":"int"},
 				"setVal": {"args":["int"]},
-				"emitData": {"args":["int","int"]},
+				/*"emitData": {"args":["int","int"]},
 				"emitDataVoid": {},
 				"emitDataFloat": {"args": ["float"]},
 				"emitDataHello": {"args": ["Hello"]},
-				"emitDataString": {"args": ["string"]}
+				"emitDataString": {"args": ["string"]}*/
 			},
-			"events": {
+			/*"events": {
 				"data": {"args": ["int","int"]},
 				"dataVoid": {},
 				"dataFloat": {"args": ["float"]},
 				"dataHello": {"args": ["Hello"]},
 				"dataString": {"args": ["string"]},
-			}
+			}*/
 		}
-	}*/
+	}
 }

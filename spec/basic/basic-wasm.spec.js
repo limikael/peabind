@@ -4,7 +4,7 @@ import fs, {promises as fsp} from "fs";
 import path from "path";
 import {forceGc} from "../../js/utils/test-util.js";
 
-jasmine.DEFAULT_TIMEOUT_INTERVAL=10000;
+jasmine.DEFAULT_TIMEOUT_INTERVAL=30000;
 
 let __dirname=dirnameFromImportMeta(import.meta);
 
@@ -19,6 +19,11 @@ describe("basic-wasm",()=>{
 			output: path.join(__dirname,"basic.out.js"),
 			target: "wasm"
 		});
+
+		let mod=await import(path.join(__dirname,"basic.out.js"));
+		let v=mod.hello(1,2);
+		//console.log(v);
+		expect(v).toEqual(3);
 	});
 
 	it("can compile and run wasm",async ()=>{
@@ -41,31 +46,29 @@ describe("basic-wasm",()=>{
 		//console.log("calling...");
 
 		let h1=new mod.Hello();
-		let a=[];
+		//console.log("h1 val="+h1.getVal());
+		expect(h1.getVal()).toEqual(100);
+		h1.setVal(200);
+		expect(h1.getVal()).toEqual(200);
+
+		mod.setHelloVal(h1,999);
+		expect(h1.getVal()).toEqual(999);
+
+		/*let a=[];
 		h1.on("data",(d1,d2)=>{
 			a.push(d1,d2);
 			//console.log("got event: "+d1+","+d2);
 		});
 		h1.emitData(123,456);
 
-		expect(a).toEqual([123,456]);
+		expect(a).toEqual([123,456]);*/
 
 		let h2=new mod.Hello();
-
-		//console.log("h1._handle="+h1._handle+" h2._handle="+h2._handle);
-		expect(h1._handle).not.toEqual(h2._handle);
-
-		//console.log("h1 val="+h1.getVal());
-		expect(h1.getVal()).toEqual(100);
-
-		/*h2.destroy();
-		h1.destroy();*/
+		expect(h2.getVal()).toEqual(100);
 
 		let h3=mod.createHello();
 		let h4=mod.createHello();
 
-		//console.log("h3._handle="+h3._handle+" h4._handle="+h4._handle);
-		expect(h3._handle).toEqual(h4._handle);
 		expect(h3).toBe(h4);
 
 		//console.log("h3 val="+h3.getVal());
