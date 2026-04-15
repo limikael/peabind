@@ -3,34 +3,29 @@
 #include <string>
 #include <cstring>
 
-JSVAL add(JSVAL thisobj, JSVAL args) {
-	JSVAL argv[jsvalGetSize(args)];
-	jsvalReadArray(args,argv);
-
+static JSVAL add(JSVAL thisobj, int argc, JSVAL *argv) {
 	JSVAL a=jsvalGetInt(argv[0]);
 	JSVAL b=jsvalGetInt(argv[1]);
 
 	return jsvalCreateInt(a+b);
 }
 
-JSVAL makecall(JSVAL thisobj, JSVAL args) {
-	JSVAL fn=jsvalGetItemAt(args,0);
-	JSVAL ret=jsvalCall(fn,0,args);
+static JSVAL makecall(JSVAL thisobj, int argc, JSVAL *argv) {
+	JSVAL fn=argv[0];
+	//JSVAL ret=jsvalCall(fn,0,0,NULL);
+	JSVAL ret=jsvalCallArray(fn,0,0);
 
 	return ret;
 }
 
-JSVAL getstringlen(JSVAL thisobj, JSVAL args) {
-	int len=jsvalGetSize(jsvalGetItemAt(args,0));
+static JSVAL getstringlen(JSVAL thisobj, int argc, JSVAL *argv) {
+	int len=jsvalGetSize(argv[0]);
 	//printf("len: %d\n",len);
 
 	return jsvalCreateInt(len);
 }
 
-JSVAL concat(JSVAL thisobj, JSVAL args) {
-	JSVAL argv[jsvalGetSize(args)];
-	jsvalReadArray(args,argv);
-
+static JSVAL concat(JSVAL thisobj, int argc, JSVAL *argv) {
 	char a[jsvalGetSize(argv[0])+1];
 	jsvalReadString(argv[0],a);
 
@@ -44,9 +39,9 @@ JSVAL concat(JSVAL thisobj, JSVAL args) {
 	return jsvalCreateString(res.c_str());
 }
 
-int numLiveMyClass=0;
+static int numLiveMyClass=0;
 
-JSVAL getNumLiveMyClass(JSVAL thisobj, JSVAL args) {
+static JSVAL getNumLiveMyClass(JSVAL thisobj, int argc, JSVAL *argv) {
 	return jsvalCreateInt(numLiveMyClass);
 }
 
@@ -65,27 +60,23 @@ public:
 	JSVAL callback;
 };
 
-JSVAL MyClass_constructor(JSVAL thisobj, JSVAL args) {
+static JSVAL MyClass_constructor(JSVAL thisobj, int argc, JSVAL *argv) {
 	jsvalSetOpaque(thisobj,new MyClass());
-
 	return 0;
 }
 
-JSVAL MyClass_getVal(JSVAL thisobj, JSVAL args) {
+static JSVAL MyClass_getVal(JSVAL thisobj, int argc, JSVAL *argv) {
 	MyClass *my=(MyClass*)jsvalGetOpaque(thisobj);
 	return jsvalCreateInt(my->val);
 }
 
-JSVAL MyClass_setVal(JSVAL thisobj, JSVAL args) {
-	JSVAL argv[jsvalGetSize(args)];
-	jsvalReadArray(args,argv);
+static JSVAL MyClass_setVal(JSVAL thisobj, int argc, JSVAL *argv) {
 	MyClass *my=(MyClass*)jsvalGetOpaque(thisobj);
-
 	my->val=jsvalGetInt(argv[0]);
 	return 0;
 }
 
-void MyClass_finalizer(JSVAL thisobj) {
+static void MyClass_finalizer(JSVAL thisobj) {
 	MyClass *my=(MyClass*)jsvalGetOpaque(thisobj);
 	//printf("finalizing %d, val=%d, cb=%d\n",thisobj,my->val,my->callback);
 
@@ -94,9 +85,7 @@ void MyClass_finalizer(JSVAL thisobj) {
 	delete my;
 }
 
-JSVAL MyClass_setCallback(JSVAL thisobj, JSVAL args) {
-	JSVAL argv[jsvalGetSize(args)];
-	jsvalReadArray(args,argv);
+static JSVAL MyClass_setCallback(JSVAL thisobj, int argc, JSVAL *argv) {
 	MyClass *my=(MyClass*)jsvalGetOpaque(thisobj);
 
 	jsvalDup(argv[0]);
@@ -104,10 +93,10 @@ JSVAL MyClass_setCallback(JSVAL thisobj, JSVAL args) {
 	return 0;
 }
 
-JSVAL MyClass_triggerCallback(JSVAL thisobj, JSVAL args) {
+static JSVAL MyClass_triggerCallback(JSVAL thisobj, int argc, JSVAL *argv) {
 	MyClass *my=(MyClass*)jsvalGetOpaque(thisobj);
 
-	jsvalCall(my->callback,0,0);//=argv[0];
+	jsvalCallArray(my->callback,0,0);//=argv[0];
 	return 0;
 }
 

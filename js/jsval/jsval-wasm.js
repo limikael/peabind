@@ -30,7 +30,7 @@ class JsvalWasmModule {
                 jsvalGetItemAt: this.jsvalGetItemAt,
                 jsvalCreateFuncStub: this.jsvalCreateFuncStub,
                 jsvalCreateClassStub: this.jsvalCreateClassStub,
-                jsvalCall: this.jsvalCall,
+                jsvalCallArray: this.jsvalCallArray,
                 jsvalCreateString: this.jsvalCreateString,
                 jsvalSetPropJsval: this.jsvalSetPropJsval,
                 jsvalGetPropJsval: this.jsvalGetPropJsval,
@@ -137,7 +137,7 @@ class JsvalWasmModule {
         return this.pack(o);
     }
 
-    jsvalCall=(fid, thisid, argid)=>{
+    jsvalCallArray=(fid, thisid, argid)=>{
         let fn=this.unpack(fid);
         let thisobj=this.unpack(thisid);
         let arg=this.unpack(argid);

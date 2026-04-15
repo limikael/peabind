@@ -3,7 +3,7 @@
 
 typedef int JSVAL;
 
-typedef JSVAL JSVAL_FUNC(JSVAL thisobj, JSVAL args);
+typedef JSVAL JSVAL_FUNC(JSVAL thisobj, int argc, JSVAL *argv);
 typedef void JSVAL_FINALIZER(JSVAL thisobj);
 
 #define JS_IMPORT(name) \
@@ -12,7 +12,7 @@ typedef void JSVAL_FINALIZER(JSVAL thisobj);
 
 JS_IMPORT(jsvalGetSize) JSVAL jsvalGetSize(JSVAL v);
 JS_IMPORT(jsvalGetItemAt) JSVAL jsvalGetItemAt(JSVAL v, int index);
-JS_IMPORT(jsvalCall) JSVAL jsvalCall(JSVAL fn, JSVAL thisobj, JSVAL args);
+JS_IMPORT(jsvalCallArray) JSVAL jsvalCallArray(JSVAL fn, JSVAL thisobj, JSVAL args);
 JS_IMPORT(jsvalCreateString) JSVAL jsvalCreateString(const char *p);
 JS_IMPORT(jsvalSetPropJsval) JSVAL jsvalSetPropJsval(JSVAL o, JSVAL prop, JSVAL val);
 JS_IMPORT(jsvalGetPropJsval) JSVAL jsvalGetPropJsval(JSVAL o, JSVAL prop);

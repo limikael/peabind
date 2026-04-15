@@ -35,12 +35,16 @@ void *jsvalGetOpaque(JSVAL v) {
 	return opaques[v];
 }
 
-JSVAL jsvalCallNative(JSVAL stub, JSVAL thisobj, JSVAL params) {
+JSVAL jsvalCallNative(JSVAL stub, JSVAL thisobj, JSVAL args) {
+	int argc=jsvalGetSize(args);
+	JSVAL argv[argc];
+	jsvalReadArray(args,argv);
+
 	JSVAL_FUNC *func=(JSVAL_FUNC *)jsvalGetInternalOpaque(stub);
 
 	//printf("going to call.. f=%p\n",func);
 
-	return func(thisobj, params);
+	return func(thisobj, argc, argv);
 }
 
 JSVAL jsvalCreateFunc(JSVAL_FUNC *func) {
