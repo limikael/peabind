@@ -203,7 +203,7 @@ class PeabindJsvalBuilder {
 
             static std::map<void *,JSVAL> jsvalByPointer;
 
-            /*template<typename T>
+            template<typename T>
             static std::shared_ptr<T> unpack(JSVAL v) {
                 Opaque *opaque=(Opaque *)jsvalGetOpaque(v);
                 std::shared_ptr<T> p=std::static_pointer_cast<T>(opaque->instance);
@@ -221,7 +221,7 @@ class PeabindJsvalBuilder {
                 jsvalSetOpaque(val,opaque);
 
                 return val;
-            }*/
+            }
 
             ${this.idl.classes.map(c=>this.generateClassId(c)).join("\n")}
 

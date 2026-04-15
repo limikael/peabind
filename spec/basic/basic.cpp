@@ -20,6 +20,10 @@ std::string hellos(std::string s, std::string t) {
 
 std::shared_ptr<Hello> globalHello;
 
+void removeHello() {
+	globalHello=nullptr;
+}
+
 std::shared_ptr<Hello> createHello() {
 	if (!globalHello) {
 		//printf("creating the global hello...\n");

@@ -7,6 +7,7 @@ int hello2();
 int hellof(float f);
 float hellothird(int i);
 std::string hellos(std::string s, std::string t);
+void removeHello();
 
 extern int liveHelloCount;
 int getLiveHelloCount();
@@ -16,12 +17,12 @@ public:
 	Hello() {
 		val=100;
 		liveHelloCount++;
-		printf("creating hello, val=%d\n",val);
+		//printf("creating hello, val=%d\n",val);
 	}
 
 	~Hello() {
 		liveHelloCount--;
-		printf("destroying hello, val=%d\n",getVal());
+		//printf("destroying hello, val=%d\n",getVal());
 	}
 
 	int getVal() {

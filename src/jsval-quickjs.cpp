@@ -125,3 +125,24 @@ void jsvalSetClassFinalizer(JSVAL cls, JSVAL_FINALIZER *f) {
 
 	//printf("settng finalizer for: %d\n",classId);
 }
+
+float jsvalGetFloat(JSVAL v) {
+	double f;
+	JS_ToFloat64(jsvalCtx,&f,v);
+	return f;
+}
+
+JSVAL jsvalCreateFloat(float f) {
+	return JS_NewFloat64(jsvalCtx,f);
+}
+
+JSVAL jsvalCreateObject(JSVAL cls) {
+	JSValue classIdProp=JS_GetPropertyStr(jsvalCtx,cls,"__classId");
+	JSClassID classId;
+	JS_ToUint32(jsvalCtx,&classId,classIdProp);
+
+	//printf("create obj of class: %d\n",classId);
+
+    JSValue obj=JS_NewObjectClass(jsvalCtx,classId);
+    return obj;
+}
