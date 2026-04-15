@@ -28,6 +28,7 @@ class PeabindJsvalBuilder {
             name=`${this.prefix}${func.className}_${func.name}`;
             prelude=`
                 Opaque *opaque=(Opaque *)jsvalGetOpaque(thisobj);
+                assert(opaque!=NULL);
                 std::shared_ptr<${func.className}> instance=std::static_pointer_cast<${func.className}>(opaque->instance);
             `;
             callTarget=`instance->${func.name}`;
@@ -43,7 +44,7 @@ class PeabindJsvalBuilder {
         if (func.return.type=="void") {
             call=`
                 ${callTarget}(${func.args.map((arg,i)=>`a${i}`).join(",")});
-                return 0;//jsvalUndefined();
+                return jsvalUndefined();
             `;
         }
 
@@ -59,7 +60,7 @@ class PeabindJsvalBuilder {
 
         return `
             static JSVAL ${name}(JSVAL thisobj, int argc, JSVAL *argv) {
-                if (argc!=${func.args.length}) return 0; //jsvalThrow();
+                if (argc!=${func.args.length}) return jsvalUndefined();
                 ${prelude}
                 ${func.args.map((a,i)=>this.ts(a).nativeDecl(`a${i}`)).join("\n")}
                 ${func.args.map((a,i)=>this.ts(a).unpack(`a${i}`,`argv[${i}]`)).join("\n")}
@@ -82,56 +83,6 @@ class PeabindJsvalBuilder {
         }
 
 	}
-
-    /*generateEventDef(event) {
-        let onName=`${this.prefix}${event.className}_on_${event.name}`;
-        let offName=`${this.prefix}${event.className}_off_${event.name}`;
-
-        return `
-            static JSVAL ${this.prefix}${event.className}_on(JSVAL thisobj, int argc, JSVAL *argv) {
-                int id,callbackId;
-                JS_ToInt32(ctx,&id,argv[0]);
-                JS_ToInt32(ctx,&callbackId,argv[1]);
-                std::shared_ptr<${cls.name}> instance=std::static_pointer_cast<${cls.name}>(registry[id]);
-
-                int listenerId=instance->${event.name}.on([ctx,callbackId](${params}){
-                    JSValue global=JS_GetGlobalObject(ctx);
-                    JSValue cb=JS_GetPropertyStr(ctx,global,"${handlerName}");
-
-                    JSValue args[${event.args.length+1}];
-                    args[0] = JS_NewInt32(ctx, callbackId);
-
-                    ${event.args.map((arg,i)=>`
-                        ${this.ts(arg).pack(`args[${i+1}]`,`a${i}`)}
-                    `).join("")}
-
-                    JSValue result=JS_Call(ctx,cb,JS_UNDEFINED,${event.args.length+1},args);
-
-                    if (JS_IsException(result)) {
-                        // Handle JS errors here
-                        printf("unhandled!!!\\n");
-                    }
-
-                    for (int i=0; i<${event.args.length+1}; i++)
-                        JS_FreeValue(ctx,args[i]);
-
-                    JS_FreeValue(ctx,result);
-                    JS_FreeValue(ctx,cb);
-                    JS_FreeValue(ctx,global);
-
-                    //printf("on invoked...\\n");
-                });
-                instance->${event.name}.setGlobalId(listenerId,callbackId);
-                return JS_UNDEFINED;
-            }
-
-            //void ${this.prefix}${cls.name}_off_${event.name}(int id, int callbackId) {
-             //   std::shared_ptr<${cls.name}> instance=std::static_pointer_cast<${cls.name}>(registry[id]);
-            //    int listenerId=instance->${event.name}.getIdByGlobalId(callbackId);
-             //   instance->${event.name}.off(listenerId);
-            //}
-        `;
-    }*/
 
     generateEventOnDef(event) {
         let argDecl=event.args.map((a,i)=>this.ts(a).nativeParam(`a${i}`)).join(",");
@@ -163,6 +114,9 @@ class PeabindJsvalBuilder {
     }
 
     generateEventDefs(cls) {
+        if (!cls.events.length)
+            return "";
+
         return `
             static JSVAL ${this.prefix}${cls.name}_on(JSVAL thisobj, int argc, JSVAL *argv) {
                 std::shared_ptr<${cls.name}> instance=unpack<${cls.name}>(thisobj);
@@ -197,7 +151,7 @@ class PeabindJsvalBuilder {
                 jsvalByPointer[instance.get()]=thisobj;
                 Opaque *opaque=new Opaque(instance);
                 jsvalSetOpaque(thisobj,opaque);
-                return 0;
+                return thisobj;
             }
 
             static void ${this.prefix}${cls.name}_finalizer(JSVAL thisobj) {
@@ -239,6 +193,7 @@ class PeabindJsvalBuilder {
             ${this.idl.include.map(i=>`#include "${i}"`).join("\n")}
             #include <string>
             #include <map>
+            #include <cassert>
 
             class Opaque {
             public:
@@ -248,7 +203,7 @@ class PeabindJsvalBuilder {
 
             static std::map<void *,JSVAL> jsvalByPointer;
 
-            template<typename T>
+            /*template<typename T>
             static std::shared_ptr<T> unpack(JSVAL v) {
                 Opaque *opaque=(Opaque *)jsvalGetOpaque(v);
                 std::shared_ptr<T> p=std::static_pointer_cast<T>(opaque->instance);
@@ -266,14 +221,14 @@ class PeabindJsvalBuilder {
                 jsvalSetOpaque(val,opaque);
 
                 return val;
-            }
+            }*/
 
             ${this.idl.classes.map(c=>this.generateClassId(c)).join("\n")}
 
             ${this.idl.functions.map(f=>this.generateFunctionDef(f)).join("\n")}
             ${this.idl.classes.map(c=>this.generateClassDef(c)).join("\n")}
 
-            extern "C" void ${this.prefix}init(JSVAL mod) {
+            extern "C" void ${this.prefix}initmod(JSVAL mod) {
                 ${this.idl.functions.map(f=>this.generateFunctionReg(f)).join("\n")}
                 ${this.idl.classes.map(c=>this.generateClassReg(c)).join("\n")}
             }

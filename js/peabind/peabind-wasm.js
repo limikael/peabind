@@ -14,6 +14,7 @@ export async function peabindWasm({idl, includePath, sources, output, prefix}) {
     let projectName=path.basename(output).slice(0,-3);
     let builder=createPeabindJsvalBuilder({
         idl, 
+        prefix,
         projectName,
         include: ["jsval-wasm.h"]
     });
@@ -29,7 +30,7 @@ export async function peabindWasm({idl, includePath, sources, output, prefix}) {
     await buildJsvalWasm({
         output,
         sources: [stubFn,...sources],
-        initFunction: `${builder.prefix}init`,
+        initFunction: `${builder.prefix}initmod`,
         hoistedSymbols: builder.getSymbolNames(),
         includePath
     });

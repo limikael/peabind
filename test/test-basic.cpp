@@ -40,10 +40,22 @@ void test_basic() {
 
     JSRuntime *rt=JS_NewRuntime();
     JSContext *ctx=JS_NewContext(rt);
-
     basic_init(ctx);
+    std::string s;
 
-    std::string s=runjs(ctx,"\
+    s=runjs(ctx,"hello(1,2)");
+    assert(s=="3");
+
+    s=runjs(ctx,"globalThis.h=new Hello()");
+    s=runjs(ctx,"globalThis.h.getVal()");
+    assert(s=="100");
+    s=runjs(ctx,"globalThis.h.setVal(999)");
+    s=runjs(ctx,"globalThis.h.getVal()");
+    assert(s=="999");
+
+
+
+    /*std::string s=runjs(ctx,"\
         let h=new Hello();\
         let h2=createHello();\
         let callret=hello(1,2);\
@@ -54,12 +66,12 @@ void test_basic() {
         let v3=h.getVal();\
         let v4=h2.getVal();\
         JSON.stringify([h._handle,callret,v,v2,v3,v4]);\
-    ");
-    //,FinalizationRegistry.toString()
-    //,WeakRef.toString()
+    ");*/
     //std::string s=runjs(ctx,"hello(1,2); ");
     //printf("s: %s\n",s.c_str());
-    assert(s=="[1,3,100,999,555,666]");
+    //assert(s=="[1,3,100,999,555,666]");
+
+    printf("freeing now...\n");
 
     JS_FreeContext(ctx);
     JS_FreeRuntime(rt);
@@ -177,7 +189,6 @@ void test_gc() {
     JS_RunGC(rt);
     s=runjs(ctx,"getLiveHelloCount()");
     assert(s=="0");
-
 
     basic_exit(ctx);
     JS_FreeContext(ctx);

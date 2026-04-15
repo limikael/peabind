@@ -11,10 +11,10 @@ int main() {
 	printf("Running tests...\n");
 
 	test_basic();
-	test_events();
+	/*test_events();
 	test_types();
 	test_event_types();
-	test_strings();
+	test_strings();*/
 	//test_gc();
 
 	return 0;

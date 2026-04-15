@@ -1,5 +1,5 @@
 import {peabindWasm} from "./peabind-wasm.js";
-//import {peabindQuickjs} from "./peabind-quickjs.js";
+import {peabindQuickjs} from "./peabind-quickjs.js";
 import {peabindNormalize} from "./peabind-idl.js";
 import {arrayify} from "../utils/js-util.js";
 import JSON5 from "json5";

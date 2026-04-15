@@ -16,12 +16,12 @@ public:
 	Hello() {
 		val=100;
 		liveHelloCount++;
-		//printf("creating hello, val=%d\n",val);
+		printf("creating hello, val=%d\n",val);
 	}
 
 	~Hello() {
 		liveHelloCount--;
-		//printf("destroying hello, val=%d\n",getVal());
+		printf("destroying hello, val=%d\n",getVal());
 	}
 
 	int getVal() {
