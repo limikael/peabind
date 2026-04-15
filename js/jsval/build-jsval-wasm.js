@@ -1,7 +1,7 @@
 import {runCommand, dirnameFromImportMeta} from "../utils/node-util.js";
 import path from "path";
 import fs, {promises as fsp} from "fs";
-import {autoIndent} from "../utils/lang-util.js";
+import {autoIndent, stripImportsAndExports} from "../utils/lang-util.js";
 
 let __dirname=dirnameFromImportMeta(import.meta);
 
@@ -45,8 +45,16 @@ export async function buildJsvalWasm({output, sources, exportedFunctions, initFu
 	]);
 
 	if (output.endsWith(".js")) {
+		let depFiles=[
+			path.join(__dirname,"../utils/wasm-util.js"),
+			path.join(__dirname,"jsval-wasm.js"),
+		];
+
+		let depContent=depFiles.map(f=>fs.readFileSync(f,"utf8")).join("\n");
+		depContent=stripImportsAndExports(depContent);
+
 		let modSource=autoIndent(`
-			import {loadJsvalWasm} from "/home/micke/Repo/peabind/js/jsval/jsval-wasm.js";
+			${depContent}
 
 	        let mod=await loadJsvalWasm({
 	            url: new URL('./${path.basename(wasmOutput)}', import.meta.url),

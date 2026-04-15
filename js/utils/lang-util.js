@@ -7,6 +7,18 @@ export function escapeCString(str) {
         .replace(/\t/g, '\\t');   // tab
 }
 
+export function stripImportsAndExports(src) {
+    let lines=src.split("\n");
+    lines=lines.filter(line=>!line.startsWith("import") && !line.startsWith("export default"));
+    lines=lines.map(line=>{
+        if (line.startsWith("export"))
+            return line.slice(6);
+
+        return line;
+    });
+    return lines.join("\n");
+}
+
 export function autoIndent(text, indentSize=4) {
     const lines = text.split('\n');
     let result = [];
