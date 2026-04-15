@@ -12,8 +12,7 @@ describe("jsval",()=>{
         await buildJsvalWasm({
             output: path.join(__dirname,"mymod.out.js"),
             sources: [path.join(__dirname,"mymod.cpp")],
-            exportedSymbols: ["add"],
-            initFunction: "init"
+            hoistedSymbols: ["add"],
         });
 
         let mod=await import(path.join(__dirname,"mymod.out.js"));
@@ -25,14 +24,13 @@ describe("jsval",()=>{
         await buildJsvalWasm({
             output: path.join(__dirname,"mymod.out.wasm"),
             sources: [path.join(__dirname,"mymod.cpp")],
-            initFunction: "init"
+            exportedFunctions: ["_init"]
         });
 
         let mod=await loadJsvalWasm({
             url: new URL('./mymod.out.wasm', import.meta.url),
+            initFunction: "init"
         });
-
-        mod.init();
 
         let v=mod.add(1,2);
         expect(v).toEqual(3);
@@ -61,14 +59,14 @@ describe("jsval",()=>{
         await buildJsvalWasm({
             output: path.join(__dirname,"mymod.out.wasm"),
             sources: [path.join(__dirname,"mymod.cpp")],
-            initFunction: "init"
+            exportedFunctions: ["_init"]
         });
 
         let mod=await loadJsvalWasm({
             url: new URL('./mymod.out.wasm', import.meta.url),
+            initFunction: "init"
         });
 
-        mod.init();
         let numObjsBefore=mod.__jsvalWasmModule.objectById.keys().toArray().length;
         //console.log("objs before gc: "+numObjsBefore);
 
@@ -86,14 +84,13 @@ describe("jsval",()=>{
         await buildJsvalWasm({
             output: path.join(__dirname,"mymod.out.wasm"),
             sources: [path.join(__dirname,"mymod.cpp")],
-            initFunction: "init"
+            exportedFunctions: ["_init"]
         });
 
         let mod=await loadJsvalWasm({
             url: new URL('./mymod.out.wasm', import.meta.url),
+            initFunction: "init"
         });
-
-        mod.init();
 
         await forceGc();
 
@@ -119,14 +116,13 @@ describe("jsval",()=>{
         await buildJsvalWasm({
             output: path.join(__dirname,"mymod.out.wasm"),
             sources: [path.join(__dirname,"mymod.cpp")],
-            initFunction: "init"
+            exportedFunctions: ["_init"],
         });
 
         let mod=await loadJsvalWasm({
             url: new URL('./mymod.out.wasm', import.meta.url),
+            initFunction: "init"
         });
-
-        mod.init();
 
         let callCount=0;
 

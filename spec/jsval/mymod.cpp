@@ -111,9 +111,7 @@ JSVAL MyClass_triggerCallback(JSVAL thisobj, JSVAL args) {
 	return 0;
 }
 
-extern "C" void init() {
-	JSVAL mod=jsvalGetModule();
-
+extern "C" void init(JSVAL mod) {
 	JSVAL cls=jsvalCreateClass(MyClass_constructor);
 	jsvalSetProp(mod,"MyClass",cls);
 	jsvalSetClassFinalizer(cls,MyClass_finalizer);

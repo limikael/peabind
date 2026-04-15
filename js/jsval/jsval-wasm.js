@@ -1,7 +1,10 @@
 import {loadWasmInstance} from "../utils/wasm-util.js";
 
 class JsvalWasmModule {
-    constructor({url}) {
+    constructor({url, initFunction}) {
+        if (!initFunction)
+            throw new Error("No init function for load!");
+
         this.objectById=new Map();
         this.strongById=new Map();
         this.idByObject=new WeakMap();
@@ -16,6 +19,7 @@ class JsvalWasmModule {
         });
         this.nextRegistryId=1;
         this.url=url;
+        this.initFunction=initFunction;
     }
 
     async load() {
@@ -40,7 +44,11 @@ class JsvalWasmModule {
         });
 
         this.mod={...this.instance.exports};
-    }
+        this.mod[this.initFunction](this.pack(this.mod));
+        this.mod.__jsvalWasmModule=this;
+
+        return this.mod;
+   }
 
     jsvalDup=(id)=>{
         //console.log("dup: "+id);
@@ -222,11 +230,7 @@ class JsvalWasmModule {
     }
 }
 
-export async function loadJsvalWasm({url}) {
-    let mod=new JsvalWasmModule({url});
-    await mod.load();
-
-    mod.mod.__jsvalWasmModule=mod;
-
-    return mod.mod;
+export async function loadJsvalWasm({url, initFunction}) {
+    let jsvalWasmModule=new JsvalWasmModule({url, initFunction});
+    return await jsvalWasmModule.load();
 }
