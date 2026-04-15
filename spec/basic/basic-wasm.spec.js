@@ -9,6 +9,18 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL=10000;
 let __dirname=dirnameFromImportMeta(import.meta);
 
 describe("basic-wasm",()=>{
+	it("refactor",async()=>{
+		fs.rmSync(path.join(__dirname,"basic.out.js"),{force: true});
+		fs.rmSync(path.join(__dirname,"basic.out.wasm"),{force: true});
+
+		await peabind({
+			idl: path.join(__dirname,"basic.json"),
+			sources: [path.join(__dirname,"basic.cpp")],
+			output: path.join(__dirname,"basic.out.js"),
+			target: "wasm"
+		});
+	});
+
 	it("can compile and run wasm",async ()=>{
 		fs.rmSync(path.join(__dirname,"basic.out.js"),{force: true});
 		fs.rmSync(path.join(__dirname,"basic.out.wasm"),{force: true});

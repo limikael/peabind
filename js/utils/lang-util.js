@@ -48,5 +48,5 @@ export function autoIndent(text, indentSize=4) {
         }
     }
     
-    return result.join('\n');
+    return result.join('\n')+"\n";
 }

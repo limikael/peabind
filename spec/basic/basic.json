@@ -2,15 +2,15 @@
 	"include": ["basic.h"],
 	"functions": {
 		"hello": {"return":"int", "args": ["int","int"]},
-		"hello2": {"return":"int"},
+		/*"hello2": {"return":"int"},
 		"createHello": {"return":"Hello"},
 		"setHelloVal": {"args": ["Hello","int"]},
 		"hellof": {"return":"int","args": ["float"]},
 		"hellothird": {"return":"float","args": ["int"]},
 		"hellos": {"return": "string","args":["string","string"]},
-		"getLiveHelloCount": {"return": "int"}
+		"getLiveHelloCount": {"return": "int"}*/
 	},
-	"classes": {
+	/*"classes": {
 		"Hello": {
 			"methods": {
 				"getVal": {"return":"int"},
@@ -29,5 +29,5 @@
 				"dataString": {"args": ["string"]},
 			}
 		}
-	}
+	}*/
 }
