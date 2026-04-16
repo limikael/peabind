@@ -6,16 +6,19 @@ void test_types();
 void test_event_types();
 void test_strings();
 void test_gc();
+//void test_jsval_size();
 
 int main() {
 	printf("Running tests...\n");
 
+	//test_jsval_size();
+
 	test_basic();
-	//test_events();
-	test_types();
-	//test_event_types();
-	//test_strings();
-	test_gc();
+		//test_events();
+	//test_types();
+		//test_event_types();
+		//test_strings();
+	//test_gc();
 
 	return 0;
 }

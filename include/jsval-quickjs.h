@@ -24,3 +24,4 @@ void jsvalSetProp(JSVAL obj, const char *prop, JSVAL val);
 JSVAL jsvalCreateClass(JSVAL_FUNC *ctor);
 void jsvalSetProtoProp(JSVAL obj, const char *prop, JSVAL val);
 void jsvalSetClassFinalizer(JSVAL cls, JSVAL_FINALIZER *f);
+int jsvalGetSize(JSVAL cls);

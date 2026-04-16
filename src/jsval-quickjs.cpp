@@ -146,3 +146,21 @@ JSVAL jsvalCreateObject(JSVAL cls) {
     JSValue obj=JS_NewObjectClass(jsvalCtx,classId);
     return obj;
 }
+
+int jsvalGetSize(JSVAL obj) {
+	JSValue value=jsvalToQuickjs(obj);
+
+	if (JS_IsArray(jsvalCtx,value)) {
+	    JSValue lenVal = JS_GetPropertyStr(jsvalCtx, value, "length");
+	    uint32_t len = 0;
+
+	    if (!JS_IsException(lenVal)) {
+	        JS_ToUint32(jsvalCtx, &len, lenVal);
+	    }
+
+	    JS_FreeValue(jsvalCtx, lenVal);
+	    return len;
+	}
+
+	return -1;
+}
