@@ -51,6 +51,8 @@ class JsvalWasmModule {
                 jsvalFree: this.jsvalFree,
                 jsvalCreateObject: this.jsvalCreateObject,
                 jsvalUndefined: this.jsvalUndefined,
+                jsvalCreateBuffer: this.jsvalCreateBuffer,
+                jsvalReadBuffer: this.jsvalReadBuffer
             }
         });
 
@@ -97,9 +99,15 @@ class JsvalWasmModule {
             return this.idByObject.get(o);
 
         let id=this.nextRegistryId++;
+
+        /*if (o instanceof Uint8Array) {
+            console.log("packing",o,"into",id);
+        }*/
+
         if (typeof o=="string" ||
                 typeof o=="number" ||
-                [true,false,null,undefined].includes(o))
+                [true,false,null,undefined].includes(o) ||
+                o instanceof Uint8Array)
             o={__jsval_boxed: o};
 
         let classId;
@@ -134,6 +142,9 @@ class JsvalWasmModule {
 
     jsvalGetSize=(id)=>{
         let o=this.unpack(id);
+
+        if (o instanceof Uint8Array)
+            return o.length;
 
         if (Array.isArray(o))
             return o.length;
@@ -182,6 +193,13 @@ class JsvalWasmModule {
         while (mem[end]!==0) end++;
         let s=new TextDecoder("utf-8").decode(mem.subarray(ptr, end));
         return this.pack(s);
+    }
+
+    jsvalCreateBuffer=(ptr, size)=>{
+        let mem=new Uint8Array(this.instance.exports.memory.buffer);
+        let b=new Uint8Array(size);
+        b.set(mem.subarray(ptr,ptr+size));
+        return this.pack(b);
     }
 
     jsvalCreateArray=(size)=>{
@@ -266,6 +284,15 @@ class JsvalWasmModule {
         let mem=new Uint8Array(this.instance.exports.memory.buffer);
         mem.set(bytes,dest);
         mem[dest+bytes.length]=0;
+
+        return dest;
+    }
+
+    jsvalReadBuffer=(id, dest)=>{
+        let o=this.unpack(id);
+        //console.log("reading buffer from id: ",id,o);
+        let mem=new Uint8Array(this.instance.exports.memory.buffer);
+        mem.set(o,dest);
 
         return dest;
     }

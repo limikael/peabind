@@ -10,6 +10,8 @@
 		"hellos": {"return": "string","args":["string","string"]},
 		"getLiveHelloCount": {"return": "int"},
 		"removeHello": {},
+		"createBuffer": {"return": "buffer"},
+		"peekBuffer": {"return": "int", "args":["buffer","int"]}
 	},
 	"classes": {
 		"Hello": {

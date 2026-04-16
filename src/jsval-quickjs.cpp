@@ -12,6 +12,7 @@ static std::map<JSVAL_FUNC *,JSClassID> classIdByCtor;
 static std::map<JSClassID,JSVAL_FINALIZER *> finalizerByClassId;
 static int nextFunctionId=1;
 static JSVAL jsvalGlobal;
+static JSValue Uint8Array_ctor;
 
 void jsvalQuickjsInit() {
 	assert(jsvalCtx==NULL);
@@ -20,12 +21,15 @@ void jsvalQuickjsInit() {
     jsvalRt=JS_NewRuntime();
     jsvalCtx=JS_NewContext(jsvalRt);
     jsvalGlobal=JS_GetGlobalObject(jsvalCtx);
+
+    Uint8Array_ctor=JS_GetPropertyStr(jsvalCtx,jsvalGlobal,"Uint8Array");
 }
 
 void jsvalQuickjsExit() {
 	assert(jsvalCtx!=NULL);
 	assert(jsvalRt!=NULL);
 
+	JS_FreeValue(jsvalCtx,Uint8Array_ctor);
 	JS_FreeValue(jsvalCtx,jsvalGlobal);
     JS_FreeContext(jsvalCtx);
     JS_FreeRuntime(jsvalRt);
@@ -205,6 +209,14 @@ int jsvalGetSize(JSVAL obj) {
 		return len;
 	}
 
+	if (JS_IsInstanceOf(jsvalCtx,value,Uint8Array_ctor)) {
+	    size_t offs,len,perElem;
+		JSValue buf=JS_GetTypedArrayBuffer(jsvalCtx,value,&offs,&len,&perElem);
+		JS_FreeValue(jsvalCtx,buf);
+		//printf("yep it is, size=%d\n",byte_length);
+		return len;
+	}
+
 	return -1;
 }
 
@@ -231,6 +243,47 @@ char *jsvalReadString(JSVAL val, char *dest) {
     JS_FreeCString(jsvalCtx,tmp);
 
     return dest;
+}
+
+void *jsvalReadBuffer(JSVAL val, void *dest) {
+	//size_t size=jsvalGetSize(val);
+    size_t offs,len,perelem,bufsize;
+	JSValue buf=JS_GetTypedArrayBuffer(jsvalCtx,val,&offs,&len,&perelem);
+	uint8_t *data=JS_GetArrayBuffer(jsvalCtx,&bufsize,buf);
+	if (!data) {
+		printf("warning! no data to read...\n");
+		JS_FreeValue(jsvalCtx,buf);
+		return NULL;
+	}
+
+    memcpy(dest,data+offs,len);
+	JS_FreeValue(jsvalCtx,buf);
+	return dest;
+}
+
+JSVAL jsvalCreateBuffer(uint8_t *data, size_t size) {
+    JSContext *ctx = jsvalCtx;
+
+    // 1. Create ArrayBuffer (copy)
+    JSValue array_buffer = JS_NewArrayBufferCopy(ctx, data, size);
+    if (JS_IsException(array_buffer)) {
+        return array_buffer;
+    }
+
+    // 2. Get Uint8Array constructor
+    JSValue global = JS_GetGlobalObject(ctx);
+    JSValue ctor = JS_GetPropertyStr(ctx, global, "Uint8Array");
+
+    // 3. Call: new Uint8Array(array_buffer)
+    JSValue argv[1] = { array_buffer };
+    JSValue uint8array = JS_CallConstructor(ctx, ctor, 1, argv);
+
+    // 4. Cleanup
+    JS_FreeValue(ctx, ctor);
+    JS_FreeValue(ctx, global);
+    JS_FreeValue(ctx, array_buffer);
+
+    return uint8array;
 }
 
 JSVAL jsvalCreateString(const char *s) {

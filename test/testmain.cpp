@@ -7,6 +7,7 @@ void test_event_types();
 void test_strings();
 void test_gc();
 void test_jsval_size();
+void test_buffers();
 
 int main() {
 	printf("Running tests...\n");
@@ -14,6 +15,7 @@ int main() {
 	test_jsval_size();
 
 	test_basic();
+	test_buffers();
 	test_events();
 	test_types();
 	test_event_types();

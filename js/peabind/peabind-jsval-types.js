@@ -100,6 +100,28 @@ class StringTypeStrategy {
     }
 }
 
+class BufferTypeStrategy {
+    nativeDecl(name) {
+        return `std::vector<uint8_t> ${name};\n`;
+    }
+
+    nativeParam(name) {
+        return `std::vector<uint8_t> ${name}`;
+    }
+
+    abiDecl(name) {
+        return `JSVAL ${name};\n`;
+    }
+
+    pack(dest, src) {
+        return `${dest}=jsvalCreateBuffer(${src}.data(),${src}.size());\n`;
+    }
+
+    unpack(dest, src) {
+        return `${dest}=jsvalToStdUint8Vector(${src});\n`;
+    }
+}
+
 export function createTypeStrategy(typeDef, {idl, prefix}) {
     switch (typeDef.type) {
         case "int":
@@ -112,6 +134,10 @@ export function createTypeStrategy(typeDef, {idl, prefix}) {
 
         case "string":
             return new StringTypeStrategy();
+            break;
+
+        case "buffer":
+            return new BufferTypeStrategy();
             break;
 
         default:

@@ -27,7 +27,9 @@ JS_IMPORT(jsvalCreateClassStub) JSVAL jsvalCreateClassStub();
 JS_IMPORT(jsvalCreateInt) JSVAL jsvalCreateInt(int i);
 JS_IMPORT(jsvalCreateFloat) JSVAL jsvalCreateFloat(float f);
 JS_IMPORT(jsvalCreateArray) JSVAL jsvalCreateArray(int size);
+JS_IMPORT(jsvalCreateBuffer) JSVAL jsvalCreateBuffer(uint8_t *data, size_t size);
 JS_IMPORT(jsvalReadString) char *jsvalReadString(JSVAL s, char *dest);
+JS_IMPORT(jsvalReadBuffer) void *jsvalReadBuffer(JSVAL v, void *buf);
 JS_IMPORT(jsvalDup) JSVAL jsvalDup(JSVAL id);
 JS_IMPORT(jsvalFree) void jsvalFree(JSVAL id);
 

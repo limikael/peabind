@@ -217,4 +217,32 @@ describe("basic-wasm",()=>{
 
 		mod.close();
 	});
+
+	it("works with buffers",async()=>{
+		fs.rmSync(path.join(__dirname,"basic.out.js"),{force: true});
+		fs.rmSync(path.join(__dirname,"basic.out.wasm"),{force: true});
+
+		await peabind({
+			idl: path.join(__dirname,"basic.json"),
+			sources: [path.join(__dirname,"basic.cpp")],
+			output: path.join(__dirname,"basic.out.js"),
+			target: "wasm"
+		});
+
+		let mod=await import(path.join(__dirname,"basic.out.js"));
+		let b=new mod.createBuffer();
+		expect(b instanceof Uint8Array).toBeTrue();
+		expect(b.length).toEqual(10);
+
+		expect(b[0]).toEqual(11);
+		expect(b[1]).toEqual(22);
+
+		expect(mod.peekBuffer(b,0)).toEqual(11);
+		expect(mod.peekBuffer(b,1)).toEqual(22);
+
+		let c=new Uint8Array([55,66,77]);
+		expect(mod.peekBuffer(c,0)).toEqual(55);
+		expect(mod.peekBuffer(c,1)).toEqual(66);
+		expect(mod.peekBuffer(c,2)).toEqual(77);
+	});
 });

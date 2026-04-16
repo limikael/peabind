@@ -1,5 +1,7 @@
 #pragma once
 #include <string>
+#include <vector>
+#include <cstdio>
 
 static std::string jsvalToStdString(JSVAL val) {
     size_t size = jsvalGetSize(val);
@@ -8,4 +10,14 @@ static std::string jsvalToStdString(JSVAL val) {
     std::string result(size, '\0');  // Allocate once
     jsvalReadString(val, result.data());  // Write directly
     return result;  // RVO eliminates copy
+}
+
+static std::vector<uint8_t> jsvalToStdUint8Vector(JSVAL val) {
+    size_t size = jsvalGetSize(val);
+    std::vector<uint8_t> buf(size);
+    //std::vector<uint8_t> buf={88,99,88,88,88,88,88,88,88,88};
+
+    jsvalReadBuffer(val,buf.data());
+
+    return buf;
 }

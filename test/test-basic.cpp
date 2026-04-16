@@ -174,6 +174,27 @@ void test_strings() {
     jsvalQuickjsExit();
 }
 
+void test_buffers() {
+    printf("- buffers\n");
+    jsvalQuickjsInit();
+    basic_init();
+    std::string s;
+
+    s=evaljs("globalThis.b=createBuffer(); globalThis.b");
+    //printf("created: %s\n",s.c_str());
+    assert(s=="11,22,33,44,55,66,77,88,99,0");
+
+    s=evaljs("peekBuffer(globalThis.b,2)");
+    //printf("read: %s\n",s.c_str());
+    assert(s=="33");
+
+    s=evaljs("peekBuffer(globalThis.b,4)");
+    assert(s=="55");
+
+    basic_exit();
+    jsvalQuickjsExit();
+}
+
 void test_gc() {
     printf("- gc\n");
     jsvalQuickjsInit();

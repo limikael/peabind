@@ -9,11 +9,8 @@ typedef uint64_t JSVAL_ID;
 
 JSVAL jsvalFromQuickjs(JSValue val);
 JSValue jsvalToQuickjs(JSVAL val);
-/*void jsvalInit(JSContext *ctx);
-void jsvalExit();*/
 
 JSVAL jsvalGetGlobal();
-
 JSVAL jsvalUndefined();
 void *jsvalGetOpaque(JSVAL jsval);
 void jsvalSetOpaque(JSVAL jsval, void *opaque);
@@ -23,6 +20,7 @@ float jsvalGetFloat(JSVAL o);
 JSVAL jsvalCreateFloat(float f);
 JSVAL jsvalCreateInt(int i);
 JSVAL jsvalCreateFunc(JSVAL_FUNC *f);
+JSVAL jsvalCreateBuffer(uint8_t *data, size_t size);
 void jsvalSetProp(JSVAL obj, const char *prop, JSVAL val);
 JSVAL jsvalCreateClass(JSVAL_FUNC *ctor);
 void jsvalSetProtoProp(JSVAL obj, const char *prop, JSVAL val);
@@ -32,6 +30,7 @@ JSVAL jsvalEval(const char *s);
 char *jsvalGetStrdup(JSVAL val);
 void jsvalFree(JSVAL val);
 char *jsvalReadString(JSVAL s, char *dest);
+void *jsvalReadBuffer(JSVAL v, void *buf);
 JSVAL jsvalCreateString(const char *s);
 JSVAL jsvalDup(JSVAL v);
 JSVAL jsvalCall(JSVAL fn, JSVAL thisobj, int argc, JSVAL *argv);

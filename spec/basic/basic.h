@@ -8,6 +8,8 @@ int hellof(float f);
 float hellothird(int i);
 std::string hellos(std::string s, std::string t);
 void removeHello();
+std::vector<uint8_t> createBuffer();
+int peekBuffer(std::vector<uint8_t> buffer, int i);
 
 extern int liveHelloCount;
 int getLiveHelloCount();

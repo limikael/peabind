@@ -50,3 +50,12 @@ float hellothird(int i) {
 	float f=((float)i)/3;
 	return f;
 }
+
+std::vector<uint8_t> createBuffer() {
+	std::vector<uint8_t> buffer = {11,22,33,44,55,66,77,88,99,00};
+	return buffer;
+}
+
+int peekBuffer(std::vector<uint8_t> buffer, int i) {
+	return buffer[i];
+}
