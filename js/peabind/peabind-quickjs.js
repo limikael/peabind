@@ -21,15 +21,17 @@ export async function peabindQuickjs({idl, includePath, sources, output, prefix}
 
     let source=autoIndent(`
         ${builder.generateSource()}
-        void ${builder.prefix}init(JSContext *ctx) {
-            jsvalInit(ctx);
-            JSValue global=JS_GetGlobalObject(ctx);
-            ${builder.prefix}initmod(jsvalFromQuickjs(global));
-            JS_FreeValue(ctx,global);
+
+        static JSVAL held;
+
+        void ${builder.prefix}init() {
+            assert(jsvalQuickjsGetContext()!=NULL);
+            ${builder.prefix}initmod(jsvalGetGlobal());
+            held=jsvalEval("new String(1337)");
         }
 
-        void ${builder.prefix}exit(JSContext *ctx) {
-            jsvalExit();
+        void ${builder.prefix}exit() {
+            jsvalFree(held);
         }
     `);
 
@@ -41,8 +43,8 @@ export async function peabindQuickjs({idl, includePath, sources, output, prefix}
         #include "quickjs.h"
         #include "jsval-quickjs.h"
         extern "C" void ${builder.prefix}initmod(JSVAL mod);
-        extern "C" void ${builder.prefix}init(JSContext *ctx);
-        extern "C" void ${builder.prefix}exit(JSContext *ctx);
+        extern "C" void ${builder.prefix}init();
+        extern "C" void ${builder.prefix}exit();
     `);
     fs.writeFileSync(headerOutput,headerContent);
 }

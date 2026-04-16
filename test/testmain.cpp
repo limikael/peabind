@@ -15,10 +15,10 @@ int main() {
 
 	test_basic();
 		//test_events();
-	//test_types();
+	test_types();
 		//test_event_types();
 		//test_strings();
-	//test_gc();
+	test_gc();
 
 	return 0;
 }

@@ -2,22 +2,58 @@
 #include <map>
 #include <cstdio>
 #include <cstdlib>
+#include <cassert>
 
 static JSContext *jsvalCtx=NULL;
+static JSRuntime *jsvalRt=NULL;
+
 static std::map<int,JSVAL_FUNC *> functions;
 static std::map<JSVAL_FUNC *,JSClassID> classIdByCtor;
 static std::map<JSClassID,JSVAL_FINALIZER *> finalizerByClassId;
 static int nextFunctionId=1;
+static JSVAL jsvalGlobal;
 
-void jsvalInit(JSContext *ctx) {
-	jsvalCtx=ctx;
-	nextFunctionId=1;
-	functions.clear();
+void jsvalQuickjsInit() {
+	assert(jsvalCtx==NULL);
+	assert(jsvalRt==NULL);
+
+    jsvalRt=JS_NewRuntime();
+    jsvalCtx=JS_NewContext(jsvalRt);
+    jsvalGlobal=JS_GetGlobalObject(jsvalCtx);
 }
 
-void jsvalExit() {
-	jsvalCtx=NULL;
-	functions.clear();
+void jsvalQuickjsExit() {
+	assert(jsvalCtx!=NULL);
+	assert(jsvalRt!=NULL);
+
+	JS_FreeValue(jsvalCtx,jsvalGlobal);
+    JS_FreeContext(jsvalCtx);
+    JS_FreeRuntime(jsvalRt);
+
+    jsvalCtx=NULL;
+    jsvalRt=NULL;
+}
+
+JSContext *jsvalQuickjsGetContext() {
+	assert(jsvalCtx!=NULL);
+	return jsvalCtx;
+}
+
+JSVAL jsvalGetGlobal() {
+	assert(jsvalCtx!=NULL);
+	return jsvalGlobal;
+}
+
+JSVAL jsvalEval(const char *code) {
+    JSValue result=JS_Eval(jsvalCtx,
+        code,
+        strlen(code),
+        "<code>",
+        JS_EVAL_TYPE_GLOBAL
+    );
+
+    assert(!JS_IsException(result));
+    return result;
 }
 
 JSVAL jsvalUndefined() {
@@ -163,4 +199,21 @@ int jsvalGetSize(JSVAL obj) {
 	}
 
 	return -1;
+}
+
+char *jsvalGetStrdup(JSVAL val) {
+    const char *tmp=JS_ToCString(jsvalCtx,val);
+    char *s=strdup(tmp);
+    JS_FreeCString(jsvalCtx,tmp);
+
+    return s;
+}
+
+void jsvalFree(JSVAL val) {
+	JS_FreeValue(jsvalCtx,val);
+}
+
+void jsvalQuickjsRunGc() {
+	assert(jsvalRt!=NULL);
+    JS_RunGC(jsvalRt);
 }

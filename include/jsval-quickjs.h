@@ -8,8 +8,10 @@ typedef void JSVAL_FINALIZER(JSVAL thisobj);
 
 JSVAL jsvalFromQuickjs(JSValue val);
 JSValue jsvalToQuickjs(JSVAL val);
-void jsvalInit(JSContext *ctx);
-void jsvalExit();
+/*void jsvalInit(JSContext *ctx);
+void jsvalExit();*/
+
+JSVAL jsvalGetGlobal();
 
 JSVAL jsvalUndefined();
 void *jsvalGetOpaque(JSVAL jsval);
@@ -25,3 +27,11 @@ JSVAL jsvalCreateClass(JSVAL_FUNC *ctor);
 void jsvalSetProtoProp(JSVAL obj, const char *prop, JSVAL val);
 void jsvalSetClassFinalizer(JSVAL cls, JSVAL_FINALIZER *f);
 int jsvalGetSize(JSVAL cls);
+JSVAL jsvalEval(const char *s);
+char *jsvalGetStrdup(JSVAL val);
+void jsvalFree(JSVAL val);
+
+void jsvalQuickjsInit();
+void jsvalQuickjsExit();
+void jsvalQuickjsRunGc();
+JSContext *jsvalQuickjsGetContext();
