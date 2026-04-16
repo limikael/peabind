@@ -3,24 +3,42 @@ import {dirnameFromImportMeta} from "../../js/utils/node-util.js";
 import fs, {promises as fsp} from "fs";
 import path from "path";
 import {forceGc} from "../../js/utils/test-util.js";
+import {SpecReporter} from "jasmine-spec-reporter";
+
+jasmine.getEnv().clearReporters();
+jasmine.getEnv().addReporter(new SpecReporter({
+  spec: {
+    displayDuration: true
+  }
+}));
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL=30000;
 
 let __dirname=dirnameFromImportMeta(import.meta);
 
 describe("basic-wasm",()=>{
+	let mod;
+
+	beforeEach(async()=>{
+		if (!mod) {
+			//console.log("building");
+
+			fs.rmSync(path.join(__dirname,"basic.out.js"),{force: true});
+			fs.rmSync(path.join(__dirname,"basic.out.wasm"),{force: true});
+
+			await peabind({
+				idl: path.join(__dirname,"basic.json"),
+				sources: [path.join(__dirname,"basic.cpp")],
+				output: path.join(__dirname,"basic.out.js"),
+				target: "wasm"
+			});
+
+			mod=await import(path.join(__dirname,"basic.out.js"));
+		}
+	});
+
 	it("refactor",async()=>{
-		fs.rmSync(path.join(__dirname,"basic.out.js"),{force: true});
-		fs.rmSync(path.join(__dirname,"basic.out.wasm"),{force: true});
-
-		await peabind({
-			idl: path.join(__dirname,"basic.json"),
-			sources: [path.join(__dirname,"basic.cpp")],
-			output: path.join(__dirname,"basic.out.js"),
-			target: "wasm"
-		});
-
-		let mod=await import(path.join(__dirname,"basic.out.js"));
+		//let mod=await import(path.join(__dirname,"basic.out.js"));
 		let h=new mod.Hello(789);
 		expect(h.getVal()).toEqual(789);
 
@@ -30,17 +48,7 @@ describe("basic-wasm",()=>{
 	});
 
 	it("can compile and run wasm",async ()=>{
-		fs.rmSync(path.join(__dirname,"basic.out.js"),{force: true});
-		fs.rmSync(path.join(__dirname,"basic.out.wasm"),{force: true});
-
-		await peabind({
-			idl: path.join(__dirname,"basic.json"),
-			sources: [path.join(__dirname,"basic.cpp")],
-			output: path.join(__dirname,"basic.out.js"),
-			target: "wasm"
-		});
-
-		let mod=await import(path.join(__dirname,"basic.out.js"));
+		//let mod=await import(path.join(__dirname,"basic.out.js"));
 		let v=mod.hello(1,2);
 		//console.log(v);
 		expect(v).toEqual(3);
@@ -85,17 +93,7 @@ describe("basic-wasm",()=>{
 	});
 
 	it("can handle types and events",async ()=>{
-		fs.rmSync(path.join(__dirname,"basic.out.js"),{force: true});
-		fs.rmSync(path.join(__dirname,"basic.out.wasm"),{force: true});
-
-		await peabind({
-			idl: path.join(__dirname,"basic.json"),
-			sources: [path.join(__dirname,"basic.cpp")],
-			output: path.join(__dirname,"basic.out.js"),
-			target: "wasm"
-		});
-
-		let mod=await import(path.join(__dirname,"basic.out.js"));
+		//let mod=await import(path.join(__dirname,"basic.out.js"));
 		let h=new mod.Hello(100);
 		let invokeCount=0;
 		let cb=()=>{
@@ -144,61 +142,34 @@ describe("basic-wasm",()=>{
 	});
 
 	it("can handle strings",async ()=>{
-		fs.rmSync(path.join(__dirname,"basic.out.js"),{force: true});
-		fs.rmSync(path.join(__dirname,"basic.out.wasm"),{force: true});
-
-		await peabind({
-			idl: path.join(__dirname,"basic.json"),
-			sources: [path.join(__dirname,"basic.cpp")],
-			output: path.join(__dirname,"basic.out.js"),
-			target: "wasm"
-		});
-
-		let mod=await import(path.join(__dirname,"basic.out.js"));
+		//let mod=await import(path.join(__dirname,"basic.out.js"));
 		let i=mod.hellos("123","00");
 		expect(i).toEqual("12300");
 	});
 
 	it("works with gc",async()=>{
-		fs.rmSync(path.join(__dirname,"basic.out.gc.js"),{force: true});
-		fs.rmSync(path.join(__dirname,"basic.out.gc.wasm"),{force: true});
+		//let mod=await import(path.join(__dirname,"basic.out.js"));
 
-		await peabind({
-			idl: path.join(__dirname,"basic.json"),
-			sources: [path.join(__dirname,"basic.cpp")],
-			output: path.join(__dirname,"basic.out.gc.js"),
-			target: "wasm"
-		});
+		await forceGc();
+		let cnt=mod.getLiveHelloCount();
 
-		let mod=await import(path.join(__dirname,"basic.out.gc.js"));
-
-		expect(mod.getLiveHelloCount()).toEqual(0);
+		expect(mod.getLiveHelloCount()).toEqual(cnt+0);
 		let h1=new mod.Hello(100);
-		expect(mod.getLiveHelloCount()).toEqual(1);
+		expect(mod.getLiveHelloCount()).toEqual(cnt+1);
 		let h2=new mod.Hello(100);
-		expect(mod.getLiveHelloCount()).toEqual(2);
+		expect(mod.getLiveHelloCount()).toEqual(cnt+2);
 
 		await forceGc();
 		h2=null;
 		await forceGc();
-		expect(mod.getLiveHelloCount()).toEqual(1);
+		expect(mod.getLiveHelloCount()).toEqual(cnt+1);
 		h1=null;
 		await forceGc();
-		expect(mod.getLiveHelloCount()).toEqual(0);
+		expect(mod.getLiveHelloCount()).toEqual(cnt+0);
 	});
 
 	it("events are solid",async ()=>{
-		fs.rmSync(path.join(__dirname,"basic.out.js"),{force: true});
-		fs.rmSync(path.join(__dirname,"basic.out.wasm"),{force: true});
-
-		await peabind({
-			idl: path.join(__dirname,"basic.json"),
-			sources: [path.join(__dirname,"basic.cpp")],
-			output: path.join(__dirname,"basic.out.js"),
-			target: "wasm"
-		});
-
-		let mod=await import(path.join(__dirname,"basic.out.js"));
+		//let mod=await import(path.join(__dirname,"basic.out.js"));
 
 		let h=new mod.Hello(100);
 		function listener() {
@@ -219,17 +190,7 @@ describe("basic-wasm",()=>{
 	});
 
 	it("works with buffers",async()=>{
-		fs.rmSync(path.join(__dirname,"basic.out.js"),{force: true});
-		fs.rmSync(path.join(__dirname,"basic.out.wasm"),{force: true});
-
-		await peabind({
-			idl: path.join(__dirname,"basic.json"),
-			sources: [path.join(__dirname,"basic.cpp")],
-			output: path.join(__dirname,"basic.out.js"),
-			target: "wasm"
-		});
-
-		let mod=await import(path.join(__dirname,"basic.out.js"));
+		//let mod=await import(path.join(__dirname,"basic.out.js"));
 		let b=new mod.createBuffer();
 		expect(b instanceof Uint8Array).toBeTrue();
 		expect(b.length).toEqual(10);
