@@ -14,8 +14,8 @@ int getLiveHelloCount();
 
 class Hello {
 public:
-	Hello() {
-		val=100;
+	Hello(int val_) {
+		val=val_;
 		liveHelloCount++;
 		//printf("creating hello, val=%d\n",val);
 	}
@@ -57,7 +57,7 @@ public:
 	}
 
 	static std::shared_ptr<Hello> create() {
-		return std::make_shared<Hello>();
+		return std::make_shared<Hello>(100);
 	}
 
 	Dispatcher<> dataVoid;

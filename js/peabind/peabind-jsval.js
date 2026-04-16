@@ -147,9 +147,14 @@ class PeabindJsvalBuilder {
     }
 
     generateClassDef(cls) {
+        let params=cls.ctorArgs.map((a,i)=>`a${i}`).join(",");
+
         return `
             static JSVAL ${this.prefix}${cls.name}_constructor(JSVAL thisobj, int argc, JSVAL *argv) {
-                auto instance=std::make_shared<${cls.name}>();
+                if (argc!=${cls.ctorArgs.length}) return jsvalUndefined();
+                ${cls.ctorArgs.map((a,i)=>this.ts(a).nativeDecl(`a${i}`)).join("\n")}
+                ${cls.ctorArgs.map((a,i)=>this.ts(a).unpack(`a${i}`,`argv[${i}]`)).join("\n")}
+                auto instance=std::make_shared<${cls.name}>(${params});
                 jsvalByPointer[instance.get()]=thisobj;
                 Opaque *opaque=new Opaque(instance);
                 jsvalSetOpaque(thisobj,opaque);

@@ -16,7 +16,7 @@ int main() {
 	test_basic();
 	test_events();
 	test_types();
-		//test_event_types();
+	test_event_types();
 	test_strings();
 	test_gc();
 

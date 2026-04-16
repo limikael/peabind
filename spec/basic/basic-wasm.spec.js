@@ -21,6 +21,9 @@ describe("basic-wasm",()=>{
 		});
 
 		let mod=await import(path.join(__dirname,"basic.out.js"));
+		let h=new mod.Hello(789);
+		expect(h.getVal()).toEqual(789);
+
 		let v=mod.hello(1,2);
 		//console.log(v);
 		expect(v).toEqual(3);
@@ -45,7 +48,7 @@ describe("basic-wasm",()=>{
 
 		//console.log("calling...");
 
-		let h1=new mod.Hello();
+		let h1=new mod.Hello(100);
 		//console.log("h1 val="+h1.getVal());
 		expect(h1.getVal()).toEqual(100);
 		h1.setVal(200);
@@ -63,7 +66,7 @@ describe("basic-wasm",()=>{
 
 		expect(a).toEqual([123,456]);
 
-		let h2=new mod.Hello();
+		let h2=new mod.Hello(100);
 		expect(h2.getVal()).toEqual(100);
 
 		let h3=mod.createHello();
@@ -93,7 +96,7 @@ describe("basic-wasm",()=>{
 		});
 
 		let mod=await import(path.join(__dirname,"basic.out.js"));
-		let h=new mod.Hello();
+		let h=new mod.Hello(100);
 		let invokeCount=0;
 		let cb=()=>{
 			//expect(1).toEqual(2);
@@ -126,7 +129,7 @@ describe("basic-wasm",()=>{
 			invokeCount++;
 		});
 
-		let eh=new mod.Hello();
+		let eh=new mod.Hello(100);
 		eh.setVal(777);
 		h.emitDataHello(eh);
 
@@ -170,9 +173,9 @@ describe("basic-wasm",()=>{
 		let mod=await import(path.join(__dirname,"basic.out.gc.js"));
 
 		expect(mod.getLiveHelloCount()).toEqual(0);
-		let h1=new mod.Hello();
+		let h1=new mod.Hello(100);
 		expect(mod.getLiveHelloCount()).toEqual(1);
-		let h2=new mod.Hello();
+		let h2=new mod.Hello(100);
 		expect(mod.getLiveHelloCount()).toEqual(2);
 
 		await forceGc();
@@ -197,7 +200,7 @@ describe("basic-wasm",()=>{
 
 		let mod=await import(path.join(__dirname,"basic.out.js"));
 
-		let h=new mod.Hello();
+		let h=new mod.Hello(100);
 		function listener() {
 			//console.log("trigger");
 		}

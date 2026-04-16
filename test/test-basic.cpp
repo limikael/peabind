@@ -56,7 +56,7 @@ void test_basic() {
     assert(!strcmp(t,"3"));
     jsvalEval("hello(1,2)");
 
-    evaljs("new Hello()");
+    evaljs("new Hello(100)");
 
     //trigger GC check at the end...
     //jsvalCreateObject(jsvalCreateInt(123));
@@ -67,7 +67,7 @@ void test_basic() {
     s=evaljs("hello(1,2)");
     assert(s=="3");
 
-    s=evaljs("globalThis.h=new Hello()");
+    s=evaljs("globalThis.h=new Hello(100)");
     s=evaljs("globalThis.h.getVal()");
     assert(s=="100");
     s=evaljs("globalThis.h.setVal(999)");
@@ -93,7 +93,7 @@ void test_events() {
     JSContext *ctx=jsvalQuickjsGetContext();
     std::string s;
 
-    s=runjs(ctx,"globalThis.h=new Hello();");
+    s=runjs(ctx,"globalThis.h=new Hello(100);");
     s=runjs(ctx,"globalThis.cb=(v1,v2)=>{globalThis.captured1=v1; globalThis.captured2=v2;}");
     s=runjs(ctx,"globalThis.h.on('data',globalThis.cb);");
     s=runjs(ctx,"globalThis.h.emitData(1234,9999);");
@@ -122,27 +122,27 @@ void test_types() {
     jsvalQuickjsExit();
 }
 
-/*void test_event_types() {
+void test_event_types() {
     printf("- event types\n");
-    JSRuntime *rt=JS_NewRuntime();
-    JSContext *ctx=JS_NewContext(rt);
-    basic_init(ctx);
+    jsvalQuickjsInit();
+    JSContext *ctx=jsvalQuickjsGetContext();
+    basic_init();
     std::string s;
 
-    s=runjs(ctx,"globalThis.h=new Hello();");
+    s=runjs(ctx,"globalThis.h=new Hello(100);");
     s=runjs(ctx,"globalThis.h.on('dataVoid',()=>{globalThis.captured='yes';});");
     s=runjs(ctx,"globalThis.h.emitDataVoid();");
     s=runjs(ctx,"globalThis.captured");
     assert(s=="yes");
 
-    s=runjs(ctx,"globalThis.h=new Hello();");
+    s=runjs(ctx,"globalThis.h=new Hello(100);");
     s=runjs(ctx,"globalThis.h.on('dataFloat',(f)=>{globalThis.captured=f;});");
     s=runjs(ctx,"globalThis.h.emitDataFloat(321.123);");
     s=runjs(ctx,"globalThis.captured");
     //printf("s: %s\n",s.c_str());
     assert(s=="321.12298583984375");
 
-    s=runjs(ctx,"globalThis.h=new Hello();");
+    s=runjs(ctx,"globalThis.h=new Hello(100);");
     s=runjs(ctx,"globalThis.h.setVal(999);");
     s=runjs(ctx,"globalThis.h.on('dataHello',(h)=>{globalThis.captured=h.getVal();});");
     s=runjs(ctx,"globalThis.h.emitDataHello(globalThis.h);");
@@ -150,17 +150,16 @@ void test_types() {
     //printf("s: %s\n",s.c_str());
     assert(s=="999");
 
-    s=runjs(ctx,"globalThis.h=new Hello();");
+    s=runjs(ctx,"globalThis.h=new Hello(100);");
     s=runjs(ctx,"globalThis.h.on('dataString',(s)=>{globalThis.captured=s;});");
     s=runjs(ctx,"globalThis.h.emitDataString('testing');");
     s=runjs(ctx,"globalThis.captured");
     //printf("s: %s\n",s.c_str());
     assert(s=="testing");
 
-    basic_exit(ctx);
-    JS_FreeContext(ctx);
-    JS_FreeRuntime(rt);
-}*/
+    basic_exit();
+    jsvalQuickjsExit();
+}
 
 void test_strings() {
     printf("- strings\n");
@@ -188,7 +187,7 @@ void test_gc() {
     //printf("live: %s\n",s.c_str());
     assert(s=="0");
 
-    s=runjs(ctx,"globalThis.h=new Hello()");
+    s=runjs(ctx,"globalThis.h=new Hello(100)");
     s=runjs(ctx,"getLiveHelloCount()");
     //printf("live: %s\n",s.c_str());
     assert(s=="1");
