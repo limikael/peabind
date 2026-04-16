@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 
-std::string jsvalToStdString(JSVAL val) {
+static std::string jsvalToStdString(JSVAL val) {
     size_t size = jsvalGetSize(val);
     if (size == 0) return "";
     
