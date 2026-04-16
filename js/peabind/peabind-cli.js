@@ -4,7 +4,7 @@ import {peabind} from "./peabind.js";
 
 program
     .name('peabind')
-    .description('Create bindings from C++/JavaScript/WASM/quickjs.')
+    .description('Create bindings for C++/JavaScript/WASM/quickjs.')
     .argument('<idl>', 'Idl file.')
     .argument('[sources...]', 'Additional source files.')
     .requiredOption("-o, --output <output file>","Primary output.")

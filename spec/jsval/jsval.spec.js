@@ -8,30 +8,24 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL=30000;
 let __dirname=dirnameFromImportMeta(import.meta);
 
 describe("jsval",()=>{
+    let mod;
+    beforeEach(async()=>{
+        if (!mod) {
+            await buildJsvalWasm({
+                output: path.join(__dirname,"mymod.out.js"),
+                sources: [path.join(__dirname,"mymod.cpp")],
+                initFunction: "init"
+            });
+
+            mod=(await import(path.join(__dirname,"mymod.out.js"))).default;
+        }
+    });
+
     it("can generate a module",async ()=>{
-        await buildJsvalWasm({
-            output: path.join(__dirname,"mymod.out.js"),
-            sources: [path.join(__dirname,"mymod.cpp")],
-            hoistedSymbols: ["add"],
-        });
-
-        let mod=await import(path.join(__dirname,"mymod.out.js"));
-
         expect(mod.add(1,2)).toEqual(3);
     });
 
     it("can compile and run wasm",async ()=>{
-        await buildJsvalWasm({
-            output: path.join(__dirname,"mymod.out.wasm"),
-            sources: [path.join(__dirname,"mymod.cpp")],
-            exportedFunctions: ["_init"]
-        });
-
-        let mod=await loadJsvalWasm({
-            url: new URL('./mymod.out.wasm', import.meta.url),
-            initFunction: "init"
-        });
-
         let v=mod.add(1,2);
         expect(v).toEqual(3);
 
@@ -56,16 +50,9 @@ describe("jsval",()=>{
     });
 
     it("does gc properly",async ()=>{
-        await buildJsvalWasm({
-            output: path.join(__dirname,"mymod.out.wasm"),
-            sources: [path.join(__dirname,"mymod.cpp")],
-            exportedFunctions: ["_init"]
-        });
-
-        let mod=await loadJsvalWasm({
-            url: new URL('./mymod.out.wasm', import.meta.url),
-            initFunction: "init"
-        });
+        for (let i=0; i<100; i++) {
+            let my=new mod.MyClass();
+        }
 
         let numObjsBefore=mod.__jsvalWasmModule.objectById.keys().toArray().length;
         //console.log("objs before gc: "+numObjsBefore);
@@ -81,17 +68,6 @@ describe("jsval",()=>{
     });
 
     it("calls finalizers",async ()=>{
-        await buildJsvalWasm({
-            output: path.join(__dirname,"mymod.out.wasm"),
-            sources: [path.join(__dirname,"mymod.cpp")],
-            exportedFunctions: ["_init"]
-        });
-
-        let mod=await loadJsvalWasm({
-            url: new URL('./mymod.out.wasm', import.meta.url),
-            initFunction: "init"
-        });
-
         await forceGc();
 
         expect(mod.getNumLiveMyClass()).toEqual(0);
@@ -113,17 +89,6 @@ describe("jsval",()=>{
     });
 
     it("can call callbacks",async ()=>{
-        await buildJsvalWasm({
-            output: path.join(__dirname,"mymod.out.wasm"),
-            sources: [path.join(__dirname,"mymod.cpp")],
-            exportedFunctions: ["_init"],
-        });
-
-        let mod=await loadJsvalWasm({
-            url: new URL('./mymod.out.wasm', import.meta.url),
-            initFunction: "init"
-        });
-
         let callCount=0;
 
         let my=new mod.MyClass();
