@@ -159,23 +159,20 @@ void test_types() {
     basic_exit(ctx);
     JS_FreeContext(ctx);
     JS_FreeRuntime(rt);
-}
+}*/
 
 void test_strings() {
     printf("- strings\n");
-    JSRuntime *rt=JS_NewRuntime();
-    JSContext *ctx=JS_NewContext(rt);
-    basic_init(ctx);
+    jsvalQuickjsInit();
+    basic_init();
     std::string s;
 
-    s=runjs(ctx,"hellos('a','b')");
+    s=evaljs("hellos('a','b')");
     assert(s=="ab");
 
-    basic_exit(ctx);
-    JS_FreeContext(ctx);
-    JS_FreeRuntime(rt);
+    basic_exit();
+    jsvalQuickjsExit();
 }
-*/
 
 void test_gc() {
     printf("- gc\n");

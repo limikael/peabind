@@ -30,6 +30,8 @@ int jsvalGetSize(JSVAL cls);
 JSVAL jsvalEval(const char *s);
 char *jsvalGetStrdup(JSVAL val);
 void jsvalFree(JSVAL val);
+char *jsvalReadString(JSVAL s, char *dest);
+JSVAL jsvalCreateString(const char *s);
 
 void jsvalQuickjsInit();
 void jsvalQuickjsExit();

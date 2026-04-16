@@ -224,3 +224,15 @@ void jsvalQuickjsRunGc() {
 	assert(jsvalRt!=NULL);
     JS_RunGC(jsvalRt);
 }
+
+char *jsvalReadString(JSVAL val, char *dest) {
+    const char *tmp=JS_ToCString(jsvalCtx,val);
+    strcpy(dest,tmp);
+    JS_FreeCString(jsvalCtx,tmp);
+
+    return dest;
+}
+
+JSVAL jsvalCreateString(const char *s) {
+	return JS_NewString(jsvalCtx,s);
+}
