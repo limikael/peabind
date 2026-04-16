@@ -238,12 +238,18 @@ JSVAL jsvalCreateString(const char *s) {
 }
 
 JSVAL jsvalDup(JSVAL v) {
-	JSVAL dup=JS_DupValue(v);
-	assert(dup==v);
+	JSVAL dup=JS_DupValue(jsvalCtx,v);
+	//assert(dup==v);
 
 	return dup;
 }
 
 JSVAL jsvalCall(JSVAL fn, JSVAL thisobj, int argc, JSVAL *argv) {
 	return JS_Call(jsvalCtx,fn,thisobj,argc,argv);
+}
+
+JSVAL_ID jsvalGetObjectId(JSVAL v) {
+	void *p=JS_VALUE_GET_PTR(v);
+
+	return (uint64_t)p;
 }

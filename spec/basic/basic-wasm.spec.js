@@ -183,4 +183,35 @@ describe("basic-wasm",()=>{
 		await forceGc();
 		expect(mod.getLiveHelloCount()).toEqual(0);
 	});
+
+	it("events are solid",async ()=>{
+		fs.rmSync(path.join(__dirname,"basic.out.js"),{force: true});
+		fs.rmSync(path.join(__dirname,"basic.out.wasm"),{force: true});
+
+		await peabind({
+			idl: path.join(__dirname,"basic.json"),
+			sources: [path.join(__dirname,"basic.cpp")],
+			output: path.join(__dirname,"basic.out.js"),
+			target: "wasm"
+		});
+
+		let mod=await import(path.join(__dirname,"basic.out.js"));
+
+		let h=new mod.Hello();
+		function listener() {
+			//console.log("trigger");
+		}
+
+		h.on("dataVoid",listener);
+		h.emitDataVoid();
+		h.emitDataVoid();
+
+		//h.off("dataVoid",listener);
+		h.emitDataVoid();
+
+		h=null;
+		await forceGc();
+
+		mod.close();
+	});
 });

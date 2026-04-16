@@ -94,8 +94,10 @@ void test_events() {
     std::string s;
 
     s=runjs(ctx,"globalThis.h=new Hello();");
-    s=runjs(ctx,"globalThis.h.on('data',(v1,v2)=>{globalThis.captured1=v1; globalThis.captured2=v2;});");
+    s=runjs(ctx,"globalThis.cb=(v1,v2)=>{globalThis.captured1=v1; globalThis.captured2=v2;}");
+    s=runjs(ctx,"globalThis.h.on('data',globalThis.cb);");
     s=runjs(ctx,"globalThis.h.emitData(1234,9999);");
+//    s=runjs(ctx,"globalThis.h.off('data',globalThis.cb);");
     s=runjs(ctx,"JSON.stringify([globalThis.captured1,globalThis.captured2])");
     assert(s=="[1234,9999]");
 

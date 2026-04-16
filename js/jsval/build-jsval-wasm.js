@@ -38,6 +38,8 @@ export async function buildJsvalWasm({output, sources, exportedFunctions, initFu
 		exportedFunctions.push(`_${initFunction}`)
 
 	await runCommand("emcc",[
+		"-Wno-vla-cxx-extension",
+		"-std=c++20",
 		"-o",wasmOutput,
 		"-I",path.join(__dirname,"../../include"),
 		...includePath.map(i=>`-I${i}`),
@@ -66,6 +68,8 @@ export async function buildJsvalWasm({output, sources, exportedFunctions, initFu
 	        });
 
 			export default mod;
+
+			export const close=mod.close;
 
 			${hoistedSymbols.map(sym=>`
 				export const ${sym}=mod.${sym};

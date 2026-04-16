@@ -22,6 +22,11 @@ class JsvalWasmModule {
         this.initFunction=initFunction;
     }
 
+    close() {
+        if (this.strongById.size)
+            throw new Error("there are still strong refs!");
+    }
+
     async load() {
         this.instance=await loadWasmInstance({
             url: this.url,
@@ -52,6 +57,7 @@ class JsvalWasmModule {
         this.mod={...this.instance.exports};
         this.mod[this.initFunction](this.pack(this.mod));
         this.mod.__jsvalWasmModule=this;
+        this.mod.close=()=>this.close();
 
         return this.mod;
     }

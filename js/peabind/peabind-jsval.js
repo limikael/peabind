@@ -88,27 +88,35 @@ class PeabindJsvalBuilder {
         let argDecl=event.args.map((a,i)=>this.ts(a).nativeParam(`a${i}`)).join(",");
 
         return `
-            if (!strcmp(eventName,"${event.name}")) {
-                int handleId=instance->${event.name}.on([cbId](${argDecl}){
+            if (eventName=="${event.name}") {
+                JSVAL cbCopy=jsvalDup(cbVal);
+                int handle=instance->${event.name}.on([cbCopy](${argDecl}){
                     JSVAL params[${event.args.length}];
                     ${event.args.map((a,i)=>`
                         ${this.ts(a).pack(`params[${i}]`,`a${i}`)}
                     `).join("\n")}
-
-                    jsvalCall(cbId,jsvalUndefined(),${event.args.length},params);
-                    //printf("event triggered!!!\\n");
+                    jsvalCall(cbCopy,jsvalUndefined(),${event.args.length},params);
                 });
 
-                instance->${event.name}.setGlobalId(handleId,(uint64_t)cbId);
+                Dispatcher<>* d=(Dispatcher<>*)&(instance->${event.name});
+                Listener *listener=new Listener(d,handle);
+                listeners.push_back(listener);
+                instance->${event.name}.setIdInt(handle,cbId);
+                instance->${event.name}.setDestructor(handle,[cbCopy,listener](){
+                    if (std::erase(listeners, listener) > 0)
+                        delete listener;
+
+                    jsvalFree(cbCopy);
+                });
             }
         `
     }
 
     generateEventOffDef(event) {
         return `
-            if (!strcmp(eventName,"${event.name}")) {
-                int id=instance->${event.name}.getIdByGlobalId(cbId);
-                instance->${event.name}.off(id);
+            if (eventName=="${event.name}") {
+                int handle=instance->${event.name}.getHandleByIdInt(cbId);
+                instance->${event.name}.off(handle);
             }
         `
     }
@@ -120,25 +128,19 @@ class PeabindJsvalBuilder {
         return `
             static JSVAL ${this.prefix}${cls.name}_on(JSVAL thisobj, int argc, JSVAL *argv) {
                 std::shared_ptr<${cls.name}> instance=unpack<${cls.name}>(thisobj);
-                char eventName[jsvalGetSize(argv[0])+1];
-                jsvalReadString(argv[0],eventName);
-                JSVAL cbId=argv[1];
-                jsvalDup(cbId);
-
+                std::string eventName=jsvalToStdString(argv[0]);
+                JSVAL cbVal=argv[1];
+                JSVAL_ID cbId=jsvalGetObjectId(cbVal);
                 ${cls.events.map(event=>this.generateEventOnDef(event)).join("\n")}
-
                 return jsvalUndefined();
             }
 
             static JSVAL ${this.prefix}${cls.name}_off(JSVAL thisobj, int argc, JSVAL *argv) {
                 std::shared_ptr<${cls.name}> instance=unpack<${cls.name}>(thisobj);
-                char eventName[jsvalGetSize(argv[0])+1];
-                jsvalReadString(argv[0],eventName);
-                JSVAL cbId=argv[1];
-                jsvalFree(cbId);
-
+                std::string eventName=jsvalToStdString(argv[0]);
+                JSVAL cbVal=argv[1];
+                JSVAL_ID cbId=jsvalGetObjectId(cbVal);
                 ${cls.events.map(event=>this.generateEventOffDef(event)).join("\n")}
-
                 return jsvalUndefined();
             }
         `
@@ -194,6 +196,7 @@ class PeabindJsvalBuilder {
             #include <string>
             #include <map>
             #include <cassert>
+            #include "jsval-util.h"
 
             class Opaque {
             public:
@@ -223,6 +226,19 @@ class PeabindJsvalBuilder {
                 return val;
             }
 
+            class Listener {
+            public:
+                Listener(Dispatcher<> *dispatcher_, JSVAL_ID id_) {
+                    dispatcher=dispatcher_;
+                    id=id_;
+                }
+
+                Dispatcher<> *dispatcher;
+                JSVAL_ID id;
+            };
+
+            static std::vector<Listener*> listeners;
+
             ${this.idl.classes.map(c=>this.generateClassId(c)).join("\n")}
 
             ${this.idl.functions.map(f=>this.generateFunctionDef(f)).join("\n")}
@@ -231,6 +247,17 @@ class PeabindJsvalBuilder {
             extern "C" void ${this.prefix}initmod(JSVAL mod) {
                 ${this.idl.functions.map(f=>this.generateFunctionReg(f)).join("\n")}
                 ${this.idl.classes.map(c=>this.generateClassReg(c)).join("\n")}
+            }
+
+            extern "C" void ${this.prefix}exitmod() {
+                //printf("listeners size: %d\\n",listeners.size());
+
+                while (listeners.size()) {
+                    //printf("remove listeners size: %d\\n",listeners.size());
+                    listeners[0]->dispatcher->off(listeners[0]->id);
+                }
+
+                //printf("listeners size after: %d\\n",listeners.size());
             }
         `); 
     }

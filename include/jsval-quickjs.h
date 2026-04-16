@@ -5,6 +5,7 @@ typedef JSValue JSVAL;
 
 typedef JSVAL JSVAL_FUNC(JSVAL thisobj, int argc, JSVAL *argv);
 typedef void JSVAL_FINALIZER(JSVAL thisobj);
+typedef uint64_t JSVAL_ID;
 
 JSVAL jsvalFromQuickjs(JSValue val);
 JSValue jsvalToQuickjs(JSVAL val);
@@ -34,6 +35,7 @@ char *jsvalReadString(JSVAL s, char *dest);
 JSVAL jsvalCreateString(const char *s);
 JSVAL jsvalDup(JSVAL v);
 JSVAL jsvalCall(JSVAL fn, JSVAL thisobj, int argc, JSVAL *argv);
+JSVAL_ID jsvalGetObjectId(JSVAL v);
 
 void jsvalQuickjsInit();
 void jsvalQuickjsExit();

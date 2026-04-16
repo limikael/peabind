@@ -35,13 +35,13 @@ public:
 		val=val_;
 	}
 
+	void emitDataVoid() {
+		dataVoid.emit();
+	}
+
 	void emitData(int dataValue1, int dataValue2) {
 		//printf("emitting data: %d\n",dataValue);
 		data.emit(dataValue1,dataValue2);
-	}
-
-	void emitDataVoid() {
-		dataVoid.emit();
 	}
 
 	void emitDataFloat(float f) {
@@ -60,9 +60,9 @@ public:
 		return std::make_shared<Hello>();
 	}
 
+	Dispatcher<> dataVoid;
 	Dispatcher<int,int> data;
 	Dispatcher<std::shared_ptr<Hello>> dataHello;
-	Dispatcher<> dataVoid;
 	Dispatcher<float> dataFloat;
 	Dispatcher<std::string> dataString;
 

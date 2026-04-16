@@ -1,10 +1,12 @@
 #pragma once
 #include <emscripten.h>
+#include <cinttypes>
 
 typedef int JSVAL;
 
 typedef JSVAL JSVAL_FUNC(JSVAL thisobj, int argc, JSVAL *argv);
 typedef void JSVAL_FINALIZER(JSVAL thisobj);
+typedef uint64_t JSVAL_ID;
 
 #define JS_IMPORT(name) \
     __attribute__((import_module("env"), import_name(#name))) \
@@ -46,6 +48,7 @@ void jsvalSetOpaque(JSVAL v, void *opaque);
 void *jsvalGetOpaque(JSVAL v);
 void jsvalNotifyFinalize(JSVAL clsid, JSVAL oid);
 void jsvalSetClassFinalizer(JSVAL clsid, JSVAL_FINALIZER *f);
+JSVAL_ID jsvalGetObjectId(JSVAL v);
 
 }
 

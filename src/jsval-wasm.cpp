@@ -91,3 +91,7 @@ void jsvalNotifyFinalize(JSVAL clsid, JSVAL oid) {
 			f(oid);
 	}
 }
+
+JSVAL_ID jsvalGetObjectId(JSVAL v) {
+	return v;
+}

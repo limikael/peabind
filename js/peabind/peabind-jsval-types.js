@@ -90,12 +90,13 @@ class StringTypeStrategy {
     }
 
     unpack(dest, src) {
-        return `
+        return `${dest}=jsvalToStdString(${src});\n`;
+        /*return `
             int ${dest}_len=jsvalGetSize(${src});
             char ${dest}_str[${dest}_len+1];
             jsvalReadString(${src},${dest}_str);
             ${dest}=std::string(${dest}_str);
-        `;
+        `;*/
     }
 }
 

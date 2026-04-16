@@ -31,6 +31,7 @@ export async function peabindQuickjs({idl, includePath, sources, output, prefix}
         }
 
         void ${builder.prefix}exit() {
+            ${builder.prefix}exitmod();
             jsvalFree(held);
         }
     `);
