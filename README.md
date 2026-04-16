@@ -75,8 +75,23 @@ Has little practical effect for the WASM target.
 peabind api.json api.cpp --output module.js --target wasm
 ```
 
-Use from JavaScript:
+Given a `api.cpp` source file:
+```js id="2z8pzt"
+int add(int a, int b) {
+  return a+b;
+}
+```
 
+And a `api.json` idl description file:
+```json
+{
+  "functions": {
+    "add": {"return": "int", "args": ["int","int"]}
+  }
+}
+```
+
+You can use it from JavaScript like a normal module:
 ```js id="2z8pzt"
 import * as mod from "./module.js";
 
@@ -92,6 +107,10 @@ peabind api.json api.cpp --output bindings.cpp --target quickjs --prefix mod
 Integrate in C++:
 
 ```cpp id="h7s7ml"
+JSContext *ctx;
+
+// Init quickjs...
+
 mod_init(ctx);
 ```
 
