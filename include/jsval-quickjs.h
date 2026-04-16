@@ -32,6 +32,8 @@ char *jsvalGetStrdup(JSVAL val);
 void jsvalFree(JSVAL val);
 char *jsvalReadString(JSVAL s, char *dest);
 JSVAL jsvalCreateString(const char *s);
+JSVAL jsvalDup(JSVAL v);
+JSVAL jsvalCall(JSVAL fn, JSVAL thisobj, int argc, JSVAL *argv);
 
 void jsvalQuickjsInit();
 void jsvalQuickjsExit();

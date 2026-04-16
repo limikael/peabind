@@ -236,3 +236,14 @@ char *jsvalReadString(JSVAL val, char *dest) {
 JSVAL jsvalCreateString(const char *s) {
 	return JS_NewString(jsvalCtx,s);
 }
+
+JSVAL jsvalDup(JSVAL v) {
+	JSVAL dup=JS_DupValue(v);
+	assert(dup==v);
+
+	return dup;
+}
+
+JSVAL jsvalCall(JSVAL fn, JSVAL thisobj, int argc, JSVAL *argv) {
+	return JS_Call(jsvalCtx,fn,thisobj,argc,argv);
+}

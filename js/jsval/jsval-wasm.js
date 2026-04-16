@@ -44,7 +44,8 @@ class JsvalWasmModule {
                 jsvalReadString: this.jsvalReadString,
                 jsvalDup: this.jsvalDup,
                 jsvalFree: this.jsvalFree,
-                jsvalCreateObject: this.jsvalCreateObject
+                jsvalCreateObject: this.jsvalCreateObject,
+                jsvalUndefined: this.jsvalUndefined,
             }
         });
 
@@ -53,6 +54,10 @@ class JsvalWasmModule {
         this.mod.__jsvalWasmModule=this;
 
         return this.mod;
+    }
+
+    jsvalUndefined=()=>{
+        return this.pack(undefined);
     }
 
     jsvalDup=(id)=>{

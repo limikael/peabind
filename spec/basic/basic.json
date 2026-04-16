@@ -16,19 +16,19 @@
 			"methods": {
 				"getVal": {"return":"int"},
 				"setVal": {"args":["int"]},
-				/*"emitData": {"args":["int","int"]},
+				"emitData": {"args":["int","int"]},
 				"emitDataVoid": {},
 				"emitDataFloat": {"args": ["float"]},
 				"emitDataHello": {"args": ["Hello"]},
-				"emitDataString": {"args": ["string"]}*/
+				"emitDataString": {"args": ["string"]}
 			},
-			/*"events": {
+			"events": {
 				"data": {"args": ["int","int"]},
 				"dataVoid": {},
 				"dataFloat": {"args": ["float"]},
 				"dataHello": {"args": ["Hello"]},
 				"dataString": {"args": ["string"]},
-			}*/
+			}
 		}
 	}
 }

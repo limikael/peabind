@@ -20,7 +20,6 @@ JS_IMPORT(jsvalSetPropJsval) JSVAL jsvalSetPropJsval(JSVAL o, JSVAL prop, JSVAL 
 JS_IMPORT(jsvalGetPropJsval) JSVAL jsvalGetPropJsval(JSVAL o, JSVAL prop);
 JS_IMPORT(jsvalGetInt) int jsvalGetInt(JSVAL o);
 JS_IMPORT(jsvalGetFloat) float jsvalGetFloat(JSVAL o);
-//JS_IMPORT(jsvalGetModule) JSVAL jsvalGetModule();
 JS_IMPORT(jsvalCreateFuncStub) JSVAL jsvalCreateFuncStub();
 JS_IMPORT(jsvalCreateClassStub) JSVAL jsvalCreateClassStub();
 JS_IMPORT(jsvalCreateInt) JSVAL jsvalCreateInt(int i);
@@ -29,6 +28,8 @@ JS_IMPORT(jsvalCreateArray) JSVAL jsvalCreateArray(int size);
 JS_IMPORT(jsvalReadString) char *jsvalReadString(JSVAL s, char *dest);
 JS_IMPORT(jsvalDup) JSVAL jsvalDup(JSVAL id);
 JS_IMPORT(jsvalFree) void jsvalFree(JSVAL id);
+
+JS_IMPORT(jsvalUndefined) JSVAL jsvalUndefined();
 
 extern "C" {
 

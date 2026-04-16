@@ -95,11 +95,11 @@ class PeabindJsvalBuilder {
                         ${this.ts(a).pack(`params[${i}]`,`a${i}`)}
                     `).join("\n")}
 
-                    jsvalCall(cbId,0,${event.args.length},params);
+                    jsvalCall(cbId,jsvalUndefined(),${event.args.length},params);
                     //printf("event triggered!!!\\n");
                 });
 
-                instance->${event.name}.setGlobalId(handleId,cbId);
+                instance->${event.name}.setGlobalId(handleId,(uint64_t)cbId);
             }
         `
     }
@@ -127,7 +127,7 @@ class PeabindJsvalBuilder {
 
                 ${cls.events.map(event=>this.generateEventOnDef(event)).join("\n")}
 
-                return 0;
+                return jsvalUndefined();
             }
 
             static JSVAL ${this.prefix}${cls.name}_off(JSVAL thisobj, int argc, JSVAL *argv) {
@@ -139,7 +139,7 @@ class PeabindJsvalBuilder {
 
                 ${cls.events.map(event=>this.generateEventOffDef(event)).join("\n")}
 
-                return 0;
+                return jsvalUndefined();
             }
         `
     }

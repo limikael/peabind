@@ -86,11 +86,11 @@ void test_basic() {
     jsvalQuickjsExit();
 }
 
-/*void test_events() {
+void test_events() {
     printf("- events\n");
-    JSRuntime *rt=JS_NewRuntime();
-    JSContext *ctx=JS_NewContext(rt);
-    basic_init(ctx);
+    jsvalQuickjsInit();
+    basic_init();
+    JSContext *ctx=jsvalQuickjsGetContext();
     std::string s;
 
     s=runjs(ctx,"globalThis.h=new Hello();");
@@ -99,10 +99,9 @@ void test_basic() {
     s=runjs(ctx,"JSON.stringify([globalThis.captured1,globalThis.captured2])");
     assert(s=="[1234,9999]");
 
-    basic_exit(ctx);
-    JS_FreeContext(ctx);
-    JS_FreeRuntime(rt);
-}*/
+    basic_exit();
+    jsvalQuickjsExit();
+}
 
 void test_types() {
     printf("- types\n");

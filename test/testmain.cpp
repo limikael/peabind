@@ -14,7 +14,7 @@ int main() {
 	test_jsval_size();
 
 	test_basic();
-		//test_events();
+	test_events();
 	test_types();
 		//test_event_types();
 	test_strings();
