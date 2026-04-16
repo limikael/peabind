@@ -3,27 +3,25 @@
 #include <string>
 #include <format>
 #include <iostream>
-
-extern "C" {
-#include "quickjs.h"
-}
+#include "jsval-quickjs.h"
 
 /*JSVAL testsize(JSVAL thisobj, int argc, JSVAL *argv) {
     return 123;    
-}
+}*/
 
 void test_jsval_size() {
-    printf("- basic\n");
+    printf("- test getting size\n");
 
-    JSRuntime *rt=JS_NewRuntime();
-    JSContext *ctx=JS_NewContext(rt);
+    jsvalQuickjsInit();
+    JSVAL v=jsvalEval("[1,2,3]");
+    assert(jsvalGetSize(v)==3);
+    jsvalFree(v);
 
-    jsvalInit(ctx);
+    JSVAL s=jsvalEval("\"hello\"");
+    assert(jsvalGetSize(s)==5);
+    jsvalFree(s);
 
 //    jsvalSetProp(jsvalGetGlobal(),"testsize",jsvalCreateFunc(testsize));
 
-    jsvalExit();
-
-    JS_FreeContext(ctx);
-    JS_FreeRuntime(rt);
-}*/
+    jsvalQuickjsExit();
+}

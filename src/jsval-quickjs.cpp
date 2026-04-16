@@ -198,6 +198,13 @@ int jsvalGetSize(JSVAL obj) {
 	    return len;
 	}
 
+	if (JS_IsString(value)) {
+		size_t len;
+		const char* str = JS_ToCStringLen(jsvalCtx, &len, value);
+		JS_FreeCString(jsvalCtx, str);
+		return len;
+	}
+
 	return -1;
 }
 
