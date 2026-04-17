@@ -84,7 +84,7 @@ void jsvalSetOpaque(JSVAL jsval, void *opaque) {
 }
 
 int jsvalGetInt(JSVAL v) {
-	int i;
+	int32_t i;
 	JS_ToInt32(jsvalCtx,&i,v);
 	return i;
 }
@@ -117,7 +117,8 @@ static JSValue ctorTrampoline(JSContext *ctx, JSValueConst this_val, int argc, J
 
 static void finalizerTrampoline(JSRuntime *rt, JSValue val) {
 	JSClassID classId=JS_GetClassID(val);
-	if (finalizerByClassId.contains(classId)) {
+	if (finalizerByClassId.find(classId) != finalizerByClassId.end()) {
+//	if (finalizerByClassId.contains(classId)) {
 		JSVAL_FINALIZER *f=finalizerByClassId[classId];
 		f(val);
 	}
@@ -127,7 +128,8 @@ JSVAL jsvalCreateClass(JSVAL_FUNC *ctorfunc) {
 	int magic=nextFunctionId++;
 	functions[magic]=ctorfunc;
 
-	if (!classIdByCtor.contains(ctorfunc)) {
+//	if (!classIdByCtor.contains(ctorfunc)) {
+	if (classIdByCtor.find(ctorfunc)==classIdByCtor.end()) {
 		JSClassID createClassId;
 		JS_NewClassID(&createClassId);
 		classIdByCtor[ctorfunc]=createClassId;

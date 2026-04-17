@@ -6,7 +6,7 @@ class IntTypeStrategy {
     }
 
     nativeParam(name) {
-        return `int ${name}`;
+        return `int32_t ${name}`;
     }
 
     abiDecl(name) {

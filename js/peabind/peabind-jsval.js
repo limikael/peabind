@@ -200,8 +200,10 @@ class PeabindJsvalBuilder {
             ${this.idl.include.map(i=>`#include "${i}"`).join("\n")}
             #include <string>
             #include <map>
+            #include <memory>
             #include <cassert>
             #include "jsval-util.h"
+            #include "peabind.h"
 
             class Opaque {
             public:
