@@ -35,6 +35,9 @@ JSVAL jsvalCreateString(const char *s);
 JSVAL jsvalDup(JSVAL v);
 JSVAL jsvalCall(JSVAL fn, JSVAL thisobj, int argc, JSVAL *argv);
 JSVAL_ID jsvalGetObjectId(JSVAL v);
+bool jsvalHasException();
+JSVAL jsvalCatchException();
+JSVAL jsvalToString(JSVAL s);
 
 void jsvalQuickjsInit();
 void jsvalQuickjsInitBorrowed(JSContext *ctx);

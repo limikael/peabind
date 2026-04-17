@@ -4,6 +4,7 @@
 #include <format>
 #include <iostream>
 #include "basic.out.h"
+#include "jsval-util.h"
 
 extern "C" {
 #include "quickjs.h"
@@ -37,6 +38,11 @@ std::string runjs(JSContext *ctx, const char *code) {
 
 std::string evaljs(std::string code) {
     JSVAL res=jsvalEval(code.c_str());
+    if (jsvalHasException()) {
+        std::string m=jsvalCatchExceptionStdString();
+        printf("Error: %s\n",m.c_str());
+        abort();
+    }
     char *tmp=jsvalGetStrdup(res);
     std::string s=std::string(tmp);
     free(tmp);
@@ -44,9 +50,24 @@ std::string evaljs(std::string code) {
     return s;
 }
 
+void test_exceptions() {
+    printf("- exceptions\n");
+    jsvalQuickjsInit();
+    basic_init_jsval();
+
+    jsvalEval("1+1");
+    assert(!jsvalHasException());
+    jsvalEval("1++1");
+    assert(jsvalHasException());
+    std::string err=jsvalCatchExceptionStdString();
+    assert(err=="SyntaxError: invalid increment/decrement operand");
+
+    basic_exit();
+    jsvalQuickjsExit();
+}
+
 void test_basic() {
     printf("- basic\n");
-
     jsvalQuickjsInit();
     basic_init_jsval();
 

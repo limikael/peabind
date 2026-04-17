@@ -21,3 +21,14 @@ static std::vector<uint8_t> jsvalToStdUint8Vector(JSVAL val) {
 
     return buf;
 }
+
+static std::string jsvalCatchExceptionStdString() {
+    JSVAL err=jsvalCatchException();
+    JSVAL errStr=jsvalToString(err);
+    std::string s=jsvalToStdString(errStr);
+
+    jsvalFree(err);
+    jsvalFree(errStr);
+
+    return s;
+}

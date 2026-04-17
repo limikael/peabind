@@ -60,7 +60,7 @@ JSVAL jsvalEval(const char *code) {
         JS_EVAL_TYPE_GLOBAL
     );
 
-    assert(!JS_IsException(result));
+    //assert(!JS_IsException(result));
     return result;
 }
 
@@ -311,4 +311,16 @@ JSVAL_ID jsvalGetObjectId(JSVAL v) {
     void *p=JS_VALUE_GET_PTR(v);
 
     return (uint64_t)p;
+}
+
+bool jsvalHasException() {
+    return JS_HasException(jsvalCtx);
+}
+
+JSVAL jsvalCatchException() {
+    return JS_GetException(jsvalCtx);
+}
+
+JSVAL jsvalToString(JSVAL s) {
+    return JS_ToString(jsvalCtx,s);
 }
