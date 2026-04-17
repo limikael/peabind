@@ -42,7 +42,7 @@ export function peabindGetLibConf(key) {
 			return path.join(__dirname,"../../include");
 			break;
 
-		case "sourceDir":
+		case "source":
 			return path.join(__dirname,"../../src/jsval-quickjs.cpp");
 			break;
 

@@ -29,9 +29,8 @@ export async function peabindQuickjs({idl, includePath, sources, output, prefix}
         static bool owned;
 
         void ${builder.prefix}init(JSContext *ctx) {
-            assert(jsvalQuickjsGetContext()==NULL);
-            owned=true;
             jsvalQuickjsInitBorrowed(ctx);
+            owned=true;
             ${builder.prefix}initmod(jsvalGetGlobal());
             lock=jsvalEval("new String(1337)");
         }
