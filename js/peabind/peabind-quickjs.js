@@ -22,13 +22,23 @@ export async function peabindQuickjs({idl, includePath, sources, output, prefix}
     let source=autoIndent(`
         ${builder.generateSource()}
 
-        static JSVAL lock;
-
         extern "C" void ${builder.prefix}initmod(JSVAL mod);
         extern "C" void ${builder.prefix}exitmod();
 
+        static JSVAL lock;
+        static bool owned;
+
+        void ${builder.prefix}init(JSContext *ctx) {
+            assert(jsvalQuickjsGetContext()==NULL);
+            owned=true;
+            jsvalQuickjsInitBorrowed(ctx);
+            ${builder.prefix}initmod(jsvalGetGlobal());
+            lock=jsvalEval("new String(1337)");
+        }
+
         void ${builder.prefix}init_jsval() {
             assert(jsvalQuickjsGetContext()!=NULL);
+            owned=false;
             ${builder.prefix}initmod(jsvalGetGlobal());
             lock=jsvalEval("new String(1337)");
         }
@@ -36,6 +46,8 @@ export async function peabindQuickjs({idl, includePath, sources, output, prefix}
         void ${builder.prefix}exit() {
             ${builder.prefix}exitmod();
             jsvalFree(lock);
+            if (owned)
+                jsvalQuickjsExit();
         }
     `);
 
@@ -46,6 +58,7 @@ export async function peabindQuickjs({idl, includePath, sources, output, prefix}
         #pragma once
         #include "quickjs.h"
         #include "jsval-quickjs.h"
+        extern "C" void ${builder.prefix}init(JSContext *ctx);
         extern "C" void ${builder.prefix}init_jsval();
         extern "C" void ${builder.prefix}exit();
     `);

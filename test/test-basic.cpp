@@ -224,3 +224,34 @@ void test_gc() {
     basic_exit();
     jsvalQuickjsExit();
 }
+
+void test_borrowed_context() {
+    printf("- borrowed context\n");
+    JSRuntime *rt=JS_NewRuntime();
+    JSContext *ctx=JS_NewContext(rt);
+    basic_init(ctx);
+    std::string s;
+
+    s=runjs(ctx,"removeHello()");
+
+    s=runjs(ctx,"getLiveHelloCount()");
+    //printf("live: %s\n",s.c_str());
+    assert(s=="0");
+
+    s=runjs(ctx,"globalThis.h=new Hello(100)");
+    s=runjs(ctx,"getLiveHelloCount()");
+    //printf("live: %s\n",s.c_str());
+    assert(s=="1");
+
+    s=runjs(ctx,"globalThis.h=null");
+
+    jsvalQuickjsRunGc();
+    s=runjs(ctx,"getLiveHelloCount()");
+    assert(s=="0");
+
+    jsvalEval("globalThis.s=new String(); 123");
+
+    basic_exit();
+    JS_FreeContext(ctx);
+    JS_FreeRuntime(rt);
+}
