@@ -48,7 +48,7 @@ void test_basic() {
     printf("- basic\n");
 
     jsvalQuickjsInit();
-    basic_init();
+    basic_init_jsval();
 
     JSContext *ctx=jsvalQuickjsGetContext();
 
@@ -89,7 +89,7 @@ void test_basic() {
 void test_events() {
     printf("- events\n");
     jsvalQuickjsInit();
-    basic_init();
+    basic_init_jsval();
     JSContext *ctx=jsvalQuickjsGetContext();
     std::string s;
 
@@ -108,7 +108,7 @@ void test_events() {
 void test_types() {
     printf("- types\n");
     jsvalQuickjsInit();
-    basic_init();
+    basic_init_jsval();
     std::string s;
 
     s=evaljs("hellof(1.5)");
@@ -126,7 +126,7 @@ void test_event_types() {
     printf("- event types\n");
     jsvalQuickjsInit();
     JSContext *ctx=jsvalQuickjsGetContext();
-    basic_init();
+    basic_init_jsval();
     std::string s;
 
     s=runjs(ctx,"globalThis.h=new Hello(100);");
@@ -164,7 +164,7 @@ void test_event_types() {
 void test_strings() {
     printf("- strings\n");
     jsvalQuickjsInit();
-    basic_init();
+    basic_init_jsval();
     std::string s;
 
     s=evaljs("hellos('a','b')");
@@ -177,7 +177,7 @@ void test_strings() {
 void test_buffers() {
     printf("- buffers\n");
     jsvalQuickjsInit();
-    basic_init();
+    basic_init_jsval();
     std::string s;
 
     s=evaljs("globalThis.b=createBuffer(); globalThis.b");
@@ -199,7 +199,7 @@ void test_gc() {
     printf("- gc\n");
     jsvalQuickjsInit();
     JSContext *ctx=jsvalQuickjsGetContext();
-    basic_init();
+    basic_init_jsval();
     std::string s;
 
     s=runjs(ctx,"removeHello()");

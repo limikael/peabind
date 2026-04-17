@@ -22,29 +22,31 @@ export async function peabindQuickjs({idl, includePath, sources, output, prefix}
     let source=autoIndent(`
         ${builder.generateSource()}
 
-        static JSVAL held;
+        static JSVAL lock;
 
-        void ${builder.prefix}init() {
+        extern "C" void ${builder.prefix}initmod(JSVAL mod);
+        extern "C" void ${builder.prefix}exitmod();
+
+        void ${builder.prefix}init_jsval() {
             assert(jsvalQuickjsGetContext()!=NULL);
             ${builder.prefix}initmod(jsvalGetGlobal());
-            held=jsvalEval("new String(1337)");
+            lock=jsvalEval("new String(1337)");
         }
 
         void ${builder.prefix}exit() {
             ${builder.prefix}exitmod();
-            jsvalFree(held);
+            jsvalFree(lock);
         }
     `);
 
-    fs.writeFileSync(output,source); //source);
+    fs.writeFileSync(output,source);
 
     let headerOutput=output.slice(0,-4)+".h";
     let headerContent=autoIndent(`
         #pragma once
         #include "quickjs.h"
         #include "jsval-quickjs.h"
-        extern "C" void ${builder.prefix}initmod(JSVAL mod);
-        extern "C" void ${builder.prefix}init();
+        extern "C" void ${builder.prefix}init_jsval();
         extern "C" void ${builder.prefix}exit();
     `);
     fs.writeFileSync(headerOutput,headerContent);
