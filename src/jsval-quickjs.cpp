@@ -5,6 +5,7 @@
 #include <cassert>
 
 static JSContext *jsvalCtx=NULL;
+static bool jsvalCtxBorrowed;
 static std::map<int,JSVAL_FUNC *> functions;
 static std::map<JSVAL_FUNC *,JSClassID> classIdByCtor;
 static std::map<JSClassID,JSVAL_FINALIZER *> finalizerByClassId;
@@ -12,8 +13,17 @@ static int nextFunctionId=1;
 static JSVAL jsvalGlobal;
 static JSValue Uint8Array_ctor;
 
+void jsvalQuickjsInitBorrowed(JSContext *ctx) {
+    assert(jsvalCtx==NULL);
+    jsvalCtxBorrowed=true;
+    jsvalCtx=ctx;
+    jsvalGlobal=JS_GetGlobalObject(jsvalCtx);
+    Uint8Array_ctor=JS_GetPropertyStr(jsvalCtx,jsvalGlobal,"Uint8Array");
+}
+
 void jsvalQuickjsInit() {
     assert(jsvalCtx==NULL);
+    jsvalCtxBorrowed=false;
     JSRuntime *rt=JS_NewRuntime();
     jsvalCtx=JS_NewContext(rt);
     jsvalGlobal=JS_GetGlobalObject(jsvalCtx);
@@ -25,8 +35,10 @@ void jsvalQuickjsExit() {
     JSRuntime *rt=JS_GetRuntime(jsvalCtx);
     JS_FreeValue(jsvalCtx,Uint8Array_ctor);
     JS_FreeValue(jsvalCtx,jsvalGlobal);
-    JS_FreeContext(jsvalCtx);
-    JS_FreeRuntime(rt);
+    if (!jsvalCtxBorrowed) {
+        JS_FreeContext(jsvalCtx);
+        JS_FreeRuntime(rt);
+    }
     jsvalCtx=NULL;
 }
 

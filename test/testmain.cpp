@@ -7,13 +7,14 @@ void test_event_types();
 void test_strings();
 void test_gc();
 void test_jsval_size();
+void test_jsval_borrow();
 void test_buffers();
 
 int main() {
 	printf("Running tests...\n");
 
 	test_jsval_size();
-
+	test_jsval_borrow();
 	test_basic();
 	test_buffers();
 	test_events();

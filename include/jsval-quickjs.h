@@ -37,6 +37,7 @@ JSVAL jsvalCall(JSVAL fn, JSVAL thisobj, int argc, JSVAL *argv);
 JSVAL_ID jsvalGetObjectId(JSVAL v);
 
 void jsvalQuickjsInit();
+void jsvalQuickjsInitBorrowed(JSContext *ctx);
 void jsvalQuickjsExit();
 void jsvalQuickjsRunGc();
 JSContext *jsvalQuickjsGetContext();
