@@ -4,6 +4,10 @@
 #include <cstdlib>
 #include <cassert>
 
+#ifdef ARDUINO
+#include <Arduino.h>
+#endif
+
 static JSContext *jsvalCtx=NULL;
 static bool jsvalCtxBorrowed;
 static std::map<int,JSVAL_FUNC *> functions;
@@ -132,22 +136,32 @@ JSVAL jsvalCreateClass(JSVAL_FUNC *ctorfunc) {
     int magic=nextFunctionId++;
     functions[magic]=ctorfunc;
 
-//  if (!classIdByCtor.contains(ctorfunc)) {
+    //Serial.printf("************ creating class...\n");
+
+
     if (classIdByCtor.find(ctorfunc)==classIdByCtor.end()) {
-        JSClassID createClassId;
+        //Serial.printf("************ register new class id...\n");
+
+        JSClassID createClassId=0;
         JS_NewClassID(&createClassId);
         classIdByCtor[ctorfunc]=createClassId;
+        //Serial.printf("************ created class id: %d\n",createClassId);
         //printf("create classid: %d\n",createClassId);
     }
 
     JSClassID classId=classIdByCtor[ctorfunc];
     if (!JS_IsRegisteredClass(JS_GetRuntime(jsvalCtx),classId)) {
+        //Serial.printf("************ register new class with runtime...\n");
+
         JSClassDef def={.class_name="My", .finalizer=finalizerTrampoline};
         JS_NewClass(JS_GetRuntime(jsvalCtx),classId,&def);
+
+        //Serial.printf("************ done registering\n");
         //printf("reg class in rt...\n");
     }
 
     JSValue proto=JS_NewObject(jsvalCtx);
+    //Serial.printf("************ setting proto with class id=%d\n",classId);
     JS_SetClassProto(jsvalCtx,classId,proto);
     JSValue ctor=JS_NewCFunctionMagic(jsvalCtx,ctorTrampoline,"ctor",0,JS_CFUNC_constructor_magic,magic);
     JS_SetConstructor(jsvalCtx,ctor,proto);

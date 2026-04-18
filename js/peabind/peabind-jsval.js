@@ -103,8 +103,14 @@ class PeabindJsvalBuilder {
                 listeners.push_back(listener);
                 instance->${event.name}.setIdInt(handle,cbId);
                 instance->${event.name}.setDestructor(handle,[cbCopy,listener](){
-                    if (std::erase(listeners, listener) > 0)
+                    /*if (std::erase(listeners, listener) > 0)
+                        delete listener;*/
+
+                    auto it = std::remove(listeners.begin(), listeners.end(), listener);
+                    if (it != listeners.end()) {
+                        listeners.erase(it, listeners.end());
                         delete listener;
+                    }
 
                     jsvalFree(cbCopy);
                 });
@@ -201,6 +207,7 @@ class PeabindJsvalBuilder {
             #include <string>
             #include <map>
             #include <memory>
+            #include <algorithm>
             #include <cassert>
             #include "jsval-util.h"
             #include "peabind.h"
