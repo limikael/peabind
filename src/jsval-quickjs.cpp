@@ -68,6 +68,10 @@ JSVAL jsvalEval(const char *code) {
     return result;
 }
 
+JSVAL jsvalNull() {
+    return JS_NULL;
+}
+
 JSVAL jsvalUndefined() {
     return JS_UNDEFINED;
 }

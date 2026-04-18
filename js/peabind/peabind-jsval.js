@@ -95,7 +95,14 @@ class PeabindJsvalBuilder {
                     ${event.args.map((a,i)=>`
                         ${this.ts(a).pack(`params[${i}]`,`a${i}`)}
                     `).join("\n")}
+                    //Serial.printf("will call handle\\n");
                     jsvalCall(cbCopy,jsvalUndefined(),${event.args.length},params);
+                    if (jsvalHasException()) {
+                        std::string s=jsvalCatchExceptionStdString();
+                        //Serial.printf("ev err: %s\\n",s.c_str());
+                    }
+
+                    //Serial.printf("called\\n");
                 });
 
                 Dispatcher<>* d=(Dispatcher<>*)&(instance->${event.name});
@@ -229,6 +236,9 @@ class PeabindJsvalBuilder {
 
             template<typename T>
             static JSVAL pack(std::shared_ptr<T> instance, JSVAL classId) {
+                if (instance==nullptr)
+                    return jsvalNull();
+
                 if (jsvalByPointer.find(instance.get())!=jsvalByPointer.end())
                     return jsvalByPointer[instance.get()];
 

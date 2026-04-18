@@ -12,6 +12,7 @@ JSValue jsvalToQuickjs(JSVAL val);
 
 JSVAL jsvalGetGlobal();
 JSVAL jsvalUndefined();
+JSVAL jsvalNull();
 void *jsvalGetOpaque(JSVAL jsval);
 void jsvalSetOpaque(JSVAL jsval, void *opaque);
 JSVAL jsvalCreateObject(JSVAL classId);
