@@ -20,6 +20,10 @@ class IntTypeStrategy {
     pack(dest, src) {
         return `${dest}=jsvalCreateInt(${src});\n`;
     }
+
+    cleanup(name) {
+        return `jsvalFree(${name});\n`
+    }
 }
 
 class FloatTypeStrategy {
@@ -42,33 +46,9 @@ class FloatTypeStrategy {
     pack(dest, src) {
         return `${dest}=jsvalCreateFloat(${src});\n`;
     }
-}
 
-class ObjectTypeStrategy {
-    constructor(typeDef, {idl, prefix}) {
-        this.typeDef=typeDef;
-        this.prefix=prefix;
-    }
-
-    nativeDecl(name) {
-        return `std::shared_ptr<${this.typeDef.type}> ${name};\n`;
-    }
-
-    nativeParam(name) {
-        return `std::shared_ptr<${this.typeDef.type}> ${name}`;
-    }
-
-    abiDecl(name) {
-        return `JSVAL ${name};\n`;
-    }
-
-    unpack(dest, src) {
-        return `${dest}=unpack<${this.typeDef.type}>(${src});`;
-    }
-
-    pack(dest, src) {
-        let id=`${this.prefix}${this.typeDef.type}_id`;
-        return `${dest}=pack<${this.typeDef.type}>(${src},${id});`
+    cleanup(name) {
+        return `jsvalFree(${name});\n`
     }
 }
 
@@ -98,6 +78,10 @@ class StringTypeStrategy {
             ${dest}=std::string(${dest}_str);
         `;*/
     }
+
+    cleanup(name) {
+        return `jsvalFree(${name});\n`
+    }
 }
 
 class BufferTypeStrategy {
@@ -119,6 +103,42 @@ class BufferTypeStrategy {
 
     unpack(dest, src) {
         return `${dest}=jsvalToStdUint8Vector(${src});\n`;
+    }
+
+    cleanup(name) {
+        return `jsvalFree(${name});\n`
+    }
+}
+
+class ObjectTypeStrategy {
+    constructor(typeDef, {idl, prefix}) {
+        this.typeDef=typeDef;
+        this.prefix=prefix;
+    }
+
+    nativeDecl(name) {
+        return `std::shared_ptr<${this.typeDef.type}> ${name};\n`;
+    }
+
+    nativeParam(name) {
+        return `std::shared_ptr<${this.typeDef.type}> ${name}`;
+    }
+
+    abiDecl(name) {
+        return `JSVAL ${name};\n`;
+    }
+
+    unpack(dest, src) {
+        return `${dest}=unpack<${this.typeDef.type}>(${src});`;
+    }
+
+    pack(dest, src) {
+        let id=`${this.prefix}${this.typeDef.type}_id`;
+        return `${dest}=pack<${this.typeDef.type}>(${src},${id});`
+    }
+
+    cleanup(name) {
+        return ``;
     }
 }
 

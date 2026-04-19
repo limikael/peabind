@@ -96,11 +96,16 @@ class PeabindJsvalBuilder {
                         ${this.ts(a).pack(`params[${i}]`,`a${i}`)}
                     `).join("\n")}
                     //Serial.printf("will call handle\\n");
-                    jsvalCall(cbCopy,jsvalUndefined(),${event.args.length},params);
+                    JSVAL res=jsvalCall(cbCopy,jsvalUndefined(),${event.args.length},params);
                     if (jsvalHasException()) {
                         std::string s=jsvalCatchExceptionStdString();
                         //Serial.printf("ev err: %s\\n",s.c_str());
                     }
+                    jsvalFree(res);
+
+                    ${event.args.map((a,i)=>`
+                        ${this.ts(a).cleanup(`params[${i}]`)}
+                    `).join("\n")}
 
                     //Serial.printf("called\\n");
                 });
@@ -110,9 +115,6 @@ class PeabindJsvalBuilder {
                 listeners.push_back(listener);
                 instance->${event.name}.setIdInt(handle,cbId);
                 instance->${event.name}.setDestructor(handle,[cbCopy,listener](){
-                    /*if (std::erase(listeners, listener) > 0)
-                        delete listener;*/
-
                     auto it = std::remove(listeners.begin(), listeners.end(), listener);
                     if (it != listeners.end()) {
                         listeners.erase(it, listeners.end());
@@ -171,10 +173,12 @@ class PeabindJsvalBuilder {
                 jsvalByPointer[instance.get()]=thisobj;
                 Opaque *opaque=new Opaque(instance);
                 jsvalSetOpaque(thisobj,opaque);
+                //Serial.printf("ctor...\\n");
                 return thisobj;
             }
 
             static void ${this.prefix}${cls.name}_finalizer(JSVAL thisobj) {
+                //Serial.printf("dtor...\\n");
                 Opaque *opaque=(Opaque *)jsvalGetOpaque(thisobj);
                 jsvalByPointer.erase(opaque->instance.get());
                 delete opaque;
@@ -239,6 +243,7 @@ class PeabindJsvalBuilder {
                 if (instance==nullptr)
                     return jsvalNull();
 
+                // MAYBE... shoud jsvalDup here... to increase the ref...
                 if (jsvalByPointer.find(instance.get())!=jsvalByPointer.end())
                     return jsvalByPointer[instance.get()];
 
@@ -275,13 +280,20 @@ class PeabindJsvalBuilder {
 
             extern "C" void ${this.prefix}exitmod() {
                 //printf("listeners size: %d\\n",listeners.size());
+                //jsvalQuickjsRunGc();
 
                 while (listeners.size()) {
                     //printf("remove listeners size: %d\\n",listeners.size());
                     listeners[0]->dispatcher->off(listeners[0]->id);
                 }
 
+                //jsvalQuickjsRunGc();
                 //printf("listeners size after: %d\\n",listeners.size());
+                //Serial.printf("exitmod.. pointers: %d\\n",jsvalByPointer.size());
+            }
+
+            extern "C" int ${this.prefix}get_num_objects() {
+                return jsvalByPointer.size();
             }
         `); 
     }
