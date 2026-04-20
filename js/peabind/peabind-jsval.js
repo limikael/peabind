@@ -165,19 +165,35 @@ class PeabindJsvalBuilder {
 
     generateClassDef(cls) {
         let params=cls.ctorArgs.map((a,i)=>`a${i}`).join(",");
+        let ctor;
+
+        if (cls.constructible) {
+            ctor=`
+                static JSVAL ${this.prefix}${cls.name}_constructor(JSVAL thisobj, int argc, JSVAL *argv) {
+                    if (argc!=${cls.ctorArgs.length}) return jsvalUndefined();
+                    ${cls.ctorArgs.map((a,i)=>this.ts(a).nativeDecl(`a${i}`)).join("\n")}
+                    ${cls.ctorArgs.map((a,i)=>this.ts(a).unpack(`a${i}`,`argv[${i}]`)).join("\n")}
+                    auto instance=std::make_shared<${cls.name}>(${params});
+                    jsvalByPointer[instance.get()]=thisobj;
+                    Opaque *opaque=new Opaque(instance);
+                    jsvalSetOpaque(thisobj,opaque);
+                    //Serial.printf("ctor...\\n");
+                    return thisobj;
+                }
+            `;
+        }
+
+        else {
+            ctor=`
+                static JSVAL ${this.prefix}${cls.name}_constructor(JSVAL thisobj, int argc, JSVAL *argv) {
+                    return jsvalUndefined();
+                    //return jsvalThrow(\"private constructor\");
+                }
+            `;
+        }
 
         return `
-            static JSVAL ${this.prefix}${cls.name}_constructor(JSVAL thisobj, int argc, JSVAL *argv) {
-                if (argc!=${cls.ctorArgs.length}) return jsvalUndefined();
-                ${cls.ctorArgs.map((a,i)=>this.ts(a).nativeDecl(`a${i}`)).join("\n")}
-                ${cls.ctorArgs.map((a,i)=>this.ts(a).unpack(`a${i}`,`argv[${i}]`)).join("\n")}
-                auto instance=std::make_shared<${cls.name}>(${params});
-                jsvalByPointer[instance.get()]=thisobj;
-                Opaque *opaque=new Opaque(instance);
-                jsvalSetOpaque(thisobj,opaque);
-                //Serial.printf("ctor...\\n");
-                return thisobj;
-            }
+            ${ctor}
 
             static void ${this.prefix}${cls.name}_finalizer(JSVAL thisobj) {
                 //Serial.printf("dtor...\\n");

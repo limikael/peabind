@@ -44,6 +44,9 @@ export function peabindNormalize(def) {
 	def.classesByName=normalizeBuildIndex(def.classes,"name");
 
 	for (let c of def.classes) {
+		if (!c.hasOwnProperty("constructible"))
+		c.constructible=true;
+
 		c.ctorArgs=normalizeArray(c.ctorArgs).map(a=>normalizeStringOrObject(a,"type"));
 		c.methods=normalizeMapOrArray(c.methods,"name");
 		for (let m of c.methods) {
