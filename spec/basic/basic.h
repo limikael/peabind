@@ -4,6 +4,10 @@
 
 int hello(int a, int b);
 int hello2();
+
+namespace mynamespace {
+int hello3();
+}
 int hellof(float f);
 float hellothird(int i);
 std::string hellos(std::string s, std::string t);

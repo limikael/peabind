@@ -37,6 +37,17 @@ describe("basic-wasm",()=>{
 		}
 	});
 
+	it("function namespace",async()=>{
+		//let mod=await import(path.join(__dirname,"basic.out.js"));
+		let h=new mod.Hello(789);
+		expect(h.getVal()).toEqual(789);
+
+		let v=mod.hello(1,2);
+		//console.log(v);
+		expect(v).toEqual(3);
+		//await mod.close();
+	});
+
 	it("refactor",async()=>{
 		//let mod=await import(path.join(__dirname,"basic.out.js"));
 		let h=new mod.Hello(789);
@@ -45,6 +56,7 @@ describe("basic-wasm",()=>{
 		let v=mod.hello(1,2);
 		//console.log(v);
 		expect(v).toEqual(3);
+		//await mod.close();
 	});
 
 	it("can compile and run wasm",async ()=>{

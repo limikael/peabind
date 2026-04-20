@@ -38,6 +38,8 @@ class PeabindJsvalBuilder {
             name=`${this.prefix}${func.name}`;
             prelude="";
             callTarget=`${func.name}`;
+            if (func.namespace)
+                callTarget=`${func.namespace}::${func.name}`
         }
 
         let call;

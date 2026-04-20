@@ -2,6 +2,10 @@
 
 int liveHelloCount=0;
 
+int mynamespace::hello3() {
+	return 333;
+}
+
 int getLiveHelloCount() {
 	return liveHelloCount;
 }

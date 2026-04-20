@@ -90,7 +90,7 @@ class JsvalWasmModule {
         //console.log("free: "+id);
         let strong=this.strongById.get(id);
         if (!strong) {
-            console.log("warning! double free!")
+            //console.log("Warning, double free, id="+id+" v=",this.unpack(id));
             return;
         }
 
