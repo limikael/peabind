@@ -1,6 +1,7 @@
 #pragma once
 #include <emscripten.h>
 #include <cinttypes>
+#include <cassert>
 
 typedef int JSVAL;
 
@@ -34,6 +35,7 @@ JS_IMPORT(jsvalDup) JSVAL jsvalDup(JSVAL id);
 JS_IMPORT(jsvalFree) void jsvalFree(JSVAL id);
 
 JS_IMPORT(jsvalUndefined) JSVAL jsvalUndefined();
+JS_IMPORT(jsvalNull) JSVAL jsvalNull();
 
 extern "C" {
 
@@ -52,6 +54,22 @@ void jsvalNotifyFinalize(JSVAL clsid, JSVAL oid);
 void jsvalSetClassFinalizer(JSVAL clsid, JSVAL_FINALIZER *f);
 JSVAL_ID jsvalGetObjectId(JSVAL v);
 
+}
+
+// FIX FIX ...
+
+static int jsvalHasException() {
+    return false;
+}
+
+static JSVAL jsvalCatchException() {
+    assert(0);
+    return 0;
+}
+
+static JSVAL jsvalToString(JSVAL s) {
+    assert(0);
+    return 0;
 }
 
 // TODO

@@ -51,6 +51,7 @@ class JsvalWasmModule {
                 jsvalFree: this.jsvalFree,
                 jsvalCreateObject: this.jsvalCreateObject,
                 jsvalUndefined: this.jsvalUndefined,
+                jsvalNull: this.jsvalNull,
                 jsvalCreateBuffer: this.jsvalCreateBuffer,
                 jsvalReadBuffer: this.jsvalReadBuffer
             }
@@ -66,6 +67,10 @@ class JsvalWasmModule {
 
     jsvalUndefined=()=>{
         return this.pack(undefined);
+    }
+
+    jsvalNull=()=>{
+        return this.pack(null);
     }
 
     jsvalDup=(id)=>{

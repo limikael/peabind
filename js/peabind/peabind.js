@@ -36,14 +36,49 @@ export async function peabind(options) {
 	}
 }
 
-export function peabindGetLibConf(key) {
+export function peabindGetLibConf(key, opts={}) {
+	let {target}=opts;
+
+	let targetDefines={
+		"quickjs": "JSVAL_TARGET_QUICKJS",
+		"wasm": "JSVAL_TARGET_WASM",
+	};
+
 	switch (key) {
 		case "includeDir":
 			return path.join(__dirname,"../../include");
 			break;
 
-		case "source":
-			return path.join(__dirname,"../../src/jsval-quickjs.cpp");
+		case "sources":
+			switch (target) {
+				case "quickjs":
+					return ([
+						path.join(__dirname,"../../src/jsval-quickjs.cpp"),
+						path.join(__dirname,"../../src/jsval-util.cpp")
+					]);
+					break;
+
+				case "wasm":
+					return [];
+
+				default:
+					throw new Error("sources conf needs target");
+			}
+			break;
+
+		case "cargs":
+			if (!target)
+				throw new Error("cargs needs target");
+
+			return ([
+				"-I"+peabindGetLibConf("includeDir",opts),
+				...peabindGetLibConf("sources",opts),
+				"-D"+targetDefines[opts.target]
+			]);
+			break;
+
+		case "cflags-only-I":
+			return "-I"+path.join(__dirname,"../../include");
 			break;
 
 		default:

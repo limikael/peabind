@@ -6,7 +6,7 @@
   "scripts": {
     "test": "pnpm test:js && pnpm test:c",
     "test:js": "node --expose-gc node_modules/jasmine/bin/jasmine.js",
-    "test:c": "rm -f test/*.out.* && peabind spec/basic/basic.json -otest/basic.out.cpp -pbasic_ -tquickjs && g++ -std=c++20 -o bin/testmain test/*.cpp spec/basic/basic.cpp -Ispec/basic -Iext/quickjs-2025-09-13 -Iinclude ext/quickjs-2025-09-13/libquickjs.a src/jsval-quickjs.cpp -O0 -fuse-ld=lld && ./bin/testmain",
+    "test:c": "rm -f test/*.out.* && peabind spec/basic/basic.json -otest/basic.out.cpp -pbasic_ -tquickjs && g++ -std=c++20 -o bin/testmain test/*.cpp spec/basic/basic.cpp -Ispec/basic -Iext/quickjs-2025-09-13 ext/quickjs-2025-09-13/libquickjs.a $(peabind --lib-conf=cargs -tquickjs) -O0 -fuse-ld=lld && ./bin/testmain",
     "ext": "./js/peabind/ext.js",
     "minilab": "peabind spec/mini/mini.json -olab/mini.out.js -pmini_ -twasm && node --expose-gc lab/mini-lab.js"
   },
