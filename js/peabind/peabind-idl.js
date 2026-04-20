@@ -56,6 +56,8 @@ export function peabindNormalize(def) {
 		for (let e of c.events) {
 			e.args=normalizeArray(e.args).map(a=>normalizeStringOrObject(a,"type"));
 			e.className=c.name;
+			if (!e.dispatcher)
+				e.dispatcher=e.name;
 		}
 	}
 

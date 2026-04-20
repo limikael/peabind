@@ -92,7 +92,7 @@ class PeabindJsvalBuilder {
         return `
             if (eventName=="${event.name}") {
                 JSVAL cbCopy=jsvalDup(cbVal);
-                int handle=instance->${event.name}.on([cbCopy](${argDecl}){
+                int handle=instance->${event.dispatcher}.on([cbCopy](${argDecl}){
                     JSVAL params[${event.args.length}];
                     ${event.args.map((a,i)=>`
                         ${this.ts(a).pack(`params[${i}]`,`a${i}`)}
@@ -112,11 +112,11 @@ class PeabindJsvalBuilder {
                     //Serial.printf("called\\n");
                 });
 
-                Dispatcher<>* d=(Dispatcher<>*)&(instance->${event.name});
+                Dispatcher<>* d=(Dispatcher<>*)&(instance->${event.dispatcher});
                 Listener *listener=new Listener(d,handle);
                 listeners.push_back(listener);
-                instance->${event.name}.setIdInt(handle,cbId);
-                instance->${event.name}.setDestructor(handle,[cbCopy,listener](){
+                instance->${event.dispatcher}.setIdInt(handle,cbId);
+                instance->${event.dispatcher}.setDestructor(handle,[cbCopy,listener](){
                     auto it = std::remove(listeners.begin(), listeners.end(), listener);
                     if (it != listeners.end()) {
                         listeners.erase(it, listeners.end());
@@ -132,8 +132,8 @@ class PeabindJsvalBuilder {
     generateEventOffDef(event) {
         return `
             if (eventName=="${event.name}") {
-                int handle=instance->${event.name}.getHandleByIdInt(cbId);
-                instance->${event.name}.off(handle);
+                int handle=instance->${event.dispatcher}.getHandleByIdInt(cbId);
+                instance->${event.dispatcher}.off(handle);
             }
         `
     }

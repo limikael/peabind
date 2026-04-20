@@ -27,7 +27,7 @@
 				"emitDataString": {"args": ["string"]}
 			},
 			"events": {
-				"data": {"args": ["int","int"]},
+				"data": {"args": ["int","int"], "dispatcher": "dataEvent"},
 				"dataVoid": {},
 				"dataFloat": {"args": ["float"]},
 				"dataHello": {"args": ["Hello"]},

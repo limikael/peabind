@@ -47,7 +47,7 @@ public:
 
 	void emitData(int dataValue1, int dataValue2) {
 		//printf("emitting data: %d\n",dataValue);
-		data.emit(dataValue1,dataValue2);
+		dataEvent.emit(dataValue1,dataValue2);
 	}
 
 	void emitDataFloat(float f) {
@@ -67,7 +67,7 @@ public:
 	}
 
 	Dispatcher<> dataVoid;
-	Dispatcher<int,int> data;
+	Dispatcher<int,int> dataEvent;
 	Dispatcher<std::shared_ptr<Hello>> dataHello;
 	Dispatcher<float> dataFloat;
 	Dispatcher<std::string> dataString;
