@@ -45,3 +45,4 @@ void jsvalQuickjsInitBorrowed(JSContext *ctx);
 void jsvalQuickjsExit();
 void jsvalQuickjsRunGc();
 JSContext *jsvalQuickjsGetContext();
+void jsvalQuickjsRunJobs();

@@ -19,6 +19,12 @@ class Dispatcher {
     int nextHandle = 1;
 
 public:
+    Dispatcher() = default;
+    Dispatcher(const Dispatcher&) = delete;
+    Dispatcher& operator=(const Dispatcher&) = delete;
+    Dispatcher(Dispatcher&&) = delete;
+    Dispatcher& operator=(Dispatcher&&) = delete;
+
     ~Dispatcher() {
         //printf("dispatcher destructor...\n");
 

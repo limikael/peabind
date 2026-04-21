@@ -17,6 +17,31 @@ static int nextFunctionId=1;
 static JSVAL jsvalGlobal;
 static JSValue Uint8Array_ctor;
 
+void jsvalQuickjsRunJobs() {
+    assert(jsvalCtx!=NULL);
+    JSRuntime *rt=JS_GetRuntime(jsvalCtx);
+    JSContext *tmpctx=jsvalCtx;
+    int ret=1;
+
+    while (ret>0) {
+        ret=JS_ExecutePendingJob(rt, &tmpctx);
+        if (ret) {
+            //Serial.printf("execute pending: %d\n",ret);
+        }
+
+        if (ret<0) {
+            JSValue ex=JS_GetException(tmpctx);
+            const char *s=JS_ToCString(tmpctx, ex);
+            if (s) {
+                Serial.printf("Unhandled promise rejection: %s\n",s);
+                JS_FreeCString(tmpctx,s);
+            }
+            JS_FreeValue(tmpctx,ex);
+            break;
+        }
+    }
+}
+
 void jsvalQuickjsInitBorrowed(JSContext *ctx) {
     assert(jsvalCtx==NULL);
     jsvalCtxBorrowed=true;
