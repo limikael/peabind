@@ -57,6 +57,7 @@ export async function peabindQuickjs({idl, includePath, sources, output, prefix}
         #pragma once
         #include "quickjs.h"
         #include "jsval-quickjs.h"
+        #include "jsval-util.h"
         extern "C" void ${builder.prefix}init(JSContext *ctx);
         extern "C" void ${builder.prefix}init_jsval();
         extern "C" void ${builder.prefix}exit();
