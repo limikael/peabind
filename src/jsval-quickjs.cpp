@@ -33,7 +33,7 @@ void jsvalQuickjsRunJobs() {
             JSValue ex=JS_GetException(tmpctx);
             const char *s=JS_ToCString(tmpctx, ex);
             if (s) {
-                Serial.printf("Unhandled promise rejection: %s\n",s);
+                //Serial.printf("Unhandled promise rejection: %s\n",s);
                 JS_FreeCString(tmpctx,s);
             }
             JS_FreeValue(tmpctx,ex);

@@ -1,0 +1,7 @@
+    "test:c": "rm -f test/*.out.* && peabind spec/basic/basic.json -otest/basic.out.cpp -pbasic_ -tquickjs && 
+
+    g++ -std=c++20 -o bin/testmain test/*.cpp spec/basic/basic.cpp -Ispec/basic -Iext/quickjs-2025-09-13 ext/quickjs-2025-09-13/libquickjs.a $(peabind --lib-conf=cargs -tquickjs) -O0 -fuse-ld=lld && ./bin/testmain",
+
+g++ -std=c++20 -o bin/testmain -DJSVAL_TARGET_QUICKJS test/testmain.cpp test/test-jsval.cpp src/jsval-quickjs.cpp src/jsval-util.cpp -Iinclude -Iext/quickjs-2025-09-13 ext/quickjs-2025-09-13/libquickjs.a 
+
+wrapcc -std=c++20 -o bin/testmain -DJSVAL_TARGET_QUICKJS test/testmain.cpp test/test-jsval.cpp src/jsval-quickjs.cpp src/jsval-util.cpp -Iinclude -Iext/quickjs-2025-09-13 ext/quickjs-2025-09-13/libquickjs.a 
