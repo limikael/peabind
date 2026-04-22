@@ -50,6 +50,22 @@ std::string evaljs(std::string code) {
     return s;
 }
 
+void test_refactor_obj() {
+    printf("- another strategy for object ids.\n");
+    jsvalQuickjsInit();
+    basic_init_jsval();
+
+    evaljs("globalThis.a=createHello()");
+    evaljs("globalThis.b=createHello()");
+
+    //printf("objs: %d\n",basic_get_num_objects());
+
+    basic_exit();
+    jsvalQuickjsExit();
+
+    assert(basic_get_num_objects()==0);
+}
+
 void test_exceptions() {
     printf("- exceptions\n");
     jsvalQuickjsInit();

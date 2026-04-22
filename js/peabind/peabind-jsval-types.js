@@ -138,7 +138,7 @@ class ObjectTypeStrategy {
     }
 
     cleanup(name) {
-        return ``;
+        return `jsvalFree(${name});\n`
     }
 }
 

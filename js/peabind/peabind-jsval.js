@@ -174,10 +174,9 @@ class PeabindJsvalBuilder {
                     ${cls.ctorArgs.map((a,i)=>this.ts(a).nativeDecl(`a${i}`)).join("\n")}
                     ${cls.ctorArgs.map((a,i)=>this.ts(a).unpack(`a${i}`,`argv[${i}]`)).join("\n")}
                     auto instance=std::make_shared<${cls.name}>(${params});
-                    jsvalByPointer[instance.get()]=thisobj;
-                    Opaque *opaque=new Opaque(instance);
+                    Opaque *opaque=new Opaque(instance,thisobj);
+                    opaques.push_back(opaque);
                     jsvalSetOpaque(thisobj,opaque);
-                    //Serial.printf("ctor...\\n");
                     return thisobj;
                 }
             `;
@@ -198,7 +197,9 @@ class PeabindJsvalBuilder {
             static void ${this.prefix}${cls.name}_finalizer(JSVAL thisobj) {
                 //Serial.printf("dtor...\\n");
                 Opaque *opaque=(Opaque *)jsvalGetOpaque(thisobj);
-                jsvalByPointer.erase(opaque->instance.get());
+                auto it = std::find(opaques.begin(), opaques.end(), opaque);
+                assert(it != opaques.end());
+                opaques.erase(it);
                 delete opaque;
             }
 
@@ -243,11 +244,16 @@ class PeabindJsvalBuilder {
 
             class Opaque {
             public:
-                Opaque(std::shared_ptr<void> instance_) { instance=instance_; };
+                Opaque(std::shared_ptr<void> instance_, JSVAL val_) { 
+                    instance=instance_; 
+                    val=val_;
+                };
+
                 std::shared_ptr<void> instance;
+                JSVAL val;
             };
 
-            static std::map<void *,JSVAL> jsvalByPointer;
+            static std::vector<Opaque*> opaques;
 
             template<typename T>
             static std::shared_ptr<T> unpack(JSVAL v) {
@@ -261,15 +267,22 @@ class PeabindJsvalBuilder {
                 if (instance==nullptr)
                     return jsvalNull();
 
-                // MAYBE... shoud jsvalDup here... to increase the ref...
-                if (jsvalByPointer.find(instance.get())!=jsvalByPointer.end())
-                    return jsvalByPointer[instance.get()];
+                // Causes a leak, dunno why...
+                /*for (Opaque *o: opaques) {
+                    if (o->instance.get()==instance.get()) {
+                        printf("reusing...\\n");
+                        JSVAL val=jsvalDup(o->val);
+                        Opaque *opaque=new Opaque(instance,val);
+                        opaques.push_back(opaque);
+                        jsvalSetOpaque(val,opaque);
+                        return val;
+                    }
+                }*/
 
                 JSVAL val=jsvalCreateObject(classId);
-                jsvalByPointer[instance.get()]=val;
-                Opaque *opaque=new Opaque(instance);
+                Opaque *opaque=new Opaque(instance,val);
+                opaques.push_back(opaque);
                 jsvalSetOpaque(val,opaque);
-
                 return val;
             }
 
@@ -311,7 +324,9 @@ class PeabindJsvalBuilder {
             }
 
             extern "C" int ${this.prefix}get_num_objects() {
-                return jsvalByPointer.size();
+                return opaques.size();
+                //return 0;
+                //return jsvalByPointer.size();
             }
         `); 
     }
