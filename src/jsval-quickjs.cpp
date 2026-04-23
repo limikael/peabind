@@ -52,6 +52,7 @@ void jsvalQuickjsInitBorrowed(JSContext *ctx) {
 
 void jsvalQuickjsInit() {
     assert(jsvalCtx==NULL);
+    assert(functions.size()==0);
     jsvalCtxBorrowed=false;
     JSRuntime *rt=JS_NewRuntime();
     jsvalCtx=JS_NewContext(rt);
@@ -61,6 +62,8 @@ void jsvalQuickjsInit() {
 
 void jsvalQuickjsExit() {
     assert(jsvalCtx!=NULL);
+    functions.clear();
+    nextFunctionId=1;
     JSRuntime *rt=JS_GetRuntime(jsvalCtx);
     JS_FreeValue(jsvalCtx,Uint8Array_ctor);
     JS_FreeValue(jsvalCtx,jsvalGlobal);
