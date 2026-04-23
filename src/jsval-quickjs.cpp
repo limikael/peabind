@@ -144,6 +144,10 @@ void jsvalSetProp(JSVAL obj, const char *prop, JSVAL val) {
     JS_SetPropertyStr(jsvalCtx,obj,prop,val);
 }
 
+JSVAL jsvalGetProp(JSVAL obj, const char *prop) {
+    return JS_GetPropertyStr(jsvalCtx,obj,prop);
+}
+
 static JSValue ctorTrampoline(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv, int magic) {
     JSVAL_FUNC *f=functions[magic];
     JSClassID classId=classIdByCtor[f];

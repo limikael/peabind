@@ -117,10 +117,17 @@ class PeabindJsvalBuilder {
                 listeners.push_back(listener);
                 instance->${event.dispatcher}.setIdInt(handle,cbId);
                 instance->${event.dispatcher}.setDestructor(handle,[cbCopy,listener](){
+                    //printf("listeer destr... weak exp=%d\\n",instanceWeak.expired());
                     auto it = std::remove(listeners.begin(), listeners.end(), listener);
+                    assert(it!=listeners.end());
+
                     if (it != listeners.end()) {
                         listeners.erase(it, listeners.end());
                         delete listener;
+                    }
+
+                    else {
+                        printf("listener not found!\\n");
                     }
 
                     jsvalFree(cbCopy);
@@ -288,13 +295,13 @@ class PeabindJsvalBuilder {
 
             class Listener {
             public:
-                Listener(Dispatcher<> *dispatcher_, JSVAL_ID id_) {
+                Listener(Dispatcher<> *dispatcher_, int handle_) {
                     dispatcher=dispatcher_;
-                    id=id_;
+                    handle=handle_;
                 }
 
                 Dispatcher<> *dispatcher;
-                JSVAL_ID id;
+                int handle;
             };
 
             static std::vector<Listener*> listeners;
@@ -313,10 +320,12 @@ class PeabindJsvalBuilder {
                 //printf("listeners size: %d\\n",listeners.size());
                 //jsvalQuickjsRunGc();
 
+                //printf("removing listeners...\\n");
                 while (listeners.size()) {
                     //printf("remove listeners size: %d\\n",listeners.size());
-                    listeners[0]->dispatcher->off(listeners[0]->id);
+                    listeners[0]->dispatcher->off(listeners[0]->handle);
                 }
+                //printf("done removing listeners...\\n");
 
                 //jsvalQuickjsRunGc();
                 //printf("listeners size after: %d\\n",listeners.size());
@@ -325,8 +334,10 @@ class PeabindJsvalBuilder {
 
             extern "C" int ${this.prefix}get_num_objects() {
                 return opaques.size();
-                //return 0;
-                //return jsvalByPointer.size();
+            }
+
+            extern "C" int ${this.prefix}get_num_listeners() {
+                return listeners.size();
             }
         `); 
     }

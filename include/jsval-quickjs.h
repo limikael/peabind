@@ -32,6 +32,7 @@ JSVAL jsvalCreateInt(int i);
 JSVAL jsvalCreateFunc(JSVAL_FUNC *f);
 JSVAL jsvalCreateBuffer(uint8_t *data, size_t size);
 void jsvalSetProp(JSVAL obj, const char *prop, JSVAL val);
+JSVAL jsvalGetProp(JSVAL obj, const char *prop);
 JSVAL jsvalCreateClass(JSVAL_FUNC *ctor);
 void jsvalSetProtoProp(JSVAL obj, const char *prop, JSVAL val);
 void jsvalSetClassFinalizer(JSVAL cls, JSVAL_FINALIZER *f);

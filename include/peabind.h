@@ -84,21 +84,21 @@ public:
     void off(int handle) {
         for (auto it = listeners.begin(); it != listeners.end(); ++it) {
             if (it->handle == handle) {
-                if (it->destructor)
-                    it->destructor();
+                std::function<void()> destructor=it->destructor;
                 listeners.erase(it);
+                if (destructor)
+                    destructor();
+
                 return;
             }
         }
     }
 
     void off() {
-        for (auto it = listeners.begin(); it != listeners.end(); ++it) {
-            if (it->destructor)
-                it->destructor();
-        }
+        //printf("destructor offing, size=%d\n",listeners.size());
 
-        listeners.clear();
+        while (listeners.size())
+            off(listeners[0].handle);
     }
 
     void emit(Args... args) {

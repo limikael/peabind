@@ -62,6 +62,7 @@ export async function peabindQuickjs({idl, includePath, sources, output, prefix}
         extern "C" void ${builder.prefix}init_jsval();
         extern "C" void ${builder.prefix}exit();
         extern "C" int ${builder.prefix}get_num_objects();
+        extern "C" int ${builder.prefix}get_num_listeners();
     `);
     fs.writeFileSync(headerOutput,headerContent);
 }
