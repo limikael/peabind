@@ -1,3 +1,33 @@
+import {arrayify} from "./js-util.js";
+
+export function normalizeAlternative(val, alternatives=[]) {
+    if (!alternatives.includes(val))
+        throw new Error("Expected one of: "+alternatives.toString()+", not: "+val);
+
+    return val;
+}
+
+export function normalizeFlags(val, alternatives=[]) {
+    val=normalizeStringArray(val);
+    val.map(item=>normalizeAlternative(item,alternatives));
+    return val;
+}
+
+export function normalizeObjectKeys(obj, keys=[]) {
+    normalizeFlags(Object.keys(obj),keys);
+    return obj;
+}
+
+export function normalizeStringArray(a) {
+    a=arrayify(a);
+    a.map(item=>{
+        if (typeof item!="string")
+            throw new Error("Expected string in: "+JSON.stringify(a));
+    });
+
+    return a;
+}
+
 export function normalizeMapOrArray(input, { key = "name" } = {}) {
     if (!input) return []
 

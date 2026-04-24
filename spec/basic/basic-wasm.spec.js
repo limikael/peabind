@@ -5,12 +5,12 @@ import path from "path";
 import {forceGc} from "../../js/utils/test-util.js";
 import {SpecReporter} from "jasmine-spec-reporter";
 
-jasmine.getEnv().clearReporters();
+/*jasmine.getEnv().clearReporters();
 jasmine.getEnv().addReporter(new SpecReporter({
   spec: {
     displayDuration: true
   }
-}));
+}));*/
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL=30000;
 let __dirname=dirnameFromImportMeta(import.meta);

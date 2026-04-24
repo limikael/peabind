@@ -1,5 +1,5 @@
 import {normalizeMapOrArray, normalizeArray, normalizeBuildIndex,
-		normalizeStringOrObject} from "../utils/normalize-util.js";
+		normalizeStringOrObject, normalizeObjectKeys} from "../utils/normalize-util.js";
 import {arrayify} from "../utils/js-util.js";
 
 export function isPrimitiveType(t) {
@@ -30,12 +30,15 @@ export function peabindMerge(...confs) {
 }
 
 export function peabindNormalize(def) {
+	normalizeObjectKeys(def,["include","functions","classes","functionsByName","classesByName"]);
+
 	def.include=normalizeArray(arrayify(def.include));
 
 	def.functions=normalizeMapOrArray(def.functions,"name");
 	def.functionsByName=normalizeBuildIndex(def.functions,"name");
 
 	for (let f of def.functions) {
+		normalizeObjectKeys(f,["args","return","name","namespace"]);
 		f.args=normalizeArray(f.args).map(a=>normalizeStringOrObject(a,"type"));
 		f.return=normalizeStringOrObject(f.return,"type","void");
 	}
@@ -44,12 +47,14 @@ export function peabindNormalize(def) {
 	def.classesByName=normalizeBuildIndex(def.classes,"name");
 
 	for (let c of def.classes) {
+		normalizeObjectKeys(c,["name","constructible","namespace","ctorArgs","methods","events"]);
 		if (!c.hasOwnProperty("constructible"))
 		c.constructible=true;
 
 		c.ctorArgs=normalizeArray(c.ctorArgs).map(a=>normalizeStringOrObject(a,"type"));
 		c.methods=normalizeMapOrArray(c.methods,"name");
 		for (let m of c.methods) {
+			normalizeObjectKeys(m,["args","return","name","className"]);
 			m.args=normalizeArray(m.args).map(a=>normalizeStringOrObject(a,"type"));
 			m.return=normalizeStringOrObject(m.return,"type","void");
 			m.className=c.name
@@ -57,6 +62,7 @@ export function peabindNormalize(def) {
 
 		c.events=normalizeMapOrArray(c.events,"name");
 		for (let e of c.events) {
+			normalizeObjectKeys(e,["name","className","dispatcher","args"]);
 			e.args=normalizeArray(e.args).map(a=>normalizeStringOrObject(a,"type"));
 			e.className=c.name;
 			if (!e.dispatcher)

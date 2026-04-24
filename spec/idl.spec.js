@@ -35,4 +35,14 @@ describe("idl",()=>{
 
 		//console.log(JSON.stringify(idl,null,2));
 	});
+
+	it("checks for errors",()=>{
+		let idl={
+			something: "not allowd"
+		};
+
+		expect(()=>{
+			peabindNormalize(idl);
+		}).toThrow(new Error("Expected one of: include,functions,classes,functionsByName,classesByName, not: something"));
+	});
 });
