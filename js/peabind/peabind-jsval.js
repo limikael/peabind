@@ -70,7 +70,7 @@ class PeabindJsvalBuilder {
 
         return `
             static JSVAL ${name}(JSVAL thisobj, int argc, JSVAL *argv) {
-                if (argc!=${func.args.length}) return jsvalUndefined();
+                if (argc!=${func.args.length}) return jsvalThrow(\"wrong arg count\");
                 ${prelude}
                 ${func.args.map((a,i)=>this.ts(a).nativeDecl(`a${i}`)).join("\n")}
                 ${func.args.map((a,i)=>this.ts(a).unpack(`a${i}`,`argv[${i}]`)).join("\n")}
@@ -167,7 +167,10 @@ class PeabindJsvalBuilder {
 
         return `
             static JSVAL ${this.prefix}${cls.name}_on(JSVAL thisobj, int argc, JSVAL *argv) {
-                std::shared_ptr<${cls.name}> instance=unpack<${cls.name}>(thisobj);
+                if (argc!=2)
+                    return jsvalThrow("worng arg count for on");
+
+                std::shared_ptr<${cls.name}> instance=unpack<${cls.name}>(thisobj,${this.prefix}${cls.name}_id);
                 std::string eventName=jsvalToStdString(argv[0]);
                 JSVAL cbVal=argv[1];
                 JSVAL_ID cbId=jsvalGetObjectId(cbVal);
@@ -176,7 +179,10 @@ class PeabindJsvalBuilder {
             }
 
             static JSVAL ${this.prefix}${cls.name}_off(JSVAL thisobj, int argc, JSVAL *argv) {
-                std::shared_ptr<${cls.name}> instance=unpack<${cls.name}>(thisobj);
+                if (argc!=2)
+                    return jsvalThrow("worng arg count for off");
+
+                std::shared_ptr<${cls.name}> instance=unpack<${cls.name}>(thisobj,${this.prefix}${cls.name}_id);
                 std::string eventName=jsvalToStdString(argv[0]);
                 JSVAL cbVal=argv[1];
                 JSVAL_ID cbId=jsvalGetObjectId(cbVal);
@@ -207,7 +213,12 @@ class PeabindJsvalBuilder {
         if (cls.constructible) {
             ctor=`
                 static JSVAL ${this.prefix}${cls.name}_constructor(JSVAL thisobj, int argc, JSVAL *argv) {
-                    if (argc!=${cls.ctorArgs.length}) return jsvalUndefined();
+                    if (argc!=${cls.ctorArgs.length}) {
+                        Opaque *opaque=new Opaque(nullptr,thisobj);
+                        opaques.push_back(opaque);
+                        jsvalSetOpaque(thisobj,opaque);
+                        return jsvalThrow("wrong ctor arg count");
+                    }
                     ${cls.ctorArgs.map((a,i)=>this.ts(a).nativeDecl(`a${i}`)).join("\n")}
                     ${cls.ctorArgs.map((a,i)=>this.ts(a).unpack(`a${i}`,`argv[${i}]`)).join("\n")}
                     auto instance=std::make_shared<${this.getExtClassName(cls.name)}>(${params});
@@ -222,8 +233,10 @@ class PeabindJsvalBuilder {
         else {
             ctor=`
                 static JSVAL ${this.prefix}${cls.name}_constructor(JSVAL thisobj, int argc, JSVAL *argv) {
-                    return jsvalUndefined();
-                    //return jsvalThrow(\"private constructor\");
+                    Opaque *opaque=new Opaque(nullptr,thisobj);
+                    opaques.push_back(opaque);
+                    jsvalSetOpaque(thisobj,opaque);
+                    return jsvalThrow(\"private constructor\");
                 }
             `;
         }
@@ -293,8 +306,14 @@ class PeabindJsvalBuilder {
             static std::vector<Opaque*> opaques;
 
             template<typename T>
-            static std::shared_ptr<T> unpack(JSVAL v) {
+            static std::shared_ptr<T> unpack(JSVAL v, JSVAL classId) {
+                if (!jsvalInstanceOf(v,classId))
+                    return nullptr;
+
                 Opaque *opaque=(Opaque *)jsvalGetOpaque(v);
+                if (!opaque)
+                    return nullptr;
+
                 std::shared_ptr<T> p=std::static_pointer_cast<T>(opaque->instance);
                 return p;
             }

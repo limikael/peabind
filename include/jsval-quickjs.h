@@ -16,9 +16,6 @@ typedef JSVAL JSVAL_FUNC(JSVAL thisobj, int argc, JSVAL *argv);
 typedef void JSVAL_FINALIZER(JSVAL thisobj);
 typedef uint64_t JSVAL_ID;
 
-JSVAL jsvalFromQuickjs(JSValue val);
-JSValue jsvalToQuickjs(JSVAL val);
-
 JSVAL jsvalGetGlobal();
 JSVAL jsvalUndefined();
 JSVAL jsvalNull();
@@ -49,7 +46,11 @@ JSVAL_ID jsvalGetObjectId(JSVAL v);
 bool jsvalHasException();
 JSVAL jsvalCatchException();
 JSVAL jsvalToString(JSVAL s);
+JSVAL jsvalThrow(const char *s);
+int jsvalInstanceOf(JSVAL v, JSVAL cls);
 
+JSVAL jsvalFromQuickjs(JSValue val);
+JSValue jsvalToQuickjs(JSVAL val);
 void jsvalQuickjsInit();
 void jsvalQuickjsInitBorrowed(JSContext *ctx);
 void jsvalQuickjsExit();

@@ -15,6 +15,14 @@
 		"peekBuffer": {"return": "int", "args":["buffer","int"]}
 	},
 	"classes": {
+		"WithPrivateCtor": {
+			"constructible": false,
+			"methods": {
+				"getNullish": {"return": "WithPrivateCtor", "static": true},
+				"create": {"return": "WithPrivateCtor", "static": true},
+				"extractVal": {"return": "int", "static": true, "args": ["WithPrivateCtor"]},
+			}
+		},
 		"Namespaced": {
 			"namespace": "mynamespace",
 			"methods": {

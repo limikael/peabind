@@ -27,23 +27,21 @@ async function getMod() {
 }
 
 describe("jsval",()=>{
-    /*let mod;
-    beforeEach(async()=>{
-        console.log("building jsval");
-        if (!mod) {
-            await buildJsvalWasm({
-                output: path.join(__dirname,"mymod.out.js"),
-                sources: [path.join(__dirname,"mymod.cpp")],
-                initFunction: "init"
-            });
-
-            mod=(await import(path.join(__dirname,"mymod.out.js"))).default;
-        }
-    });*/
-
     it("can generate a module",async ()=>{
         let mod=await getMod();
         expect(mod.add(1,2)).toEqual(3);
+    });
+
+    it("can check instance of",async ()=>{
+        let mod=await getMod();
+        let instance1=new mod.Class1();
+        let instance2=new mod.Class2();
+
+        expect(mod.checkInstanceOf(instance1,mod.Class1)).toBeTrue();
+        expect(mod.checkInstanceOf(instance1,mod.Class2)).toBeFalse();
+        expect(mod.checkInstanceOf(instance2,mod.Class2)).toBeTrue();
+        expect(mod.checkInstanceOf(instance2,mod.Class1)).toBeFalse();
+        //expect().toBeTrue();
     });
 
     it("can compile and run wasm",async ()=>{

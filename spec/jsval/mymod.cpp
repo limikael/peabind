@@ -101,6 +101,18 @@ static JSVAL MyClass_triggerCallback(JSVAL thisobj, int argc, JSVAL *argv) {
 	return 0;
 }
 
+static JSVAL ctor1(JSVAL thisobj, int argc, JSVAL *argv) {
+	return thisobj;
+}
+
+static JSVAL ctor2(JSVAL thisobj, int argc, JSVAL *argv) {
+	return thisobj;
+}
+
+static JSVAL checkInstanceOf(JSVAL thisobj, int argc, JSVAL *argv) {
+	return jsvalInstanceOf(argv[0],argv[1]);
+}
+
 extern "C" void init(JSVAL mod) {
 	JSVAL cls=jsvalCreateClass(MyClass_constructor);
 	jsvalSetProp(mod,"MyClass",cls);
@@ -110,9 +122,16 @@ extern "C" void init(JSVAL mod) {
 	jsvalSetProtoProp(cls,"setCallback",jsvalCreateFunc(MyClass_setCallback));
 	jsvalSetProtoProp(cls,"triggerCallback",jsvalCreateFunc(MyClass_triggerCallback));
 
+	cls=jsvalCreateClass(ctor1);
+	jsvalSetProp(mod,"Class1",cls);
+
+	cls=jsvalCreateClass(ctor2);
+	jsvalSetProp(mod,"Class2",cls);
+
 	jsvalSetProp(mod,"add",jsvalCreateFunc(add));
 	jsvalSetProp(mod,"makecall",jsvalCreateFunc(makecall));
 	jsvalSetProp(mod,"getstringlen",jsvalCreateFunc(getstringlen));
 	jsvalSetProp(mod,"concat",jsvalCreateFunc(concat));
 	jsvalSetProp(mod,"getNumLiveMyClass",jsvalCreateFunc(getNumLiveMyClass));
+	jsvalSetProp(mod,"checkInstanceOf",jsvalCreateFunc(checkInstanceOf));
 }

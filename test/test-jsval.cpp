@@ -45,3 +45,29 @@ void test_jsval_size() {
 
     jsvalQuickjsExit();
 }
+
+static JSVAL ctor(JSVAL thisobj, int argc, JSVAL *argv) {
+    return thisobj;
+}
+
+static JSVAL ctor2(JSVAL thisobj, int argc, JSVAL *argv) {
+    return thisobj;
+}
+
+void test_jsval_classid() {
+    printf("- test check class id\n");
+
+    jsvalQuickjsInit();
+    JSVAL v=jsvalCreateClass(ctor);
+    JSVAL v2=jsvalCreateClass(ctor2);
+    JSVAL o=jsvalCreateObject(v);
+
+    assert(jsvalInstanceOf(o,v));
+    assert(!jsvalInstanceOf(o,v2));
+
+    jsvalFree(o);
+    jsvalFree(v);
+    jsvalFree(v2);
+
+    jsvalQuickjsExit();
+}

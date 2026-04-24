@@ -3,13 +3,16 @@
 #include <vector>
 #include <cstdio>
 
-std::string jsvalToStdString(JSVAL val) {
+std::string jsvalToStdString(JSVAL o) {
+    JSVAL val=jsvalToString(o);
+    jsvalFree(o);
+
     size_t size = jsvalGetSize(val);
     if (size == 0) return "";
     
-    std::string result(size, '\0');  // Allocate once
-    jsvalReadString(val, result.data());  // Write directly
-    return result;  // RVO eliminates copy
+    std::string result(size, '\0');
+    jsvalReadString(val, result.data());
+    return result;
 }
 
 std::vector<uint8_t> jsvalToStdUint8Vector(JSVAL val) {

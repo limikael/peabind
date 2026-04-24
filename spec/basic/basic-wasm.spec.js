@@ -40,10 +40,17 @@ async function getMod() {
 }
 
 describe("basic-wasm",()=>{
-    /*it("static methods",async()=>{
+    it("throws exceptions",async()=>{
         let mod=await getMod();
-        let v=mod.Hello
-    });*/
+
+        expect(()=>{
+            let w=new mod.WithPrivateCtor();
+        }).toThrow(new Error("private constructor"));
+
+        expect(()=>{
+            let v=mod.hello(1);
+        }).toThrow(new Error("wrong arg count"));
+    });
 
     it("function namespace",async()=>{
         let mod=await getMod();
@@ -94,6 +101,10 @@ describe("basic-wasm",()=>{
 
         mod.setHelloVal(h1,999);
         expect(h1.getVal()).toEqual(999);
+
+        /*expect(()=>{
+            h1.on();
+        }).toThrow();*/
 
         let a=[];
         h1.on("data",(d1,d2)=>{

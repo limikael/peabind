@@ -42,7 +42,6 @@ class JsvalWasmModule {
                 jsvalGetPropJsval: this.jsvalGetPropJsval,
                 jsvalGetInt: this.jsvalGetInt,
                 jsvalGetFloat: this.jsvalGetFloat,
-                //jsvalGetModule: this.jsvalGetModule,
                 jsvalCreateInt: this.jsvalCreateInt,
                 jsvalCreateFloat: this.jsvalCreateFloat,
                 jsvalCreateArray: this.jsvalCreateArray,
@@ -53,7 +52,10 @@ class JsvalWasmModule {
                 jsvalUndefined: this.jsvalUndefined,
                 jsvalNull: this.jsvalNull,
                 jsvalCreateBuffer: this.jsvalCreateBuffer,
-                jsvalReadBuffer: this.jsvalReadBuffer
+                jsvalReadBuffer: this.jsvalReadBuffer,
+                jsvalThrow: this.jsvalThrow,
+                jsvalInstanceOf: this.jsvalInstanceOf,
+                jsvalToString: this.jsvalToString,
             }
         });
 
@@ -63,6 +65,31 @@ class JsvalWasmModule {
         this.mod.close=()=>this.close();
 
         return this.mod;
+    }
+
+    jsvalToString=(objId)=>{
+        let obj=this.unpack(objId);
+        let str=String(obj);
+        return this.pack(str);
+    }
+
+    jsvalInstanceOf=(objId, clsId)=>{
+        let obj=this.unpack(objId);
+        let cls=this.unpack(clsId);
+
+        return this.pack(obj instanceof cls);
+    }
+
+    jsvalThrow=(msg)=>{
+        this.jsvalFree(msg);
+        let mem=new Uint8Array(this.instance.exports.memory.buffer);
+        let end=msg;
+        while (mem[end]!==0) end++;
+        let s=new TextDecoder("utf-8").decode(mem.subarray(msg, end));
+        let e=new Error(s);
+        throw e;
+
+        return e;
     }
 
     jsvalUndefined=()=>{

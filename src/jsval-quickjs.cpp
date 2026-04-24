@@ -243,6 +243,10 @@ JSVAL jsvalCreateObject(JSVAL cls) {
     return obj;
 }
 
+int jsvalInstanceOf(JSVAL v, JSVAL cls) {
+    return JS_IsInstanceOf(jsvalCtx,v,cls);
+}
+
 int jsvalGetSize(JSVAL obj) {
     JSValue value=jsvalToQuickjs(obj);
 
@@ -373,4 +377,12 @@ JSVAL jsvalCatchException() {
 
 JSVAL jsvalToString(JSVAL s) {
     return JS_ToString(jsvalCtx,s);
+}
+
+JSVAL jsvalThrow(const char *s) {
+    //JSValue thrown=JS_ThrowInternalError(jsvalCtx,s);
+    JSValue err=JS_NewError(jsvalCtx);
+    JSVAL msg=jsvalCreateString(s);
+    jsvalSetProp(err,"message",msg);
+    return JS_Throw(jsvalCtx,err);
 }

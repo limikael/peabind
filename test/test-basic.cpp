@@ -50,6 +50,67 @@ std::string evaljs(std::string code) {
     return s;
 }
 
+void test_throw_exceptions() {
+    printf("- throws exceptions\n");
+    jsvalQuickjsInit();
+    basic_init_jsval();
+
+    JSVAL v=jsvalEval("new WithPrivateCtor();");
+    std::string vs=jsvalToStdString(v);
+    //printf("r: %s\n",vs.c_str());
+
+    assert(jsvalHasException()==true);
+    std::string s=jsvalCatchExceptionStdString();
+    assert(s=="Error: private constructor");
+
+    s=evaljs("hello(1,'2')");
+    assert(s=="3");
+
+    s=evaljs("WithPrivateCtor.getNullish()");
+    //printf("s: %s\n",s.c_str());
+    assert(s=="null");
+
+    s=evaljs("WithPrivateCtor.extractVal(WithPrivateCtor.create())");
+    //printf("s: %s\n",s.c_str());
+    assert(s=="777");
+
+    s=evaljs("WithPrivateCtor.extractVal(null)");
+    //printf("s: %s\n",s.c_str());
+    assert(s=="-1");
+
+    v=jsvalEval("new Hello()"); // wrong arg count
+    vs=jsvalToStdString(v);
+    assert(jsvalHasException());
+    assert(jsvalCatchExceptionStdString()=="Error: wrong ctor arg count");
+
+    s=evaljs("WithPrivateCtor.extractVal(new Hello(123))");
+    //printf("s: %s\n",s.c_str());
+    assert(s=="-1");
+
+    basic_exit();
+    jsvalQuickjsExit();
+}
+
+void test_wrong_type() {
+    printf("- wrong type\n");
+    jsvalQuickjsInit();
+    basic_init_jsval();
+    std::string s;
+
+    // right type
+    s=evaljs("WithPrivateCtor.extractVal(WithPrivateCtor.create())");
+    //printf("s: %s\n",s.c_str());
+    assert(s=="777");
+
+    // wrong type
+    s=evaljs("WithPrivateCtor.extractVal(new Hello(123))");
+    //printf("s: %s\n",s.c_str());
+    assert(s=="-1");
+
+    basic_exit();
+    jsvalQuickjsExit();
+}
+
 void test_static_methods() {
     printf("- static methods.\n");
     jsvalQuickjsInit();

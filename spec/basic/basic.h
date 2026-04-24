@@ -5,6 +5,28 @@
 int hello(int a, int b);
 int hello2();
 
+class WithPrivateCtor {
+public:
+	int getVal() { return val; }
+	static std::shared_ptr<WithPrivateCtor> getNullish() { return nullptr; }
+	static std::shared_ptr<WithPrivateCtor> create() { 
+		return std::shared_ptr<WithPrivateCtor>(new WithPrivateCtor());
+	}
+
+	static int extractVal(std::shared_ptr<WithPrivateCtor> i) { 
+		if (!i)
+			return -1;
+
+		return i->val; 
+	}
+
+private:
+	WithPrivateCtor() {
+		val=777;
+	}
+	int val;
+};
+
 namespace mynamespace {
 	int hello3();
 	class Namespaced {

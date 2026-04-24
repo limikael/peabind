@@ -129,7 +129,8 @@ class ObjectTypeStrategy {
     }
 
     unpack(dest, src) {
-        return `${dest}=unpack<${this.typeDef.type}>(${src});`;
+        let id=`${this.prefix}${this.typeDef.type}_id`;
+        return `${dest}=unpack<${this.typeDef.type}>(${src},${id});`;
     }
 
     pack(dest, src) {

@@ -33,9 +33,11 @@ JS_IMPORT(jsvalReadString) char *jsvalReadString(JSVAL s, char *dest);
 JS_IMPORT(jsvalReadBuffer) void *jsvalReadBuffer(JSVAL v, void *buf);
 JS_IMPORT(jsvalDup) JSVAL jsvalDup(JSVAL id);
 JS_IMPORT(jsvalFree) void jsvalFree(JSVAL id);
-
+JS_IMPORT(jsvalThrow) JSVAL jsvalThrow(const char *s);
 JS_IMPORT(jsvalUndefined) JSVAL jsvalUndefined();
 JS_IMPORT(jsvalNull) JSVAL jsvalNull();
+JS_IMPORT(jsvalInstanceOf) int jsvalInstanceOf(JSVAL v, JSVAL cls);
+JS_IMPORT(jsvalToString) JSVAL jsvalToString(JSVAL s);
 
 extern "C" {
 
@@ -63,11 +65,6 @@ static int jsvalHasException() {
 }
 
 static JSVAL jsvalCatchException() {
-    assert(0);
-    return 0;
-}
-
-static JSVAL jsvalToString(JSVAL s) {
     assert(0);
     return 0;
 }
