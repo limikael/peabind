@@ -49,12 +49,12 @@ export function peabindNormalize(def) {
 	for (let c of def.classes) {
 		normalizeObjectKeys(c,["name","constructible","namespace","ctorArgs","methods","events"]);
 		if (!c.hasOwnProperty("constructible"))
-		c.constructible=true;
+			c.constructible=true;
 
 		c.ctorArgs=normalizeArray(c.ctorArgs).map(a=>normalizeStringOrObject(a,"type"));
 		c.methods=normalizeMapOrArray(c.methods,"name");
 		for (let m of c.methods) {
-			normalizeObjectKeys(m,["args","return","name","className"]);
+			normalizeObjectKeys(m,["args","return","name","className","static"]);
 			m.args=normalizeArray(m.args).map(a=>normalizeStringOrObject(a,"type"));
 			m.return=normalizeStringOrObject(m.return,"type","void");
 			m.className=c.name

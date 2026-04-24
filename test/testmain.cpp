@@ -11,10 +11,12 @@ void test_gc();
 void test_buffers();
 void test_exceptions();
 void test_refactor_obj();
+void test_static_methods();
 
 int main() {
 	printf("Running tests...\n");
 
+	test_static_methods();
 	test_refactor_obj();
 	test_jsval_size();
 	test_jsval_borrow();

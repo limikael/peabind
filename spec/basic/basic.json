@@ -15,6 +15,13 @@
 		"peekBuffer": {"return": "int", "args":["buffer","int"]}
 	},
 	"classes": {
+		"Namespaced": {
+			"namespace": "mynamespace",
+			"methods": {
+				"getTheVal": {"return": "int"},
+				"getTheStaticVal": {"return": "int", "static": true}
+			}
+		},
 		"Hello": {
 			"ctorArgs": ["int"],
 			"methods": {
@@ -24,7 +31,8 @@
 				"emitDataVoid": {},
 				"emitDataFloat": {"args": ["float"]},
 				"emitDataHello": {"args": ["Hello"]},
-				"emitDataString": {"args": ["string"]}
+				"emitDataString": {"args": ["string"]},
+				"staticAddOne": {"args": ["int"], "return": "int", "static": true}
 			},
 			"events": {
 				"data": {"args": ["int","int"], "dispatcher": "dataEvent"},

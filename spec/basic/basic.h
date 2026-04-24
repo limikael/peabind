@@ -6,7 +6,12 @@ int hello(int a, int b);
 int hello2();
 
 namespace mynamespace {
-int hello3();
+	int hello3();
+	class Namespaced {
+	public:
+		int getTheVal() { return 1234; }
+		static int getTheStaticVal() { return 9876; }
+	};
 }
 int hellof(float f);
 float hellothird(int i);
@@ -29,6 +34,10 @@ public:
 	~Hello() {
 		liveHelloCount--;
 		//printf("destroying hello, val=%d\n",getVal());
+	}
+
+	static int staticAddOne(int v) {
+		return v+1;
 	}
 
 	int getVal() {

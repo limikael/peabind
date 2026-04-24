@@ -50,6 +50,21 @@ std::string evaljs(std::string code) {
     return s;
 }
 
+void test_static_methods() {
+    printf("- static methods.\n");
+    jsvalQuickjsInit();
+    basic_init_jsval();
+
+//    auto s=evaljs("Hello.staticAddOne(5)");
+    auto s=evaljs("Hello.staticAddOne(5)");
+    assert(s=="6");
+
+    //printf("objs: %d\n",basic_get_num_objects());
+
+    basic_exit();
+    jsvalQuickjsExit();
+}
+
 void test_refactor_obj() {
     printf("- another strategy for object ids.\n");
     jsvalQuickjsInit();

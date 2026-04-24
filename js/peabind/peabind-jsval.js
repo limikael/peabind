@@ -1,5 +1,5 @@
 import {createTypeStrategy} from "./peabind-jsval-types.js";
-import {peabindNormalize} from "./peabind-idl.js";
+import {peabindNormalize, idlGetClass} from "./peabind-idl.js";
 import {autoIndent} from "../utils/lang-util.js";
 
 class PeabindJsvalBuilder {
@@ -25,13 +25,21 @@ class PeabindJsvalBuilder {
 	generateFunctionDef(func) {
         let name,prelude,callTarget,argStart;
         if (func.className) {
-            name=`${this.prefix}${func.className}_${func.name}`;
-            prelude=`
-                Opaque *opaque=(Opaque *)jsvalGetOpaque(thisobj);
-                assert(opaque!=NULL);
-                std::shared_ptr<${func.className}> instance=std::static_pointer_cast<${func.className}>(opaque->instance);
-            `;
-            callTarget=`instance->${func.name}`;
+            if (func.static) {
+                name=`${this.prefix}${func.className}_${func.name}`;
+                prelude="";
+                callTarget=`${this.getExtClassName(func.className)}::${func.name}`
+            }
+
+            else {
+                name=`${this.prefix}${func.className}_${func.name}`;
+                prelude=`
+                    Opaque *opaque=(Opaque *)jsvalGetOpaque(thisobj);
+                    assert(opaque!=NULL);
+                    std::shared_ptr<${this.getExtClassName(func.className)}> instance=std::static_pointer_cast<${this.getExtClassName(func.className)}>(opaque->instance);
+                `;
+                callTarget=`instance->${func.name}`;
+            }
         }
 
         else {
@@ -73,9 +81,17 @@ class PeabindJsvalBuilder {
 
 	generateFunctionReg(func) {
         if (func.className) {
-            return `
-                jsvalSetProtoProp(${this.prefix}${func.className}_id,"${func.name}",jsvalCreateFunc(${this.prefix}${func.className}_${func.name}));
-            `;
+            if (func.static) {
+                return `
+                    jsvalSetProp(${this.prefix}${func.className}_id,"${func.name}",jsvalCreateFunc(${this.prefix}${func.className}_${func.name}));
+                `;
+            }
+
+            else {
+                return `
+                    jsvalSetProtoProp(${this.prefix}${func.className}_id,"${func.name}",jsvalCreateFunc(${this.prefix}${func.className}_${func.name}));
+                `;
+            }
         }
 
         else {
@@ -170,6 +186,20 @@ class PeabindJsvalBuilder {
         `
     }
 
+    getExtClassName(cls) {
+        if (typeof cls=="string")
+            cls=idlGetClass(this.idl,cls);
+
+        if (!cls)
+            throw new Error("Undef class: "+cls);
+
+        let name=cls.name;
+        if (cls.namespace)
+            name=`${cls.namespace}::${cls.name}`;
+
+        return name;
+    }
+
     generateClassDef(cls) {
         let params=cls.ctorArgs.map((a,i)=>`a${i}`).join(",");
         let ctor;
@@ -180,7 +210,7 @@ class PeabindJsvalBuilder {
                     if (argc!=${cls.ctorArgs.length}) return jsvalUndefined();
                     ${cls.ctorArgs.map((a,i)=>this.ts(a).nativeDecl(`a${i}`)).join("\n")}
                     ${cls.ctorArgs.map((a,i)=>this.ts(a).unpack(`a${i}`,`argv[${i}]`)).join("\n")}
-                    auto instance=std::make_shared<${cls.name}>(${params});
+                    auto instance=std::make_shared<${this.getExtClassName(cls.name)}>(${params});
                     Opaque *opaque=new Opaque(instance,thisobj);
                     opaques.push_back(opaque);
                     jsvalSetOpaque(thisobj,opaque);

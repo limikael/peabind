@@ -40,24 +40,9 @@ async function getMod() {
 }
 
 describe("basic-wasm",()=>{
-    /*let mod;
-
-    beforeEach(async()=>{
-        if (!mod) {
-            console.log("building pb-wasm");
-
-            fs.rmSync(path.join(__dirname,"basic.out.js"),{force: true});
-            fs.rmSync(path.join(__dirname,"basic.out.wasm"),{force: true});
-
-            await peabind({
-                idl: path.join(__dirname,"basic.json"),
-                sources: [path.join(__dirname,"basic.cpp")],
-                output: path.join(__dirname,"basic.out.js"),
-                target: "wasm"
-            });
-
-            mod=await import(path.join(__dirname,"basic.out.js"));
-        }
+    /*it("static methods",async()=>{
+        let mod=await getMod();
+        let v=mod.Hello
     });*/
 
     it("function namespace",async()=>{
@@ -70,6 +55,13 @@ describe("basic-wasm",()=>{
         //console.log(v);
         expect(v).toEqual(3);
         //await mod.close();
+    });
+
+    it("class namespace",async()=>{
+        let mod=await getMod();
+        let h=new mod.Namespaced();
+        expect(h.getTheVal()).toEqual(1234);
+        expect(mod.Namespaced.getTheStaticVal()).toEqual(9876);
     });
 
     it("refactor",async()=>{

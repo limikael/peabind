@@ -1,8 +1,8 @@
-import {arrayify} from "./js-util.js";
+import {arrayify, DeclaredError} from "./js-util.js";
 
 export function normalizeAlternative(val, alternatives=[]) {
     if (!alternatives.includes(val))
-        throw new Error("Expected one of: "+alternatives.toString()+", not: "+val);
+        throw new DeclaredError("Expected one of: "+alternatives.toString()+", not: "+val);
 
     return val;
 }
