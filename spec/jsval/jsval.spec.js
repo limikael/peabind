@@ -7,9 +7,29 @@ import path from "path";
 jasmine.DEFAULT_TIMEOUT_INTERVAL=30000;
 let __dirname=dirnameFromImportMeta(import.meta);
 
+async function buildMod() {
+    //console.log("building jsval");
+    await buildJsvalWasm({
+        output: path.join(__dirname,"mymod.out.js"),
+        sources: [path.join(__dirname,"mymod.cpp")],
+        initFunction: "init"
+    });
+
+    return (await import(path.join(__dirname,"mymod.out.js"))).default;
+}
+
+let modPromise;
+async function getMod() {
+    if (!modPromise)
+        modPromise=buildMod();
+
+    return await modPromise;
+}
+
 describe("jsval",()=>{
-    let mod;
+    /*let mod;
     beforeEach(async()=>{
+        console.log("building jsval");
         if (!mod) {
             await buildJsvalWasm({
                 output: path.join(__dirname,"mymod.out.js"),
@@ -19,13 +39,15 @@ describe("jsval",()=>{
 
             mod=(await import(path.join(__dirname,"mymod.out.js"))).default;
         }
-    });
+    });*/
 
     it("can generate a module",async ()=>{
+        let mod=await getMod();
         expect(mod.add(1,2)).toEqual(3);
     });
 
     it("can compile and run wasm",async ()=>{
+        let mod=await getMod();
         let v=mod.add(1,2);
         expect(v).toEqual(3);
 
@@ -50,6 +72,7 @@ describe("jsval",()=>{
     });
 
     it("does gc properly",async ()=>{
+        let mod=await getMod();
         for (let i=0; i<100; i++) {
             let my=new mod.MyClass();
         }
@@ -68,6 +91,7 @@ describe("jsval",()=>{
     });
 
     it("calls finalizers",async ()=>{
+        let mod=await getMod();
         await forceGc();
 
         expect(mod.getNumLiveMyClass()).toEqual(0);
@@ -89,6 +113,7 @@ describe("jsval",()=>{
     });
 
     it("can call callbacks",async ()=>{
+        let mod=await getMod();
         let callCount=0;
 
         let my=new mod.MyClass();

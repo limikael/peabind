@@ -239,3 +239,5 @@ module.wasm
 ## SUMMARY
 
 peabind lets you expose C++ code to JavaScript with a simple interface description, targeting both embedded QuickJS environments and WebAssembly modules.
+
+"decl": ["static", "promise", "expected","allownull"]
