@@ -6,8 +6,8 @@ import {DeclaredError} from "../utils/js-util.js";
 program
     .name('peabind')
     .description('Create bindings for C++/JavaScript/WASM/quickjs.')
-    .argument('[idl]', 'Idl file. Required.')
-    .argument('[sources...]', 'Additional source files.')
+    .argument('[idl..]', 'Idl file. At least one required. (ext: .json)')
+    .argument('[sources...]', 'Additional source files. (ext: .c, .cpp)')
     .option("-o, --output <output file>","Primary output. Required.")
     .option("-t, --target <target>","Target (wasm, quickjs).")
     .option("-p, --prefix <prefix>","Function prefix.")
@@ -37,11 +37,20 @@ try {
         throw new DeclaredError("Need output and idl, try --help.");
     }
 
-    await peabind({
-        idl: program.args[0],
-        sources: program.args.slice(1),
-        ...opts
-    });
+    let idl=[];
+    let sources=[];
+    for (let arg of program.args) {
+        if (arg.endsWith(".json"))
+            idl.push(arg)
+
+        else if (arg.endsWith(".c") || arg.endsWith(".cpp"))
+            sources.push(arg)
+
+        else
+            throw new DeclaredError("Only understand .json, .c, .cpp")
+    }
+
+    await peabind({idl, sources, ...opts});
 }
 
 catch (e) {
