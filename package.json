@@ -8,7 +8,8 @@
     "test:js": "node --expose-gc node_modules/jasmine/bin/jasmine.js",
     "test:c": "rm -f test/*.out.* && peabind spec/basic/basic.json -otest/basic.out.cpp -pbasic_ -tquickjs && wrapcc -std=c++20 -o bin/testmain test/*.cpp spec/basic/basic.cpp -Ispec/basic -Iext/quickjs-2025-09-13 ext/quickjs-2025-09-13/libquickjs.a $(peabind --lib-conf=cargs -tquickjs) -O0 && ./bin/testmain",
     "ext": "./js/peabind/ext.js",
-    "minilab": "peabind spec/mini/mini.json -olab/mini.out.js -pmini_ -twasm && node --expose-gc lab/mini-lab.js"
+    "minilab": "peabind spec/mini/mini.json -olab/mini.out.js -pmini_ -twasm && node --expose-gc lab/mini-lab.js",
+    "mquickjslab": "gcc -o bin/mquickjslab -Iext/mquickjs-main lab/mquickjslab.cpp ext/mquickjs-main/mquickjs.c ext/mquickjs-main/dtoa.c ext/mquickjs-main/cutils.c ext/mquickjs-main/libm.c -lm && ./bin/mquickjslab"
   },
   "bin": {
     "peabind": "./js/peabind/peabind-cli.js"
