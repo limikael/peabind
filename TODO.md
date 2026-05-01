@@ -1,0 +1,1 @@
+- quickjs and mquickjs doesn't like to co-exist in the same bin... :)
