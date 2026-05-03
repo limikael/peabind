@@ -114,14 +114,24 @@ class ObjectTypeStrategy {
     constructor(typeDef, {idl, prefix}) {
         this.typeDef=typeDef;
         this.prefix=prefix;
+        this.clsdef=idlGetClass(idl,this.typeDef.type);
+        if (!this.clsdef)
+            throw new Error("Unknown type: "+this.typeDef.type);
+    }
+
+    getTemplateParam() {
+        if (this.clsdef.namespace)
+            return `${this.clsdef.namespace}::${this.typeDef.type}`;
+
+        return `${this.typeDef.type}`;
     }
 
     nativeDecl(name) {
-        return `std::shared_ptr<${this.typeDef.type}> ${name};\n`;
+        return `std::shared_ptr<${this.getTemplateParam()}> ${name};\n`;
     }
 
     nativeParam(name) {
-        return `std::shared_ptr<${this.typeDef.type}> ${name}`;
+        return `std::shared_ptr<${this.getTemplateParam()}> ${name}`;
     }
 
     abiDecl(name) {
@@ -130,12 +140,12 @@ class ObjectTypeStrategy {
 
     unpack(dest, src) {
         let id=`${this.prefix}${this.typeDef.type}_id`;
-        return `${dest}=unpack<${this.typeDef.type}>(${src},${id});`;
+        return `${dest}=unpack<${this.getTemplateParam()}>(${src},${id});`;
     }
 
     pack(dest, src) {
         let id=`${this.prefix}${this.typeDef.type}_id`;
-        return `${dest}=pack<${this.typeDef.type}>(${src},${id});`
+        return `${dest}=pack<${this.getTemplateParam()}>(${src},${id});`
     }
 
     cleanup(name) {
