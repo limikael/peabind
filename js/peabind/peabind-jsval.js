@@ -16,6 +16,9 @@ class PeabindJsvalBuilder {
 	}
 
 	ts(typeDef) {
+        if (typeof typeDef=="string")
+            typeDef={type: typeDef};
+
 		return createTypeStrategy(typeDef, {
 			idl: this.idl, 
 			prefix: this.prefix
@@ -116,7 +119,7 @@ class PeabindJsvalBuilder {
                     //Serial.printf("will call handle\\n");
                     JSVAL res=jsvalCall(cbCopy,jsvalUndefined(),${event.args.length},params);
                     if (jsvalHasException()) {
-                        std::string s=jsvalCatchExceptionStdString();
+                        //std::string s=jsvalCatchExceptionStdString();
                         //Serial.printf("ev err: %s\\n",s.c_str());
                     }
                     jsvalFree(res);
@@ -170,7 +173,7 @@ class PeabindJsvalBuilder {
                 if (argc!=2)
                     return jsvalThrow("worng arg count for on");
 
-                std::shared_ptr<${cls.name}> instance=unpack<${cls.name}>(thisobj,${this.prefix}${cls.name}_id);
+                std::shared_ptr<${this.ts(cls.name).getTemplateParam()}> instance=unpack<${this.ts(cls.name).getTemplateParam()}>(thisobj,${this.prefix}${cls.name}_id);
                 std::string eventName=jsvalToStdString(argv[0]);
                 JSVAL cbVal=argv[1];
                 JSVAL_ID cbId=jsvalGetObjectId(cbVal);
@@ -182,7 +185,7 @@ class PeabindJsvalBuilder {
                 if (argc!=2)
                     return jsvalThrow("worng arg count for off");
 
-                std::shared_ptr<${cls.name}> instance=unpack<${cls.name}>(thisobj,${this.prefix}${cls.name}_id);
+                std::shared_ptr<${this.ts(cls.name).getTemplateParam()}> instance=unpack<${this.ts(cls.name).getTemplateParam()}>(thisobj,${this.prefix}${cls.name}_id);
                 std::string eventName=jsvalToStdString(argv[0]);
                 JSVAL cbVal=argv[1];
                 JSVAL_ID cbId=jsvalGetObjectId(cbVal);
