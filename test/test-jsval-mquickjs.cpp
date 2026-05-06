@@ -1,7 +1,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+
+extern "C" {
 #include "js_stdlib.out.h"
+}
+
 #include "jsval-mqjs.h"
 
 #define MEMSIZE 65536
@@ -9,16 +13,16 @@
 void test_jsval_mqjs_basic() {
     printf("- test mquickjs basic\n");
 
-    /*jsvalMqjsInit();
+    jsvalMqjsInit(65536,&js_stdlib);
 
-    JSVAL v=jsvalEval("1+2");
+    /*JSVAL v=jsvalEval("1+2");
     char s[256];
     jsvalReadString(v,s);
-    printf("s: %s\n",s);
+    printf("s: %s\n",s);*/
 
-    jsvalMqjs();*/
+    jsvalMqjsExit();
 
-    void *mem; //, *buf;
+    /*void *mem; //, *buf;
     JSContext *ctx;
     JSCStringBuf b;
 
@@ -36,5 +40,5 @@ void test_jsval_mqjs_basic() {
     JS_FreeContext(ctx);
     free(mem);
 
-    printf("done...\n");
+    printf("done...\n");*/
 }
