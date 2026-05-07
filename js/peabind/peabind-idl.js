@@ -38,7 +38,7 @@ export function peabindNormalize(def) {
 	def.functionsByName=normalizeBuildIndex(def.functions,"name");
 
 	for (let f of def.functions) {
-		normalizeObjectKeys(f,["args","return","name","namespace"]);
+		normalizeObjectKeys(f,["args","return","name","namespace","ifdef"]);
 		f.args=normalizeArray(f.args).map(a=>normalizeStringOrObject(a,"type"));
 		f.return=normalizeStringOrObject(f.return,"type","void");
 	}
