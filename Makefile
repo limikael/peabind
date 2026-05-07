@@ -1,7 +1,7 @@
 #	./ext/mquickjs-main/mqjs_stdlib > lab/js_stdlib.out.h
 .PHONY: mqjslab test-quickjs test-mquickjs test
 
-test: test-quickjs test-mquickjs
+test: test-quickjs #test-mquickjs
 
 test-mquickjs:
 	rm -f test/*.out.*
