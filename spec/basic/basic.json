@@ -5,6 +5,7 @@
 		"hello2": {"return":"int"},
 		"hello3": {"return":"int", "namespace":"mynamespace"},
 		"setHelloVal": {"args": ["Hello","int"]},
+		"getHelloVal": {"args": ["Hello"], "return": "int"},
 		"createHello": {"return":"Hello"},
 		"hellof": {"return":"int","args": ["float"]},
 		"hellothird": {"return":"float","args": ["int"]},
@@ -53,6 +54,9 @@
 				"dataHello": {"args": ["Hello"]},
 				"dataString": {"args": ["string"]},
 			}
+		},
+		"ExtendHello": {
+			"extends": "Hello"
 		}
 	}
 }

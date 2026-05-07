@@ -267,7 +267,7 @@ class PeabindJsvalBuilder {
                 delete opaque;
             }
 
-            ${cls.methods.map(m=>this.generateFunctionDef(m)).join("\n")}
+            ${this.getClassMethods(cls).map(m=>this.generateFunctionDef(m)).join("\n")}
 
             ${this.generateEventDefs(cls)}
         `);
@@ -279,13 +279,30 @@ class PeabindJsvalBuilder {
         `;
     }
 
+    getClassMethods(cls) {
+        let hierarcyName=cls.name;
+        let methods=[];
+
+        while (hierarcyName) {
+            methods.push(...idlGetClass(this.idl,hierarcyName).methods);
+            hierarcyName=idlGetClass(this.idl,hierarcyName).extends;
+        }
+
+        return methods.map(m=>{
+            m=structuredClone(m);
+            m.className=cls.name;
+            return m;
+        });
+    }
+            //${cls.methods.map(m=>this.generateFunctionReg(m)).join("\n")}
+
     generateClassReg(cls) {
         return this.ifdefWrap(cls.ifdef,`
             ${this.prefix}${cls.name}_id=jsvalCreateClass(${this.prefix}${cls.name}_constructor);
             jsvalSetClassFinalizer(${this.prefix}${cls.name}_id,${this.prefix}${cls.name}_finalizer);
             jsvalSetProp(mod,"${cls.name}",${this.prefix}${cls.name}_id);
 
-            ${cls.methods.map(m=>this.generateFunctionReg(m)).join("\n")}
+            ${this.getClassMethods(cls).map(m=>this.generateFunctionReg(m)).join("\n")}
 
             ${cls.events.length?`
                 jsvalSetProtoProp(${this.prefix}${cls.name}_id,"on",jsvalCreateFunc(${this.prefix}${cls.name}_on));
