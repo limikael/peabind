@@ -240,4 +240,10 @@ module.wasm
 
 peabind lets you expose C++ code to JavaScript with a simple interface description, targeting both embedded QuickJS environments and WebAssembly modules.
 
+## WIP
+
+It should be possible to declare function to return decorated types...
+
+```
 "decl": ["static", "promise", "expected","allownull"]
+```

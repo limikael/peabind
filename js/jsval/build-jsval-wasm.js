@@ -46,6 +46,7 @@ export async function buildJsvalWasm({output, sources, exportedFunctions, initFu
 		"-sSTANDALONE_WASM=1",
 		`-sEXPORTED_FUNCTIONS=${exportedFunctions.join(",")}`,
 		"-DJSVAL_TARGET_WASM",
+		"-DPEABIND",
 		"--no-entry",
 		path.join(__dirname,"../../src/jsval-wasm.cpp"),
 		path.join(__dirname,"../../src/jsval-util.cpp"),

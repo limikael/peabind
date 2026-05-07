@@ -71,7 +71,7 @@ class PeabindJsvalBuilder {
             `;
         }
 
-        return `
+        return this.ifdefWrap(func.ifdef,`
             static JSVAL ${name}(JSVAL thisobj, int argc, JSVAL *argv) {
                 if (argc!=${func.args.length}) return jsvalThrow(\"wrong arg count\");
                 ${prelude}
@@ -79,28 +79,39 @@ class PeabindJsvalBuilder {
                 ${func.args.map((a,i)=>this.ts(a).unpack(`a${i}`,`argv[${i}]`)).join("\n")}
                 ${call}
             }
-        `;
+        `);
 	}
+
+    ifdefWrap(ifdef, content) {
+        if (!ifdef)
+            return content;
+
+        return `
+            #ifdef ${ifdef}
+            ${content}
+            #endif
+        `
+    }
 
 	generateFunctionReg(func) {
         if (func.className) {
             if (func.static) {
-                return `
+                return this.ifdefWrap(func.ifdef,`
                     jsvalSetProp(${this.prefix}${func.className}_id,"${func.name}",jsvalCreateFunc(${this.prefix}${func.className}_${func.name}));
-                `;
+                `);
             }
 
             else {
-                return `
+                return this.ifdefWrap(func.ifdef,`
                     jsvalSetProtoProp(${this.prefix}${func.className}_id,"${func.name}",jsvalCreateFunc(${this.prefix}${func.className}_${func.name}));
-                `;
+                `);
             }
         }
 
         else {
-            return `
+            return this.ifdefWrap(func.ifdef,`
             	jsvalSetProp(mod,"${func.name}",jsvalCreateFunc(${this.prefix}${func.name}));
-            `;
+            `);
         }
 
 	}
