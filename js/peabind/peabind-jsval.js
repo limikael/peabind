@@ -255,7 +255,7 @@ class PeabindJsvalBuilder {
             `;
         }
 
-        return `
+        return this.ifdefWrap(cls.ifdef,`
             ${ctor}
 
             static void ${this.prefix}${cls.name}_finalizer(JSVAL thisobj) {
@@ -270,7 +270,7 @@ class PeabindJsvalBuilder {
             ${cls.methods.map(m=>this.generateFunctionDef(m)).join("\n")}
 
             ${this.generateEventDefs(cls)}
-        `;
+        `);
     }
 
     generateClassId(cls) {
@@ -280,7 +280,7 @@ class PeabindJsvalBuilder {
     }
 
     generateClassReg(cls) {
-        return `
+        return this.ifdefWrap(cls.ifdef,`
             ${this.prefix}${cls.name}_id=jsvalCreateClass(${this.prefix}${cls.name}_constructor);
             jsvalSetClassFinalizer(${this.prefix}${cls.name}_id,${this.prefix}${cls.name}_finalizer);
             jsvalSetProp(mod,"${cls.name}",${this.prefix}${cls.name}_id);
@@ -291,7 +291,7 @@ class PeabindJsvalBuilder {
                 jsvalSetProtoProp(${this.prefix}${cls.name}_id,"on",jsvalCreateFunc(${this.prefix}${cls.name}_on));
                 jsvalSetProtoProp(${this.prefix}${cls.name}_id,"off",jsvalCreateFunc(${this.prefix}${cls.name}_off));
             `:""}
-        `;
+        `);
     }
 
     generateSource() {

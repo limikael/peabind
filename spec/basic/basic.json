@@ -12,9 +12,13 @@
 		"getLiveHelloCount": {"return": "int"},
 		"removeHello": {},
 		"createBuffer": {"return": "buffer"},
-		"peekBuffer": {"return": "int", "args":["buffer","int"]}
+		"peekBuffer": {"return": "int", "args":["buffer","int"]},
+		"doesntExist": {"return": "int", "ifdef": "NOTEXIST"}
 	},
 	"classes": {
+		"DoesntExist": {
+			"ifdef": "NOTEXIST"
+		},
 		"WithPrivateCtor": {
 			"constructible": false,
 			"methods": {
