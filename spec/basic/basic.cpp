@@ -46,6 +46,10 @@ void setHelloVal(std::shared_ptr<Hello> hello, int val) {
 	hello->setVal(val);
 }
 
+int getHelloVal(std::shared_ptr<Hello> hello) {
+	return hello->getVal();
+}
+
 int hellof(float f) {
 	return (f*10.0);
 }

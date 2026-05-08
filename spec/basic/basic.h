@@ -109,3 +109,10 @@ private:
 
 std::shared_ptr<Hello> createHello();
 void setHelloVal(std::shared_ptr<Hello>, int val);
+int getHelloVal(std::shared_ptr<Hello> hello);
+
+class ExtendHello: public Hello {
+public:
+	ExtendHello(): Hello(888) {
+	}
+};

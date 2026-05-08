@@ -253,4 +253,14 @@ describe("basic-wasm",()=>{
         expect(mod.peekBuffer(c,1)).toEqual(66);
         expect(mod.peekBuffer(c,2)).toEqual(77);
     });
+
+    it("classes can extend",async()=>{
+        let mod=await getMod();
+        let h=new mod.Hello(789);
+        expect(mod.getHelloVal(h)).toEqual(789);
+
+        let ext=new mod.ExtendHello();
+        expect(ext.getVal()).toEqual(888);
+        expect(mod.getHelloVal(ext)).toEqual(888);
+    });
 });

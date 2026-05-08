@@ -5,6 +5,7 @@
 		"hello2": {"return":"int"},
 		"hello3": {"return":"int", "namespace":"mynamespace"},
 		"setHelloVal": {"args": ["Hello","int"]},
+		"getHelloVal": {"args": ["Hello"], "return": "int"},
 		"createHello": {"return":"Hello"},
 		"hellof": {"return":"int","args": ["float"]},
 		"hellothird": {"return":"float","args": ["int"]},
@@ -12,9 +13,13 @@
 		"getLiveHelloCount": {"return": "int"},
 		"removeHello": {},
 		"createBuffer": {"return": "buffer"},
-		"peekBuffer": {"return": "int", "args":["buffer","int"]}
+		"peekBuffer": {"return": "int", "args":["buffer","int"]},
+		"doesntExist": {"return": "int", "ifdef": "NOTEXIST"}
 	},
 	"classes": {
+		"DoesntExist": {
+			"ifdef": "NOTEXIST"
+		},
 		"WithPrivateCtor": {
 			"constructible": false,
 			"methods": {
@@ -49,6 +54,9 @@
 				"dataHello": {"args": ["Hello"]},
 				"dataString": {"args": ["string"]},
 			}
+		},
+		"ExtendHello": {
+			"extends": "Hello"
 		}
 	}
 }
