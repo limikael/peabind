@@ -1,12 +1,14 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <cassert>
+#include <string>
 
 extern "C" {
 #include "js_stdlib.out.h"
 }
 
-#include "jsval-mqjs.h"
+#include "jsval.h"
 
 #define MEMSIZE 65536
 
@@ -15,30 +17,26 @@ void test_jsval_mqjs_basic() {
 
     jsvalMqjsInit(65536,&js_stdlib);
 
-    /*JSVAL v=jsvalEval("1+2");
+    JSVAL v=jsvalEval("1+2");
     char s[256];
     jsvalReadString(v,s);
-    printf("s: %s\n",s);*/
+    assert(std::string(s)=="3");
 
     jsvalMqjsExit();
+}
 
-    /*void *mem; //, *buf;
-    JSContext *ctx;
-    JSCStringBuf b;
+void test_jsval_size() {
+    printf("- test getting size\n");
 
-    mem=malloc(MEMSIZE);
-    ctx=JS_NewContext(mem, MEMSIZE, &js_stdlib);
+    jsvalMqjsInit(65536,&js_stdlib);
 
-    printf("context created...\n");
+    JSVAL v=jsvalEval("[1,2,3]");
+    assert(jsvalGetSize(v)==3);
+    jsvalFree(v);
 
-    const char *s="100";
-    JSValue val=JS_Eval(ctx,s,strlen(s),"<inline>",JS_EVAL_RETVAL);
-    const char *t=JS_ToCString(ctx,val,&b);
+    JSVAL s=jsvalEval("\"hello\"");
+    assert(jsvalGetSize(s)==5);
+    jsvalFree(s);
 
-    printf("res: %s\n",t);
-
-    JS_FreeContext(ctx);
-    free(mem);
-
-    printf("done...\n");*/
+    jsvalMqjsExit();
 }

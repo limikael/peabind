@@ -6,3 +6,4 @@ bin
 .build
 .wasmbuild
 pnpm-workspace.yaml
+vgcore.*

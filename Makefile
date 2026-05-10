@@ -3,6 +3,7 @@
 
 test: test-quickjs test-mquickjs
 
+
 test-mquickjs:
 	rm -f test/*.out.*
 	wrapcc gcc -o bin/mqjs_stdlib_test \
@@ -10,7 +11,8 @@ test-mquickjs:
 		ext/mquickjs-main/mquickjs_build.c \
 		test/mqjs_stdlib_test.c
 	./bin/mqjs_stdlib_test -m64 > test/js_stdlib.out.h
-	wrapcc gcc -g -o bin/testmain-mquickjs \
+	wrapcc --linker=g++ gcc -g -o bin/testmain-mquickjs \
+		-DJSVAL_TARGET_MQJS \
 		-Wno-narrowing \
 		-Iinclude \
 		-Iext/mquickjs-main \

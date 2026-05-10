@@ -3,9 +3,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 #include "quickjs.h"
-
 #ifdef __cplusplus
 }
 #endif
