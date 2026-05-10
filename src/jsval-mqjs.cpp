@@ -100,3 +100,29 @@ int jsvalGetInt(JSVAL v) {
 JSVAL jsvalCreateInt(int i) {
     return JS_NewInt32(jsvalCtx,i);
 }
+
+JSVAL jsvalToString(JSVAL s) {
+    return JS_ToString(jsvalCtx,s);
+}
+
+void *jsvalReadBuffer(JSVAL v, void *buf) {
+    assert(0 && "fix buffer!!!");
+}
+
+JSVAL jsvalCatchException() {
+    assert(0 && "fix exception!!!");
+}
+
+float jsvalGetFloat(JSVAL v) {
+    double f;
+    JS_ToNumber(jsvalCtx,&f,v);
+    return f;
+}
+
+JSVAL jsvalCreateFloat(float f) {
+    return JS_NewFloat64(jsvalCtx,f);
+}
+
+JSVAL jsvalCreateString(const char *s) {
+    return JS_NewString(jsvalCtx,s);
+}

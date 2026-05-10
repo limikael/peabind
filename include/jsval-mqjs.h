@@ -27,6 +27,12 @@ int jsvalGetInt(JSVAL v);
 void jsvalSetProp(JSVAL obj, const char *prop, JSVAL val);
 void jsvalSetOpaque(JSVAL jsval, void *opaque);
 JSVAL jsvalThrow(const char *s);
+JSVAL jsvalToString(JSVAL s);
+void *jsvalReadBuffer(JSVAL v, void *buf);
+JSVAL jsvalCatchException();
+float jsvalGetFloat(JSVAL o);
+JSVAL jsvalCreateFloat(float f);
+JSVAL jsvalCreateString(const char *s);
 
 void jsvalMqjsInit(size_t memsize, const JSSTDLibraryDef *stdlib_def);
 void jsvalMqjsInitBorrowed(JSContext *ctx);

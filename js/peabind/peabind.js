@@ -70,7 +70,7 @@ export function peabindGetLibConf(key, opts={}) {
 				case "mqjs":
 					return ([
 						path.join(__dirname,"../../src/jsval-mqjs.cpp"),
-						//path.join(__dirname,"../../src/jsval-util.cpp") // FIXME
+						path.join(__dirname,"../../src/jsval-util.cpp")
 					]);
 					break;
 
