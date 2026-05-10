@@ -1,5 +1,6 @@
 import {peabindWasm} from "./peabind-wasm.js";
 import {peabindQuickjs} from "./peabind-quickjs.js";
+import {peabindMqjs} from "./peabind-mqjs.js";
 import {peabindNormalize, peabindMerge} from "./peabind-idl.js";
 import {arrayify} from "../utils/js-util.js";
 import JSON5 from "json5";
@@ -34,6 +35,9 @@ export async function peabind(options) {
 			return await peabindQuickjs(options);
 			break;
 
+		case "mqjs":
+			return await peabindMqjs(options);
+
 		default:
 			throw new Error("Unknown target: "+options.target);
 			break;
@@ -46,6 +50,7 @@ export function peabindGetLibConf(key, opts={}) {
 	let targetDefines={
 		"quickjs": "JSVAL_TARGET_QUICKJS",
 		"wasm": "JSVAL_TARGET_WASM",
+		"mqjs": "JSVAL_TARGET_MQJS"
 	};
 
 	switch (key) {
@@ -59,6 +64,13 @@ export function peabindGetLibConf(key, opts={}) {
 					return ([
 						path.join(__dirname,"../../src/jsval-quickjs.cpp"),
 						path.join(__dirname,"../../src/jsval-util.cpp")
+					]);
+					break;
+
+				case "mqjs":
+					return ([
+						path.join(__dirname,"../../src/jsval-mqjs.cpp"),
+						//path.join(__dirname,"../../src/jsval-util.cpp") // FIXME
 					]);
 					break;
 

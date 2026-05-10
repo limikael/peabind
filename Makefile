@@ -3,6 +3,36 @@
 
 test: test-quickjs test-mquickjs
 
+test-mquickjs-mini:
+	rm -f test/*.out.*
+	wrapcc gcc -o bin/mqjs_stdlib_test \
+		-Iext/mquickjs-main \
+		ext/mquickjs-main/mquickjs_build.c \
+		test/mqjs_stdlib_test.c
+	./bin/mqjs_stdlib_test -m64 > test/js_stdlib.out.h
+	peabind -otest/mini.out.cpp \
+		spec/mini/mini.json \
+		-pmini_ \
+		-tmqjs
+	wrapcc --linker=g++ gcc -g -o bin/minimain-mquickjs \
+		-Wno-narrowing \
+		-Iinclude \
+		-Iext/mquickjs-main \
+		-Ispec/mini \
+		-lm \
+		test/mqjs-mini.cpp \
+		ext/mquickjs-main/mquickjs.c \
+		ext/mquickjs-main/dtoa.c \
+		ext/mquickjs-main/cutils.c \
+		ext/mquickjs-main/libm.c \
+		test/mini.out.cpp \
+		$(shell peabind --lib-conf=cargs -tmqjs) -O0
+	valgrind --quiet \
+		--leak-check=full \
+		--show-leak-kinds=all \
+		--error-exitcode=1 \
+		--errors-for-leak-kinds=all \
+		./bin/minimain-mquickjs
 
 test-mquickjs:
 	rm -f test/*.out.*
@@ -11,19 +41,24 @@ test-mquickjs:
 		ext/mquickjs-main/mquickjs_build.c \
 		test/mqjs_stdlib_test.c
 	./bin/mqjs_stdlib_test -m64 > test/js_stdlib.out.h
+	peabind -otest/basic.out.cpp \
+		spec/basic/basic.json \
+		-pbasic_ \
+		-tmqjs
 	wrapcc --linker=g++ gcc -g -o bin/testmain-mquickjs \
 		-DJSVAL_TARGET_MQJS \
 		-Wno-narrowing \
 		-Iinclude \
 		-Iext/mquickjs-main \
+		-Ispec/basic \
 		-lm \
 		test/test-jsval-mquickjs.cpp \
 		test/testmain-mquickjs.cpp \
-		src/jsval-mqjs.cpp \
 		ext/mquickjs-main/mquickjs.c \
 		ext/mquickjs-main/dtoa.c \
 		ext/mquickjs-main/cutils.c \
-		ext/mquickjs-main/libm.c
+		ext/mquickjs-main/libm.c \
+		$(shell peabind --lib-conf=cargs -tmqjs) -O0
 	valgrind --quiet \
 		--leak-check=full \
 		--show-leak-kinds=all \

@@ -25,6 +25,25 @@ void test_jsval_mqjs_basic() {
     jsvalMqjsExit();
 }
 
+void test_jsval_mqjs_borrow() {
+    printf("- test mquickjs borrowed context\n");
+    void *mem;
+    JSContext *ctx;
+
+    mem=malloc(MEMSIZE);
+    ctx=JS_NewContext(mem, MEMSIZE, &js_stdlib);
+    jsvalMqjsInitBorrowed(ctx);
+
+    JSVAL v=jsvalEval("1+2");
+    char s[256];
+    jsvalReadString(v,s);
+    assert(std::string(s)=="3");
+
+    jsvalMqjsExit();
+    JS_FreeContext(ctx);
+    free(mem);
+}
+
 void test_jsval_size() {
     printf("- test getting size\n");
 

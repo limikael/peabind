@@ -1,6 +1,9 @@
 {
 	"include": ["mini.h"],
-	"classes": {
+	/*"classes": {
 		"Mini": {}
+	}*/
+	"functions": {
+		"miniadd": {"args": ["int","int"], "return": "int"}
 	}
 }

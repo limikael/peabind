@@ -2,21 +2,37 @@
 #include <cassert>
 #include <cstdlib>
 #include <cstring>
+#include <cstdio>
 
 static JSContext *jsvalCtx=NULL;
+static bool jsvalCtxBorrowed;
 void *jsvalMem=NULL;
+
+void jsvalMqjsInitBorrowed(JSContext *ctx) {
+    assert(jsvalCtx==NULL);
+    jsvalCtxBorrowed=true;
+    jsvalCtx=ctx;
+}
 
 void jsvalMqjsInit(size_t memsize, const JSSTDLibraryDef *stdlib_def) {
     assert(jsvalCtx==NULL);
+    jsvalCtxBorrowed=false;
     jsvalMem=malloc(memsize);
     jsvalCtx=JS_NewContext(jsvalMem,memsize,stdlib_def);
 }
 
 void jsvalMqjsExit() {
     assert(jsvalCtx!=NULL);
-    JS_FreeContext(jsvalCtx);
-    free(jsvalMem);
+    if (!jsvalCtxBorrowed) {
+        JS_FreeContext(jsvalCtx);
+        free(jsvalMem);
+    }
     jsvalCtx=NULL;
+}
+
+JSContext *jsvalMqjsGetContext() {
+    assert(jsvalCtx!=NULL);
+    return jsvalCtx;
 }
 
 JSVAL jsvalEval(const char *s) {
@@ -62,3 +78,25 @@ int jsvalGetSize(JSVAL value) {
     return -1;
 }
 
+JSVAL jsvalNull() {
+    return JS_NULL;
+}
+
+JSVAL jsvalGetGlobal() {
+    return JS_GetGlobalObject(jsvalCtx);
+}
+
+JSVAL jsvalThrow(const char *s) {
+    printf("implement!!!!");
+    assert(0);
+}
+
+int jsvalGetInt(JSVAL v) {
+    int32_t i;
+    JS_ToInt32(jsvalCtx,&i,v);
+    return i;
+}
+
+JSVAL jsvalCreateInt(int i) {
+    return JS_NewInt32(jsvalCtx,i);
+}

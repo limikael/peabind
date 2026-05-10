@@ -2,7 +2,11 @@
 #include <cstdio>
 #include "peabind.h"
 
-class Mini {
+int miniadd(int a, int b) {
+	return a+b;
+}
+
+/*class Mini {
 public:
 	Mini() {
 		printf("creating mini\n");
@@ -11,4 +15,4 @@ public:
 	~Mini() {
 		printf("destroying mini\n");
 	}
-};
+};*/
