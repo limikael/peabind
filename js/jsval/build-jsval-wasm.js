@@ -2,6 +2,7 @@ import {runCommand, dirnameFromImportMeta} from "../utils/node-util.js";
 import path from "path";
 import fs, {promises as fsp} from "fs";
 import {autoIndent, stripImportsAndExports} from "../utils/lang-util.js";
+import {wrapcc} from "wrapcc";
 
 let __dirname=dirnameFromImportMeta(import.meta);
 
@@ -37,7 +38,7 @@ export async function buildJsvalWasm({output, sources, exportedFunctions, initFu
 	if (!exportedFunctions.includes(`_${initFunction}`))
 		exportedFunctions.push(`_${initFunction}`)
 
-	await runCommand("emcc",[
+	/*await runCommand("emcc",[
 		"-Wno-vla-cxx-extension",
 		"-std=c++20",
 		"-o",wasmOutput,
@@ -51,7 +52,25 @@ export async function buildJsvalWasm({output, sources, exportedFunctions, initFu
 		path.join(__dirname,"../../src/jsval-wasm.cpp"),
 		path.join(__dirname,"../../src/jsval-util.cpp"),
 		...sources
-	]);
+	]);*/
+
+	await wrapcc([
+		"emcc",
+		"-Wno-vla-cxx-extension",
+		"-std=c++20",
+		"-o",wasmOutput,
+		"-I",path.join(__dirname,"../../include"),
+		...includePath.map(i=>`-I${i}`),
+		"-sSTANDALONE_WASM=1",
+		`-sEXPORTED_FUNCTIONS=${exportedFunctions.join(",")}`,
+		"-DJSVAL_TARGET_WASM",
+		"-DPEABIND",
+		"--no-entry",
+		"-Wno-unused-command-line-argument",
+		path.join(__dirname,"../../src/jsval-wasm.cpp"),
+		path.join(__dirname,"../../src/jsval-util.cpp"),
+		...sources
+	],{buildDir: ".wasmbuild"});
 
 	if (output.endsWith(".js")) {
 		let depFiles=[
