@@ -24,6 +24,7 @@ async function buildMod() {
         idl: path.join(__dirname,"basic.json"),
         sources: [path.join(__dirname,"basic.cpp")],
         output: path.join(__dirname,"basic.out.js"),
+        define: {FULLTEST: true},
         target: "wasm"
     });
 

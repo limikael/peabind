@@ -167,6 +167,8 @@ void test_basic() {
 
     char *t=jsvalGetStrdup(jsvalEval("hello(1,2)"));
     assert(!strcmp(t,"3"));
+    free(t);
+
     jsvalEval("hello(1,2)");
 
     evaljs("new Hello(100)");

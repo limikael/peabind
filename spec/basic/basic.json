@@ -4,16 +4,16 @@
 		"hello": {"return":"int", "args": ["int","int"]},
 		"hello2": {"return":"int"},
 		"hello3": {"return":"int", "namespace":"mynamespace"},
-		"setHelloVal": {"args": ["Hello","int"]},
-		"getHelloVal": {"args": ["Hello"], "return": "int"},
-		"createHello": {"return":"Hello"},
-		"hellof": {"return":"int","args": ["float"]},
-		"hellothird": {"return":"float","args": ["int"]},
-		"hellos": {"return": "string","args":["string","string"]},
-		"getLiveHelloCount": {"return": "int"},
-		"removeHello": {},
-		"createBuffer": {"return": "buffer"},
-		"peekBuffer": {"return": "int", "args":["buffer","int"]},
+		"setHelloVal": {"args": ["Hello","int"], "ifdef": "FULLTEST"},
+		"getHelloVal": {"args": ["Hello"], "return": "int", "ifdef": "FULLTEST"},
+		"createHello": {"return":"Hello", "ifdef": "FULLTEST"},
+		"hellof": {"return":"int","args": ["float"], "ifdef": "FULLTEST"},
+		"hellothird": {"return":"float","args": ["int"], "ifdef": "FULLTEST"},
+		"hellos": {"return": "string","args":["string","string"], "ifdef": "FULLTEST"},
+		"getLiveHelloCount": {"return": "int", "ifdef": "FULLTEST"},
+		"removeHello": {"ifdef": "FULLTEST"},
+		"createBuffer": {"return": "buffer", "ifdef": "FULLTEST"},
+		"peekBuffer": {"return": "int", "args":["buffer","int"], "ifdef": "FULLTEST"},
 		"doesntExist": {"return": "int", "ifdef": "NOTEXIST"}
 	},
 	"classes": {
@@ -21,6 +21,7 @@
 			"ifdef": "NOTEXIST"
 		},
 		"WithPrivateCtor": {
+			"ifdef": "FULLTEST",
 			"constructible": false,
 			"methods": {
 				"getNullish": {"return": "WithPrivateCtor", "static": true},
@@ -29,6 +30,7 @@
 			}
 		},
 		"Namespaced": {
+			"ifdef": "FULLTEST",
 			"namespace": "mynamespace",
 			"methods": {
 				"getTheVal": {"return": "int"},
@@ -36,6 +38,7 @@
 			}
 		},
 		"Hello": {
+			"ifdef": "FULLTEST",
 			"ctorArgs": ["int"],
 			"methods": {
 				"getVal": {"return":"int"},
@@ -56,6 +59,7 @@
 			}
 		},
 		"ExtendHello": {
+			"ifdef": "FULLTEST",
 			"extends": "Hello"
 		}
 	}

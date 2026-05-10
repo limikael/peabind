@@ -7,7 +7,7 @@ import {dirnameFromImportMeta} from "../utils/node-util.js";
 
 let __dirname=dirnameFromImportMeta(import.meta);
 
-export async function peabindWasm({idl, includePath, sources, output, prefix}) {
+export async function peabindWasm({idl, includePath, sources, output, prefix, define}) {
     if (!output.endsWith(".js"))
         throw new DeclaredError("Expected .js output");
 
@@ -32,6 +32,7 @@ export async function peabindWasm({idl, includePath, sources, output, prefix}) {
         sources: [stubFn,...sources],
         initFunction: `${builder.prefix}initmod`,
         hoistedSymbols: builder.getSymbolNames(),
+        define,
         includePath
     });
 }

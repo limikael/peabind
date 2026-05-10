@@ -390,6 +390,9 @@ static const JSPropDef js_global_object[] = {
     JS_CFUNC_DEF("setTimeout", 2, js_setTimeout),
     JS_CFUNC_DEF("clearTimeout", 1, js_clearTimeout),
 #endif
+#ifdef INCLUDE_PROP_HEADER
+#include INCLUDE_PROP_HEADER
+#endif
     JS_PROP_END,
 };
 

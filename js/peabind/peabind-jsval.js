@@ -3,11 +3,15 @@ import {peabindNormalize, idlGetClass} from "./peabind-idl.js";
 import {autoIndent} from "../utils/lang-util.js";
 
 class PeabindJsvalBuilder {
-	constructor({idl, projectName, prefix, include}) {
+	constructor({idl, projectName, prefix, include, symbolRegs}) {
 		this.idl=peabindNormalize(idl);
 		this.projectName=projectName;
 		this.prefix=prefix;
         this.include=include;
+        this.symbolRegs=symbolRegs;
+        if (this.symbolRegs===undefined)
+            this.symbolRegs=true;
+
         if (!this.include)
             this.include=[];
 
@@ -392,8 +396,10 @@ class PeabindJsvalBuilder {
             ${this.idl.classes.map(c=>this.generateClassDef(c)).join("\n")}
 
             extern "C" void ${this.prefix}initmod(JSVAL mod) {
-                ${this.idl.functions.map(f=>this.generateFunctionReg(f)).join("\n")}
-                ${this.idl.classes.map(c=>this.generateClassReg(c)).join("\n")}
+                ${this.symbolRegs?`
+                    ${this.idl.functions.map(f=>this.generateFunctionReg(f)).join("\n")}
+                    ${this.idl.classes.map(c=>this.generateClassReg(c)).join("\n")}
+                `:""}
             }
 
             extern "C" void ${this.prefix}exitmod() {
@@ -430,6 +436,6 @@ class PeabindJsvalBuilder {
     }
 }
 
-export function createPeabindJsvalBuilder({idl, projectName, prefix, include}) {
-	return new PeabindJsvalBuilder({idl, projectName, prefix, include});
+export function createPeabindJsvalBuilder({idl, projectName, prefix, include, symbolRegs}) {
+	return new PeabindJsvalBuilder({idl, projectName, prefix, include, symbolRegs});
 }

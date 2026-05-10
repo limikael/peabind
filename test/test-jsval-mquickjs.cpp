@@ -3,11 +3,7 @@
 #include <stdlib.h>
 #include <cassert>
 #include <string>
-
-extern "C" {
-#include "js_stdlib.out.h"
-}
-
+#include "basic.out.h"
 #include "jsval.h"
 
 #define MEMSIZE 65536
@@ -15,7 +11,7 @@ extern "C" {
 void test_jsval_mqjs_basic() {
     printf("- test mquickjs basic\n");
 
-    jsvalMqjsInit(65536,&js_stdlib);
+    jsvalMqjsInit(65536,basic_get_stdlib());
 
     JSVAL v=jsvalEval("1+2");
     char s[256];
@@ -31,7 +27,7 @@ void test_jsval_mqjs_borrow() {
     JSContext *ctx;
 
     mem=malloc(MEMSIZE);
-    ctx=JS_NewContext(mem, MEMSIZE, &js_stdlib);
+    ctx=JS_NewContext(mem, MEMSIZE, basic_get_stdlib());
     jsvalMqjsInitBorrowed(ctx);
 
     JSVAL v=jsvalEval("1+2");
@@ -47,7 +43,7 @@ void test_jsval_mqjs_borrow() {
 void test_jsval_size() {
     printf("- test getting size\n");
 
-    jsvalMqjsInit(65536,&js_stdlib);
+    jsvalMqjsInit(65536,basic_get_stdlib());
 
     JSVAL v=jsvalEval("[1,2,3]");
     assert(jsvalGetSize(v)==3);

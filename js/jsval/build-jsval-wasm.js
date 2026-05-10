@@ -6,7 +6,10 @@ import {wrapcc} from "wrapcc";
 
 let __dirname=dirnameFromImportMeta(import.meta);
 
-export async function buildJsvalWasm({output, sources, exportedFunctions, initFunction, hoistedSymbols, includePath}) {
+export async function buildJsvalWasm({output, sources, exportedFunctions, initFunction, hoistedSymbols, includePath, define}) {
+	if (!define)
+		define={};
+
 	if (!includePath)
 		includePath=[];
 
@@ -65,6 +68,7 @@ export async function buildJsvalWasm({output, sources, exportedFunctions, initFu
 		`-sEXPORTED_FUNCTIONS=${exportedFunctions.join(",")}`,
 		"-DJSVAL_TARGET_WASM",
 		"-DPEABIND",
+		...Object.keys(define).map(k=>`-D${k}=${define[k]}`),
 		"--no-entry",
 		"-Wno-unused-command-line-argument",
 		path.join(__dirname,"../../src/jsval-wasm.cpp"),
