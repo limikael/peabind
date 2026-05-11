@@ -11,7 +11,8 @@
     "minilab": "peabind spec/mini/mini.json -olab/mini.out.js -pmini_ -twasm && node --expose-gc lab/mini-lab.js"
   },
   "bin": {
-    "peabind": "./js/peabind/peabind-cli.js"
+    "peabind": "./js/peabind/peabind-cli.js",
+    "jsval-mqjs-stdlibgen": "./js/jsval/jsval-mqjs-stdlibgen-cli.js"
   },
   "keywords": [],
   "author": "",

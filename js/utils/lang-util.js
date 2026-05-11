@@ -50,3 +50,14 @@ export function autoIndent(text, indentSize=4) {
     
     return result.join('\n')+"\n";
 }
+
+export function ifdefWrap(ifdef, content) {
+    if (!ifdef)
+        return content;
+
+    return `
+        #ifdef ${ifdef}
+        ${content}
+        #endif
+    `
+}
