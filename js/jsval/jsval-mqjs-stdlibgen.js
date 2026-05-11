@@ -45,7 +45,7 @@ function generateStubs({functions, classes}) {
 function generatePropHeader({functions, classes}) {
     return autoIndent(`
         ${functions.map(f=>ifdefWrap(f.ifdef,`
-           JS_CFUNC_DEF("${f.name}", 0, jsval_${f.name}),
+           JS_CFUNC_DEF("${f.name}", 0, jsval_${f.symbolName}),
         `)).join("\n")}
 
         ${classes.map(cls=>ifdefWrap(cls.ifdef,`

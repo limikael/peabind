@@ -84,7 +84,7 @@ JSVAL Hello_setVal(JSVAL thisobj, int argc, JSVAL *argv) {
     return jsvalUndefined();
 }
 
-JSVAL helloadd(JSVAL thisobj, int argc, JSVAL *argv) {
+JSVAL helloaddimpl(JSVAL thisobj, int argc, JSVAL *argv) {
     return jsvalCreateInt(jsvalGetInt(argv[0])+jsvalGetInt(argv[1]));
 }
 

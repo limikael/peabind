@@ -1,7 +1,7 @@
 #	./ext/mquickjs-main/mqjs_stdlib > lab/js_stdlib.out.h
 .PHONY: mqjslab test-quickjs test-mquickjs test test-jsval-mqjs
 
-test: test-quickjs test-jsval-mqjs # test-mquickjs
+test: test-quickjs test-jsval-mqjs test-mquickjs
 
 test-jsval-mqjs:
 	rm -f vgcore.*
@@ -29,14 +29,14 @@ test-jsval-mqjs:
 		--errors-for-leak-kinds=all \
 		./bin/test-jsval-mqjs
 
-#test-mquickjs:
-#	rm -f vgcore.*
-#	rm -f test/*.out.*
-#	peabind -otest/basic.out.cpp \
+test-mquickjs:
+	rm -f vgcore.*
+	rm -f test/*.out.*
+	peabind -otest/basic.out.cpp \
 		spec/basic/basic.json \
 		-pbasic_ \
 		-tmqjs
-#	wrapcc --linker=g++ gcc -g -o bin/testmain-mquickjs \
+	wrapcc --linker=g++ gcc -g -o bin/test-mqjs-basic \
 		-Wno-narrowing \
 		-Iinclude \
 		-Iext/mquickjs-main \
@@ -45,19 +45,17 @@ test-jsval-mqjs:
 		spec/basic/basic.cpp \
 		test/basic.out.cpp \
 		test/test-mqjs-basic.cpp \
-		test/test-jsval-mquickjs.cpp \
-		test/testmain-mquickjs.cpp \
 		ext/mquickjs-main/mquickjs.c \
 		ext/mquickjs-main/dtoa.c \
 		ext/mquickjs-main/cutils.c \
 		ext/mquickjs-main/libm.c \
 		$(shell peabind --lib-conf=cargs -tmqjs) -O0
-#	valgrind --quiet \
+	valgrind --quiet \
 		--leak-check=full \
 		--show-leak-kinds=all \
 		--error-exitcode=1 \
 		--errors-for-leak-kinds=all \
-		./bin/testmain-mquickjs
+		./bin/test-mqjs-basic
 
 test-quickjs:
 	rm -f vgcore.*

@@ -93,3 +93,14 @@ void test_mqjs_classes() {
     basic_exit();
     jsvalMqjsExit();
 }
+
+int main() {
+    printf("Running mquickjs tests...\n");
+
+    test_mqjs_basic();
+    test_mqjs_basic_jsval();
+    test_mqjs_types();
+    //test_mqjs_classes();
+
+    return 0;
+}
