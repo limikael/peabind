@@ -10,6 +10,7 @@
 			"methods": [
 				{"name": "getVal", "symbolName": "Hello_getVal"},
 				{"name": "setVal", "symbolName": "Hello_setVal"},
+				{"name": "helloStatic", "symbolName": "Hello_helloStatic", "static": true}
 			]
 		}
 	],

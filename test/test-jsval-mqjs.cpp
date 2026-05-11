@@ -102,6 +102,10 @@ void Hello_finalizer(JSVAL thisobj) {
     delete h;
 }
 
+JSVAL Hello_helloStatic(JSVAL thisobj, int argc, JSVAL *argv) {
+    return jsvalCreateInt(1234);
+}
+
 void test_jsval_mqjs_bindings() {
     printf("- test jsval mqjs bindings\n");
     std::string s;
@@ -119,9 +123,8 @@ void test_jsval_mqjs_bindings() {
     assert(jsvalToStdString(jsvalEvalChecked("globalThis.h1.getVal()"))=="999");
     assert(jsvalToStdString(jsvalEvalChecked("globalThis.h2.getVal()"))=="888");
 
-    /*v=jsvalEvalChecked("globalThis.h1.getVal()");
-    s=jsvalToStdString(v);
-    printf("val: %s\n",s.c_str());*/
+    v=jsvalEvalChecked("Hello.helloStatic()");
+    assert(jsvalToStdString(v)=="1234");
 
     jsvalMqjsExit();
 }

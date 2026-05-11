@@ -57,12 +57,15 @@ function generatePropHeader({functions, classes}) {
 function generateClassDef(cls) {
     return ifdefWrap(cls.ifdef,`
     	static const JSPropDef ${cls.name}_proto[]={
-    		${cls.methods.map(m=>ifdefWrap(m.ifdef,`
+    		${cls.methods.filter(f=>!f.static).map(m=>ifdefWrap(m.ifdef,`
 				JS_CFUNC_DEF("${m.name}", 0, jsval_${m.symbolName}),
     		`)).join("\n")}
 		    JS_PROP_END,
     	};
     	static const JSPropDef ${cls.name}_static[]={
+            ${cls.methods.filter(f=>f.static).map(m=>ifdefWrap(m.ifdef,`
+                JS_CFUNC_DEF("${m.name}", 0, jsval_${m.symbolName}),
+            `)).join("\n")}
 		    JS_PROP_END,
     	};
         static const JSClassDef ${cls.name}_class =
@@ -91,7 +94,19 @@ function normalize({functions, classes}) {
 
 	classes=arrayify(classes);
 	classes=classes.map(cls=>{
+        if (!cls["constructor"])
+            throw new Error("Class must have constructor");
+
+        if (!cls["finalizer"])
+            throw new Error("Class must have finalizer");
+
 		cls.methods=arrayify(cls.methods);
+        cls.methods=cls.methods.map(m=>{
+            if (!m.symbolName)
+                throw new Error("Methods must have a symbol name");
+
+            return m;
+        });
 
 		return cls;
 	});
