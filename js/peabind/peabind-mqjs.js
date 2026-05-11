@@ -8,11 +8,21 @@ import {autoIndent} from "../utils/lang-util.js";
 let __dirname=dirnameFromImportMeta(import.meta);
 
 function generateMqjsStubs(builder) {
-    return (builder.idl.functions.map(f=>builder.ifdefWrap(f.ifdef,`
+    let s="";
+
+    s+=(builder.idl.functions.map(f=>builder.ifdefWrap(f.ifdef,`
         JSVAL jsval_${builder.prefix}${f.name}(JSContext *ctx, JSValue* thisobj, int argc, JSValue* argv) {
             return ${builder.prefix}${f.name}(*thisobj,argc,argv);
         }
     `)).join("\n"));
+
+    s+=(builder.idl.classes.map(cls=>builder.ifdefWrap(cls.ifdef,`
+        JSVAL jsval_${builder.prefix}${cls.name}_constructor(JSContext *ctx, JSValue* thisobj, int argc, JSValue* argv) {
+            return ${builder.prefix}${cls.name}_constructor(*thisobj,argc,argv);
+        }
+    `)).join("\n"));
+
+    return s;
 }
 
 function generateMsqlPropHeaderSource(builder) {
@@ -20,7 +30,57 @@ function generateMsqlPropHeaderSource(builder) {
         ${builder.idl.functions.map(f=>builder.ifdefWrap(f.ifdef,`
            JS_CFUNC_DEF("${f.name}", ${f.args.length}, jsval_${builder.prefix}${f.name}),
         `)).join("\n")}
+
+        ${builder.idl.classes.map(cls=>builder.ifdefWrap(cls.ifdef,`
+            JS_PROP_CLASS_DEF("${cls.name}", &${cls.name}_class),
+        `)).join("\n")}
     `);
+}
+
+function generateMqjsClassReg({builder, cls, index}) {
+    return builder.ifdefWrap(cls.ifdef,`
+        // ${cls.name}
+        //static const JSClassDef ${cls.name}_class =
+        //    JS_CLASS_DEF("${cls.name}", ${cls.ctorArgs.length}, jsval_${builder.prefix}${cls.name}_constructor, ${cls.name}_CLASS_ID, NULL, NULL, NULL, NULL);
+
+        static const JSClassDef ${cls.name}_class =
+            JS_CLASS_DEF("${cls.name}", 1, jsval_${builder.prefix}${cls.name}_constructor, ${cls.name}_CLASS_ID,
+                         js_object, js_object_proto, NULL, NULL);
+
+        //static const JSClassDef ${cls.name}_class =
+        //    JS_CLASS_DEF("${cls.name}", 0, jsval_${builder.prefix}${cls.name}_constructor, JS_CLASS_OBJECT,
+        //                 NULL, NULL, NULL, NULL);
+    `);
+}
+
+function generateMsqlDefHeaderSource(builder) {
+    return autoIndent(`
+        //#define JS_CLASS_COUNT (JS_CLASS_USER+10)
+
+        ${builder.idl.classes.map((cls,index)=>generateMqjsClassReg({builder,cls,index})).join("\n")}
+    `);
+}
+
+async function generateStdlib({builder, output}) {
+    let propHeaderFn=path.join(os.tmpdir(), "peabind-props.h");
+    fs.writeFileSync(propHeaderFn,generateMsqlPropHeaderSource(builder));
+
+    let defHeaderFn=path.join(os.tmpdir(), "peabind-defs.h");
+    fs.writeFileSync(defHeaderFn,generateMsqlDefHeaderSource(builder));
+
+    let generatorFn=path.join(os.tmpdir(), "peabind-mqjs-stdlib");
+    await runCommand("gcc",[
+        path.join(__dirname,"../../src/mqjs-stdlib.c"),
+        path.join(__dirname,"../../ext/mquickjs-main/mquickjs_build.c"),
+        `-DINCLUDE_PROP_HEADER=\"${propHeaderFn}\"`,
+        `-DINCLUDE_DEF_HEADER=\"${defHeaderFn}\"`,
+        "-I",path.join(__dirname,"../../ext/mquickjs-main"),
+        "-o",generatorFn
+    ]);
+
+    let res=await runCommand(generatorFn,["-m64"],{stdio: ["ignore", "pipe", "pipe"]});
+    let libOutput=output.slice(0,-4)+".stdlib.h";
+    fs.writeFileSync(libOutput,res.stdout);
 }
 
 export async function peabindMqjs({idl, includePath, sources, output, prefix}) {
@@ -36,28 +96,17 @@ export async function peabindMqjs({idl, includePath, sources, output, prefix}) {
         symbolRegs: false,
     });
 
-    let propHeaderFn=path.join(os.tmpdir(), "peabind-props.h");
-    fs.writeFileSync(propHeaderFn,generateMsqlPropHeaderSource(builder));
-
-    if (includePath.length!=1)
-        throw new Error("Expected exactly one include path");
-
-    let generatorFn=path.join(os.tmpdir(), "peabind-mqjs-stdlib");
-    await runCommand("gcc",[
-        path.join(__dirname,"../../src/mqjs-stdlib.c"),
-        path.join(__dirname,"../../ext/mquickjs-main/mquickjs_build.c"),
-        `-DINCLUDE_PROP_HEADER=\"${propHeaderFn}\"`,
-        "-I",path.join(__dirname,"../../ext/mquickjs-main"),
-        "-o",generatorFn
-    ]);
-
-    let res=await runCommand(generatorFn,["-m64"],{stdio: ["ignore", "pipe", "pipe"]});
-    let libOutput=output.slice(0,-4)+".stdlib.h";
-    fs.writeFileSync(libOutput,res.stdout);
+    await generateStdlib({builder,output});
 
     let source=autoIndent(`
         ${builder.generateSource()}
         ${generateMqjsStubs(builder)}
+
+        ${builder.idl.classes.map((cls,index)=>`
+        #define ${cls.name}_CLASS_ID (JS_CLASS_USER + ${index})
+        `).join("\n")}
+
+        #define JS_CLASS_COUNT (JS_CLASS_USER+10)
 
         extern "C" {
         #include "${projectName}.stdlib.h"
@@ -77,14 +126,14 @@ export async function peabindMqjs({idl, includePath, sources, output, prefix}) {
             jsvalMqjsInitBorrowed(ctx);
             owned=true;
             ${builder.prefix}initmod(jsvalGetGlobal());
-            lock=jsvalEval("new String(1337)");
+            lock=jsvalEval("String(1337)");
         }
 
         void ${builder.prefix}init_jsval() {
             assert(jsvalMqjsGetContext()!=NULL);
             owned=false;
             ${builder.prefix}initmod(jsvalGetGlobal());
-            lock=jsvalEval("new String(1337)");
+            lock=jsvalEval("String(1337)");
         }
 
         void ${builder.prefix}exit() {

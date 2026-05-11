@@ -33,6 +33,8 @@ JSVAL jsvalCatchException();
 float jsvalGetFloat(JSVAL o);
 JSVAL jsvalCreateFloat(float f);
 JSVAL jsvalCreateString(const char *s);
+JSVAL jsvalUndefined();
+bool jsvalHasException();
 
 void jsvalMqjsInit(size_t memsize, const JSSTDLibraryDef *stdlib_def);
 void jsvalMqjsInitBorrowed(JSContext *ctx);

@@ -55,3 +55,13 @@ void test_jsval_size() {
 
     jsvalMqjsExit();
 }
+
+int main() {
+    printf("Running mquickjs jsval tests...\n");
+
+    test_jsval_mqjs_basic();
+    test_jsval_size();
+    test_jsval_mqjs_borrow();
+
+    return 0;
+}

@@ -6,17 +6,20 @@
 
 static JSContext *jsvalCtx=NULL;
 static bool jsvalCtxBorrowed;
+static bool jsvalSeenException;
 void *jsvalMem=NULL;
 
 void jsvalMqjsInitBorrowed(JSContext *ctx) {
     assert(jsvalCtx==NULL);
     jsvalCtxBorrowed=true;
+    jsvalSeenException=false;
     jsvalCtx=ctx;
 }
 
 void jsvalMqjsInit(size_t memsize, const JSSTDLibraryDef *stdlib_def) {
     assert(jsvalCtx==NULL);
     jsvalCtxBorrowed=false;
+    jsvalSeenException=false;
     jsvalMem=malloc(memsize);
     jsvalCtx=JS_NewContext(jsvalMem,memsize,stdlib_def);
 }
@@ -37,6 +40,12 @@ JSContext *jsvalMqjsGetContext() {
 
 JSVAL jsvalEval(const char *s) {
     JSValue val=JS_Eval(jsvalCtx,s,strlen(s),"<inline>",JS_EVAL_RETVAL);
+    //printf("evaled...\n");
+    if (JS_IsException(val)) {
+        //printf("it is an exception!!!\n");
+        jsvalSeenException=true;
+    }
+
     return val;
 }
 
@@ -110,7 +119,10 @@ void *jsvalReadBuffer(JSVAL v, void *buf) {
 }
 
 JSVAL jsvalCatchException() {
-    assert(0 && "fix exception!!!");
+    JSVAL ex=JS_GetException(jsvalCtx);
+    jsvalSeenException=false;
+
+    return ex;
 }
 
 float jsvalGetFloat(JSVAL v) {
@@ -125,4 +137,30 @@ JSVAL jsvalCreateFloat(float f) {
 
 JSVAL jsvalCreateString(const char *s) {
     return JS_NewString(jsvalCtx,s);
+}
+
+void jsvalSetOpaque(JSVAL jsval, void *opaque) {
+    JS_SetOpaque(jsvalCtx,jsval,opaque);
+}
+
+void *jsvalGetOpaque(JSVAL jsval) {
+    return JS_GetOpaque(jsvalCtx,jsval);
+}
+
+JSVAL jsvalUndefined() {
+    return JS_UNDEFINED;
+}
+
+bool jsvalHasException() {
+    if (jsvalSeenException)
+        return true;
+
+    JSValue currentException=JS_GetException(jsvalCtx);
+    if (!JS_IsUndefined(currentException)) {
+        jsvalSeenException=true;
+        JS_Throw(jsvalCtx,currentException);
+        return true;
+    }
+
+    return false;
 }

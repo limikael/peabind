@@ -330,6 +330,10 @@ static const JSClassDef js_performance_obj =
 
 #endif // CHANGED!!!
 
+#ifdef INCLUDE_DEF_HEADER
+#include INCLUDE_DEF_HEADER
+#endif
+
 static const JSPropDef js_global_object[] = {
     JS_PROP_CLASS_DEF("Object", &js_object_class),
     JS_PROP_CLASS_DEF("Function", &js_function_class),

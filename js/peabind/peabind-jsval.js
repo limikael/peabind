@@ -434,6 +434,32 @@ class PeabindJsvalBuilder {
             ...this.idl.classes.map(f=>f.name)
         ];
     }
+
+    /*getExports() {
+        let exp=[];
+
+        for (let func of this.idl.functions) {
+            exp.push({
+                type: "function",
+                name: func.name,
+                ifdef: func.ifdef,
+                numArgs: func.args.length,
+                symbolName: `${this.prefix}${func.name}`
+            });
+        }
+
+        for (let cls of this.idl.classes) {
+            exp.push({
+                type: "constructor",
+                name: cls.name,
+                ifdef: cls.ifdef,
+                numArgs: cls.ctorArgs.length,
+                symbolName: `${this.prefix}${cls.name}_constructor`
+            });
+        }
+
+        return exp;
+    }*/
 }
 
 export function createPeabindJsvalBuilder({idl, projectName, prefix, include, symbolRegs}) {

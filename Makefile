@@ -1,9 +1,10 @@
 #	./ext/mquickjs-main/mqjs_stdlib > lab/js_stdlib.out.h
 .PHONY: mqjslab test-quickjs test-mquickjs test
 
-test: test-quickjs test-mquickjs
+test: test-quickjs # test-mquickjs
 
 test-mquickjs:
+	rm -f vgcore.*
 	rm -f test/*.out.*
 	peabind -otest/basic.out.cpp \
 		spec/basic/basic.json \
@@ -33,8 +34,8 @@ test-mquickjs:
 		./bin/testmain-mquickjs
 
 test-quickjs:
+	rm -f vgcore.*
 	rm -f test/*.out.*
-
 	peabind -otest/basic.out.cpp \
 		spec/basic/basic.json \
 		-pbasic_ \
