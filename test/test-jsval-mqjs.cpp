@@ -9,10 +9,6 @@
 
 #define MEMSIZE 65536
 
-JSVAL helloadd(JSVAL thisobj, int argc, JSVAL *argv) {
-    return jsvalCreateInt(jsvalGetInt(argv[0])+jsvalGetInt(argv[1]));
-}
-
 JSVAL jsvalEvalChecked(std::string code) {
     JSVAL res=jsvalEval(code.c_str());
     if (jsvalHasException()) {
@@ -72,6 +68,23 @@ void test_jsval_size() {
     jsvalMqjsExit();
 }
 
+class Hello {
+public:
+    int val;
+};
+
+JSVAL helloadd(JSVAL thisobj, int argc, JSVAL *argv) {
+    return jsvalCreateInt(jsvalGetInt(argv[0])+jsvalGetInt(argv[1]));
+}
+
+JSVAL Hello_constructor(JSVAL thisobj, int argc, JSVAL *argv) {
+    printf("in the ctor...\n");
+    Hello *h=new Hello();
+    h->val=777;
+    jsvalSetOpaque(thisobj,h);
+    return thisobj;
+}
+
 void test_jsval_mqjs_bindings() {
     printf("- test jsval mqjs bindings\n");
 
@@ -79,6 +92,12 @@ void test_jsval_mqjs_bindings() {
 
     JSVAL v=jsvalEvalChecked("helloadd(100,23)");
     assert(jsvalToStdString(v)=="123");
+
+    v=jsvalEvalChecked("new Hello()");
+    std::string s=jsvalToStdString(v);
+    printf("val: %s\n",s.c_str());
+
+    //assert(jsvalToStdString(v)=="123");
 
     jsvalMqjsExit();
 }

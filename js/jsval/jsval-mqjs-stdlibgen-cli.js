@@ -18,5 +18,6 @@ let desc=JSON5.parse(fs.readFileSync(program.args[0]));
 
 await jsvalMqjsStdlibgen({
     output: opts.output,
-    functions: desc.functions
+    functions: desc.functions,
+    classes: desc.classes
 });
