@@ -73,7 +73,7 @@ void test_mqjs_classes() {
 
     //jsvalEvalChecked("i think this will crash");
 
-    //jsvalEvalChecked("globalThis.hello=new Hello(123);");
+    jsvalEvalChecked("globalThis.hello=new Hello(123);");
     //jsvalEvalChecked("hello(123,456)");
     //jsvalEvalChecked("new Object()");
     s=jsvalToStdString(jsvalEvalChecked("String(Object)"));

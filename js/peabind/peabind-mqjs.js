@@ -30,7 +30,14 @@ export async function peabindMqjs({idl, includePath, sources, output, prefix}) {
                 symbolName: builder.prefix+f.name
             });
         }),
-        classes: []
+        classes: builder.idl.classes.map(cls=>{
+            return ({
+                ifdef: cls.ifdef,
+                name: cls.name,
+                constructor: builder.prefix+cls.name+"_constructor",
+                finalizer: builder.prefix+cls.name+"_finalizer"
+            });
+        })
     });
 
     let source=autoIndent(`
