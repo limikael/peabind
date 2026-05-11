@@ -11,6 +11,7 @@ extern "C" {
 
 typedef JSValue JSVAL;
 typedef JSVAL JSVAL_FUNC(JSVAL thisobj, int argc, JSVAL *argv);
+typedef void JSVAL_FINALIZER(JSVAL thisobj);
 
 JSVAL jsvalEval(const char *s);
 char *jsvalReadString(JSVAL val, char *dest);
@@ -39,4 +40,5 @@ bool jsvalHasException();
 void jsvalMqjsInit(size_t memsize, const JSSTDLibraryDef *stdlib_def);
 void jsvalMqjsInitBorrowed(JSContext *ctx);
 void jsvalMqjsExit();
+void jsvalMqjsSetFinalizingOpaque(void *);
 JSContext *jsvalMqjsGetContext();

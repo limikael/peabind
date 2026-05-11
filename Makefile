@@ -22,7 +22,12 @@ test-jsval-mqjs:
 		ext/mquickjs-main/cutils.c \
 		ext/mquickjs-main/libm.c \
 		test/test-jsval-mqjs.cpp
-	./bin/test-jsval-mqjs
+	valgrind --quiet \
+		--leak-check=full \
+		--show-leak-kinds=all \
+		--error-exitcode=1 \
+		--errors-for-leak-kinds=all \
+		./bin/test-jsval-mqjs
 
 #test-mquickjs:
 #	rm -f vgcore.*

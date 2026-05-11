@@ -3,6 +3,14 @@
 		{"name": "helloadd"}
 	],
 	"classes": [
-		{"name": "Hello", "constructor": "Hello_constructor"}
+		{
+			"name": "Hello", 
+			"constructor": "Hello_constructor",
+			"finalizer": "Hello_finalizer",
+			"methods": [
+				{"name": "getVal", "symbolName": "Hello_getVal"},
+				{"name": "setVal", "symbolName": "Hello_setVal"},
+			]
+		}
 	],
 }

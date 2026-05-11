@@ -73,31 +73,55 @@ public:
     int val;
 };
 
+JSVAL Hello_getVal(JSVAL thisobj, int argc, JSVAL *argv) {
+    Hello *h=(Hello *)jsvalGetOpaque(thisobj);
+    return jsvalCreateInt(h->val);
+}
+
+JSVAL Hello_setVal(JSVAL thisobj, int argc, JSVAL *argv) {
+    Hello *h=(Hello *)jsvalGetOpaque(thisobj);
+    h->val=jsvalGetInt(argv[0]);
+    return jsvalUndefined();
+}
+
 JSVAL helloadd(JSVAL thisobj, int argc, JSVAL *argv) {
     return jsvalCreateInt(jsvalGetInt(argv[0])+jsvalGetInt(argv[1]));
 }
 
 JSVAL Hello_constructor(JSVAL thisobj, int argc, JSVAL *argv) {
-    printf("in the ctor...\n");
     Hello *h=new Hello();
+    //printf("in the ctor... %p\n",h);
     h->val=777;
     jsvalSetOpaque(thisobj,h);
     return thisobj;
 }
 
+void Hello_finalizer(JSVAL thisobj) {
+    Hello *h=(Hello *)jsvalGetOpaque(thisobj);
+    //printf("in the dtor... %p\n",h);
+    delete h;
+}
+
 void test_jsval_mqjs_bindings() {
     printf("- test jsval mqjs bindings\n");
+    std::string s;
 
     jsvalMqjsInit(65536,&js_stdlib);
 
     JSVAL v=jsvalEvalChecked("helloadd(100,23)");
     assert(jsvalToStdString(v)=="123");
 
-    v=jsvalEvalChecked("new Hello()");
-    std::string s=jsvalToStdString(v);
-    printf("val: %s\n",s.c_str());
+    jsvalEvalChecked("globalThis.h1=new Hello()");
+    jsvalEvalChecked("globalThis.h1.setVal(999)");
+    jsvalEvalChecked("globalThis.h2=new Hello()");
+    jsvalEvalChecked("globalThis.h2.setVal(888)");
 
-    //assert(jsvalToStdString(v)=="123");
+    assert(jsvalToStdString(jsvalEvalChecked("globalThis.h1.getVal()"))=="999");
+    assert(jsvalToStdString(jsvalEvalChecked("globalThis.h2.getVal()"))=="888");
+
+    /*v=jsvalEvalChecked("globalThis.h1.getVal()");
+    s=jsvalToStdString(v);
+    printf("val: %s\n",s.c_str());*/
 
     jsvalMqjsExit();
 }

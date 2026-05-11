@@ -11,20 +11,32 @@ function generateStubs({functions, classes}) {
     let s="";
 
     s+=(functions.map(f=>ifdefWrap(f.ifdef,`
-    	JSVAL ${f.symbolName}(JSVAL thisobj, int argc, JSVAL *argv);
+    	JSVAL_FUNC ${f.symbolName};
         static inline JSVAL jsval_${f.symbolName}(JSContext *ctx, JSValue* thisobj, int argc, JSValue* argv) {
             return ${f.symbolName}(*thisobj,argc,argv);
         }
     `)).join("\n"));
 
     s+=(classes.map(cls=>ifdefWrap(cls.ifdef,`
-    	JSVAL ${cls["constructor"]}(JSVAL thisobj, int argc, JSVAL *argv);
+    	JSVAL_FUNC ${cls["constructor"]};
         static inline JSVAL jsval_${cls["constructor"]}(JSContext *ctx, JSValue* thisobj, int argc, JSValue* argv) {
     		JSValue newthis=JS_NewObjectClassUser(ctx,${cls.name}_CLASS_ID);
             JSVAL ctorreturn=${cls["constructor"]}(newthis,argc,argv);
     		assert(ctorreturn==newthis);
     		return newthis;
         }
+        JSVAL_FINALIZER ${cls.finalizer};
+        static inline void jsval_${cls.finalizer}(JSContext *ctx, void *opaque) {
+            jsvalMqjsSetFinalizingOpaque(opaque);
+            ${cls.finalizer}(JS_UNDEFINED);
+            jsvalMqjsSetFinalizingOpaque(NULL);
+        }
+    	${cls.methods.map(f=>ifdefWrap(f.ifdef,`
+	    	JSVAL_FUNC ${f.symbolName};
+	        static inline JSVAL jsval_${f.symbolName}(JSContext *ctx, JSValue* thisobj, int argc, JSValue* argv) {
+	            return ${f.symbolName}(*thisobj,argc,argv);
+	        }
+    	`)).join("\n")}
     `)).join("\n"));
 
     return s;
@@ -44,9 +56,18 @@ function generatePropHeader({functions, classes}) {
 
 function generateClassDef(cls) {
     return ifdefWrap(cls.ifdef,`
+    	static const JSPropDef ${cls.name}_proto[]={
+    		${cls.methods.map(m=>ifdefWrap(m.ifdef,`
+				JS_CFUNC_DEF("${m.name}", 0, jsval_${m.symbolName}),
+    		`)).join("\n")}
+		    JS_PROP_END,
+    	};
+    	static const JSPropDef ${cls.name}_static[]={
+		    JS_PROP_END,
+    	};
         static const JSClassDef ${cls.name}_class =
             JS_CLASS_DEF("${cls.name}", 1, jsval_${cls["constructor"]}, ${cls.name}_CLASS_ID,
-                         NULL, NULL, NULL, NULL);
+                         ${cls.name}_static, ${cls.name}_proto, NULL, jsval_${cls.finalizer});
     `);
 }
 
@@ -69,6 +90,11 @@ function normalize({functions, classes}) {
 	});
 
 	classes=arrayify(classes);
+	classes=classes.map(cls=>{
+		cls.methods=arrayify(cls.methods);
+
+		return cls;
+	});
 
 	return ({functions,classes});
 }

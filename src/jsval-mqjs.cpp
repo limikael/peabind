@@ -8,12 +8,14 @@ static JSContext *jsvalCtx=NULL;
 static bool jsvalCtxBorrowed;
 static bool jsvalSeenException;
 void *jsvalMem=NULL;
+void *jsvalFinalizingOpaque=NULL;
 
 void jsvalMqjsInitBorrowed(JSContext *ctx) {
     assert(jsvalCtx==NULL);
     jsvalCtxBorrowed=true;
     jsvalSeenException=false;
     jsvalCtx=ctx;
+    jsvalFinalizingOpaque=NULL;
 }
 
 void jsvalMqjsInit(size_t memsize, const JSSTDLibraryDef *stdlib_def) {
@@ -22,6 +24,7 @@ void jsvalMqjsInit(size_t memsize, const JSSTDLibraryDef *stdlib_def) {
     jsvalSeenException=false;
     jsvalMem=malloc(memsize);
     jsvalCtx=JS_NewContext(jsvalMem,memsize,stdlib_def);
+    jsvalFinalizingOpaque=NULL;
 }
 
 void jsvalMqjsExit() {
@@ -144,6 +147,11 @@ void jsvalSetOpaque(JSVAL jsval, void *opaque) {
 }
 
 void *jsvalGetOpaque(JSVAL jsval) {
+    if (jsvalFinalizingOpaque) {
+        assert(JS_IsUndefined(jsval));
+        return jsvalFinalizingOpaque;
+    }
+
     return JS_GetOpaque(jsvalCtx,jsval);
 }
 
@@ -163,4 +171,8 @@ bool jsvalHasException() {
     }
 
     return false;
+}
+
+void jsvalMqjsSetFinalizingOpaque(void *p) {
+    jsvalFinalizingOpaque=p;
 }
