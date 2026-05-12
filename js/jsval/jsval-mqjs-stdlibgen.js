@@ -13,6 +13,7 @@ function generateStubs({functions, classes}) {
     s+=(functions.map(f=>ifdefWrap(f.ifdef,`
     	JSVAL_FUNC ${f.symbolName};
         static inline JSVAL jsval_${f.symbolName}(JSContext *ctx, JSValue* thisobj, int argc, JSValue* argv) {
+            argc&=0xffff;
             return ${f.symbolName}(*thisobj,argc,argv);
         }
     `)).join("\n"));
@@ -20,6 +21,7 @@ function generateStubs({functions, classes}) {
     s+=(classes.map(cls=>ifdefWrap(cls.ifdef,`
     	JSVAL_FUNC ${cls["constructor"]};
         static inline JSVAL jsval_${cls["constructor"]}(JSContext *ctx, JSValue* thisobj, int argc, JSValue* argv) {
+            argc&=0xffff;
     		JSValue newthis=JS_NewObjectClassUser(ctx,${cls.name}_CLASS_ID);
             JSVAL ctorreturn=${cls["constructor"]}(newthis,argc,argv);
     		assert(ctorreturn==newthis);
@@ -34,6 +36,7 @@ function generateStubs({functions, classes}) {
     	${cls.methods.map(f=>ifdefWrap(f.ifdef,`
 	    	JSVAL_FUNC ${f.symbolName};
 	        static inline JSVAL jsval_${f.symbolName}(JSContext *ctx, JSValue* thisobj, int argc, JSValue* argv) {
+                argc&=0xffff;
 	            return ${f.symbolName}(*thisobj,argc,argv);
 	        }
     	`)).join("\n")}

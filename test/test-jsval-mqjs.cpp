@@ -85,13 +85,16 @@ JSVAL Hello_setVal(JSVAL thisobj, int argc, JSVAL *argv) {
 }
 
 JSVAL helloaddimpl(JSVAL thisobj, int argc, JSVAL *argv) {
+    //printf("hello, argcount=%d\n",argc);
     return jsvalCreateInt(jsvalGetInt(argv[0])+jsvalGetInt(argv[1]));
 }
 
 JSVAL Hello_constructor(JSVAL thisobj, int argc, JSVAL *argv) {
     Hello *h=new Hello();
-    //printf("in the ctor... %p\n",h);
+    //printf("in the ctor, argcount=%d\n",argc);
     h->val=777;
+    if (argc==1)
+        h->val=jsvalGetInt(argv[0]);
     jsvalSetOpaque(thisobj,h);
     return thisobj;
 }
@@ -114,6 +117,10 @@ void test_jsval_mqjs_bindings() {
 
     JSVAL v=jsvalEvalChecked("helloadd(100,23)");
     assert(jsvalToStdString(v)=="123");
+
+    jsvalEvalChecked("globalThis.h1=new Hello(666)");
+    v=jsvalEvalChecked("globalThis.h1.getVal()");
+    assert(jsvalToStdString(v)=="666");
 
     jsvalEvalChecked("globalThis.h1=new Hello()");
     jsvalEvalChecked("globalThis.h1.setVal(999)");
