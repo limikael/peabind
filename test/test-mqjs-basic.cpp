@@ -73,10 +73,10 @@ void test_mqjs_classes() {
     JSVAL v;
 
     jsvalEvalChecked("globalThis.simple=new Simple(123);");
-    v=jsvalEvalChecked("globalThis.simple"); //.getVal()");
+    v=jsvalEvalChecked("globalThis.simple.getVal()");
     s=jsvalToStdString(v);
-    printf("s: %s\n",s.c_str());
-    //assert(s=="123");*/
+    //printf("s: %s\n",s.c_str());
+    assert(s=="123");
 
     basic_exit();
     jsvalMqjsExit();

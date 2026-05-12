@@ -35,7 +35,14 @@ export async function peabindMqjs({idl, includePath, sources, output, prefix}) {
                 ifdef: cls.ifdef,
                 name: cls.name,
                 constructor: builder.prefix+cls.name+"_constructor",
-                finalizer: builder.prefix+cls.name+"_finalizer"
+                finalizer: builder.prefix+cls.name+"_finalizer",
+                methods: cls.methods.map(m=>{
+                    return ({
+                        ifdef: m.ifdef,
+                        name: m.name,
+                        symbolName: builder.prefix+cls.name+"_"+m.name
+                    })
+                })
             });
         })
     });
