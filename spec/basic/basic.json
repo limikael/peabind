@@ -21,7 +21,10 @@
 			"ctorArgs": ["int"],
 			"methods": {
 				"getVal": {"return": "int"}
-			}
+			},
+			/*"events": {
+				"data": {"dispatcher": "dataEvent"}
+			}*/
 		},
 		"DoesntExist": {
 			"ifdef": "NOTEXIST"

@@ -127,5 +127,6 @@ public:
 		return v;
 	}
 
+	Dispatcher<> dataEvent;
 	int v;
 };
