@@ -10,6 +10,7 @@ extern "C" {
 #endif
 
 typedef JSValue JSVAL;
+typedef JSGCRef *JSVAL_REF;
 typedef JSVAL JSVAL_FUNC(JSVAL thisobj, int argc, JSVAL *argv);
 typedef void JSVAL_FINALIZER(JSVAL thisobj);
 
@@ -37,6 +38,9 @@ JSVAL jsvalCreateString(const char *s);
 JSVAL jsvalUndefined();
 bool jsvalHasException();
 JSVAL jsvalCall(JSVAL fn, JSVAL thisobj, int argc, JSVAL *argv);
+JSVAL_REF jsvalRefCreate(JSVAL v);
+void jsvalRefFree(JSVAL_REF ref);
+JSVAL jsvalRefGetValue(JSVAL_REF ref);
 
 void jsvalMqjsInit(size_t memsize, const JSSTDLibraryDef *stdlib_def);
 void jsvalMqjsInitBorrowed(JSContext *ctx);

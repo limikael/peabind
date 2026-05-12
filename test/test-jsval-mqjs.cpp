@@ -185,18 +185,16 @@ void test_jsval_mqjs_dup() {
 
     jsvalCall(f,jsvalUndefined(),0,NULL);
 
-    JSGCRef ref;
-    JS_AddGCRef(jsvalMqjsGetContext(),&ref);
-    ref.val=f;
-    //jsvalDup(v);
+    JSVAL_REF ref=jsvalRefCreate(f);
     jsvalQuickjsRunGc();
-    jsvalCall(f,jsvalUndefined(),0,NULL);
+    jsvalCall(jsvalRefGetValue(ref),jsvalUndefined(),0,NULL);
     jsvalCheckException();
-    //jsvalFree(v);
+
+    jsvalRefFree(ref);
 
     v=jsvalEvalChecked("globalThis.cnt");
     s=jsvalToStdString(v);
-    printf("cnt: %s\n",s.c_str());
+    //printf("cnt: %s\n",s.c_str());
     assert(s=="2");
     jsvalMqjsExit();
 }

@@ -192,3 +192,22 @@ JSVAL jsvalCall(JSVAL fn, JSVAL thisobj, int argc, JSVAL *argv) {
 void jsvalQuickjsRunGc() {
     JS_GC(jsvalCtx);
 }
+
+JSVAL_REF jsvalRefCreate(JSVAL v) {
+    JSGCRef *gcRef=(JSGCRef *)malloc(sizeof(JSGCRef));
+    JS_AddGCRef(jsvalCtx,gcRef);
+    gcRef->val=v;
+
+    return gcRef;
+}
+
+void jsvalRefFree(JSVAL_REF ref) {
+    JSGCRef *gcRef=ref;
+    JS_DeleteGCRef(jsvalCtx,gcRef);
+    free(gcRef);
+}
+
+JSVAL jsvalRefGetValue(JSVAL_REF ref) {
+    JSGCRef *gcRef=ref;
+    return gcRef->val;
+}
