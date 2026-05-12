@@ -12,6 +12,12 @@
 				{"name": "setVal", "symbolName": "Hello_setVal"},
 				{"name": "helloStatic", "symbolName": "Hello_helloStatic", "static": true}
 			]
+		},
+		{
+			"ifdef": "DONTINCLUDE",
+			"name": "DoesntExist", 
+			"constructor": "DoesntExist_constructor",
+			"finalizer": "DoesntExist_finalizer",
 		}
 	],
 }
