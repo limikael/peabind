@@ -9,6 +9,14 @@
 
 #define MEMSIZE 65536
 
+void jsvalCheckException() {
+    if (jsvalHasException()) {
+        std::string ex=jsvalCatchExceptionStdString();
+        printf("Check Error: %s\n",ex.c_str());
+        abort();
+    }
+}
+
 JSVAL jsvalEvalChecked(std::string code) {
     JSVAL res=jsvalEval(code.c_str());
     if (jsvalHasException()) {
@@ -109,6 +117,13 @@ JSVAL Hello_helloStatic(JSVAL thisobj, int argc, JSVAL *argv) {
     return jsvalCreateInt(1234);
 }
 
+JSVAL jsprint(JSVAL thisobj, int argc, JSVAL *argv) {
+    assert(argc==1);
+    std::string s=jsvalToStdString(argv[0]);    
+    printf("js: %s\n",s.c_str());
+    return jsvalUndefined();
+}
+
 void test_jsval_mqjs_bindings() {
     printf("- test jsval mqjs bindings\n");
     std::string s;
@@ -136,6 +151,28 @@ void test_jsval_mqjs_bindings() {
     jsvalMqjsExit();
 }
 
+void test_jsval_mqjs_call() {
+    printf("- call\n");
+    jsvalMqjsInit(65536,&js_stdlib);
+    std::string s;
+    JSVAL v;
+
+    jsvalEvalChecked("globalThis.f=function(x,y) { globalThis.x=x; globalThis.y=y }");
+    v=jsvalEvalChecked("globalThis.f");
+
+    JSVAL argv[2];
+    argv[0]=jsvalCreateString("test");
+    argv[1]=jsvalCreateString("test2");
+    jsvalCall(v,jsvalUndefined(),2,argv);
+
+    v=jsvalEvalChecked("globalThis.x");
+    assert(jsvalToStdString(v)=="test");
+    v=jsvalEvalChecked("globalThis.y");
+    assert(jsvalToStdString(v)=="test2");
+
+    jsvalMqjsExit();
+}
+
 int main() {
     printf("Running mquickjs jsval tests...\n");
 
@@ -143,6 +180,7 @@ int main() {
     test_jsval_size();
     test_jsval_mqjs_borrow();
     test_jsval_mqjs_bindings();
+    test_jsval_mqjs_call();
 
     return 0;
 }

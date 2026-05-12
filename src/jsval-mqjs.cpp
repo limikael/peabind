@@ -176,3 +176,15 @@ bool jsvalHasException() {
 void jsvalMqjsSetFinalizingOpaque(void *p) {
     jsvalFinalizingOpaque=p;
 }
+
+JSVAL jsvalCall(JSVAL fn, JSVAL thisobj, int argc, JSVAL *argv) {
+    if (JS_StackCheck(jsvalCtx, argc+2))
+        return jsvalThrow("out of memory");
+
+    for(int i=argc-1; i>=0; i--)
+        JS_PushArg(jsvalCtx,argv[i]);
+
+    JS_PushArg(jsvalCtx,fn);
+    JS_PushArg(jsvalCtx,thisobj);
+    return JS_Call(jsvalCtx,argc);
+}

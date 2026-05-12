@@ -1,6 +1,7 @@
 {
 	"functions": [
-		{"name": "helloadd", "symbolName": "helloaddimpl"}
+		{"name": "helloadd", "symbolName": "helloaddimpl"},
+		{"name": "print", "symbolName": "jsprint"}
 	],
 	"classes": [
 		{
