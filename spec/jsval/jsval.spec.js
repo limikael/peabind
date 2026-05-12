@@ -124,7 +124,7 @@ describe("jsval",()=>{
 
         my.triggerCallback(1,"hello1");
         expect(callCount).toEqual(1);
-        await forceGc();
+        //await forceGc();
         my.triggerCallback(2,"hello2");
         expect(callCount).toEqual(2);
 

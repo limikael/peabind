@@ -88,7 +88,7 @@ static void MyClass_finalizer(JSVAL thisobj) {
 static JSVAL MyClass_setCallback(JSVAL thisobj, int argc, JSVAL *argv) {
 	MyClass *my=(MyClass*)jsvalGetOpaque(thisobj);
 
-	jsvalDup(argv[0]);
+	//jsvalDup(argv[0]);
 	my->callback=argv[0];
 	return 0;
 }

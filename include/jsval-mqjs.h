@@ -43,3 +43,4 @@ void jsvalMqjsInitBorrowed(JSContext *ctx);
 void jsvalMqjsExit();
 void jsvalMqjsSetFinalizingOpaque(void *);
 JSContext *jsvalMqjsGetContext();
+void jsvalQuickjsRunGc();

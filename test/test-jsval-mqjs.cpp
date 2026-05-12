@@ -173,6 +173,34 @@ void test_jsval_mqjs_call() {
     jsvalMqjsExit();
 }
 
+void test_jsval_mqjs_dup() {
+    printf("- dup, i.e. pin a value\n");
+    jsvalMqjsInit(65536,&js_stdlib);
+    std::string s;
+    JSVAL v,f;
+
+    jsvalEvalChecked("globalThis.cnt=0");
+    f=jsvalEvalChecked("(function() { globalThis.cnt++; })");
+    //v=jsvalEvalChecked("globalThis.f=(function() { globalThis.cnt++; }); globalThis.f");
+
+    jsvalCall(f,jsvalUndefined(),0,NULL);
+
+    JSGCRef ref;
+    JS_AddGCRef(jsvalMqjsGetContext(),&ref);
+    ref.val=f;
+    //jsvalDup(v);
+    jsvalQuickjsRunGc();
+    jsvalCall(f,jsvalUndefined(),0,NULL);
+    jsvalCheckException();
+    //jsvalFree(v);
+
+    v=jsvalEvalChecked("globalThis.cnt");
+    s=jsvalToStdString(v);
+    printf("cnt: %s\n",s.c_str());
+    assert(s=="2");
+    jsvalMqjsExit();
+}
+
 int main() {
     printf("Running mquickjs jsval tests...\n");
 
@@ -181,6 +209,7 @@ int main() {
     test_jsval_mqjs_borrow();
     test_jsval_mqjs_bindings();
     test_jsval_mqjs_call();
+    test_jsval_mqjs_dup();
 
     return 0;
 }

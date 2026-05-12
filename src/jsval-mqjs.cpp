@@ -188,3 +188,7 @@ JSVAL jsvalCall(JSVAL fn, JSVAL thisobj, int argc, JSVAL *argv) {
     JS_PushArg(jsvalCtx,thisobj);
     return JS_Call(jsvalCtx,argc);
 }
+
+void jsvalQuickjsRunGc() {
+    JS_GC(jsvalCtx);
+}
