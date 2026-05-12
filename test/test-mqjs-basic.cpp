@@ -75,8 +75,14 @@ void test_mqjs_classes() {
     jsvalEvalChecked("globalThis.simple=new Simple(123);");
     v=jsvalEvalChecked("globalThis.simple.getVal()");
     s=jsvalToStdString(v);
-    //printf("s: %s\n",s.c_str());
     assert(s=="123");
+
+    jsvalEvalChecked("globalThis.simple.on('data',function() { globalThis.dataDispatched='yep' });");
+    jsvalEvalChecked("globalThis.simple.emitData();");
+
+    v=jsvalEvalChecked("globalThis.dataDispatched");
+    s=jsvalToStdString(v);
+    assert(s=="yep");
 
     basic_exit();
     jsvalMqjsExit();

@@ -20,11 +20,12 @@
 		"Simple": {
 			"ctorArgs": ["int"],
 			"methods": {
-				"getVal": {"return": "int"}
+				"getVal": {"return": "int"},
+				"emitData": {},
 			},
-			/*"events": {
+			"events": {
 				"data": {"dispatcher": "dataEvent"}
-			}*/
+			}
 		},
 		"DoesntExist": {
 			"ifdef": "NOTEXIST"

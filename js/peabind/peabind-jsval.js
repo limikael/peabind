@@ -125,14 +125,14 @@ class PeabindJsvalBuilder {
 
         return `
             if (eventName=="${event.name}") {
-                JSVAL cbCopy=jsvalDup(cbVal);
-                int handle=instance->${event.dispatcher}.on([cbCopy](${argDecl}){
+                JSVAL_REF cbRef=jsvalRefCreate(cbVal);
+                int handle=instance->${event.dispatcher}.on([cbRef](${argDecl}){
                     JSVAL params[${event.args.length}];
                     ${event.args.map((a,i)=>`
                         ${this.ts(a).pack(`params[${i}]`,`a${i}`)}
                     `).join("\n")}
                     //Serial.printf("will call handle\\n");
-                    JSVAL res=jsvalCall(cbCopy,jsvalUndefined(),${event.args.length},params);
+                    JSVAL res=jsvalCall(jsvalRefGetValue(cbRef),jsvalUndefined(),${event.args.length},params);
                     if (jsvalHasException()) {
                         //std::string s=jsvalCatchExceptionStdString();
                         //Serial.printf("ev err: %s\\n",s.c_str());
@@ -150,7 +150,7 @@ class PeabindJsvalBuilder {
                 Listener *listener=new Listener(d,handle);
                 listeners.push_back(listener);
                 instance->${event.dispatcher}.setIdInt(handle,cbId);
-                instance->${event.dispatcher}.setDestructor(handle,[cbCopy,listener](){
+                instance->${event.dispatcher}.setDestructor(handle,[cbRef,listener](){
                     //printf("listeer destr... weak exp=%d\\n",instanceWeak.expired());
                     auto it = std::remove(listeners.begin(), listeners.end(), listener);
                     assert(it!=listeners.end());
@@ -164,7 +164,7 @@ class PeabindJsvalBuilder {
                         printf("listener not found!\\n");
                     }
 
-                    jsvalFree(cbCopy);
+                    jsvalRefFree(cbRef);
                 });
             }
         `

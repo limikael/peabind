@@ -231,3 +231,12 @@ JSVAL_ID jsvalGetObjectId(JSVAL obj) {
 
     return jsvalGetInt(idval);
 }
+
+int jsvalInstanceOf(JSVAL v, JSVAL cls) {
+    return (JS_GetClassID(jsvalCtx,v)==jsvalGetInt(cls));
+
+    //printf("instanceof v...%d\n",JS_GetClassID(jsvalCtx,v));
+    //printf("instanceof cls...%d\n",jsvalGetInt(cls));
+    //abort();
+    //return 0;
+}

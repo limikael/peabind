@@ -31,7 +31,7 @@ export async function peabindMqjs({idl, includePath, sources, output, prefix}) {
             });
         }),
         classes: builder.idl.classes.map(cls=>{
-            return ({
+            let clsSpec={
                 ifdef: cls.ifdef,
                 name: cls.name,
                 constructor: builder.prefix+cls.name+"_constructor",
@@ -43,7 +43,14 @@ export async function peabindMqjs({idl, includePath, sources, output, prefix}) {
                         symbolName: builder.prefix+cls.name+"_"+m.name
                     })
                 })
-            });
+            };
+
+            if (cls.events.length) {
+                clsSpec.methods.push({name: "on",symbolName: builder.prefix+cls.name+"_on"});
+                clsSpec.methods.push({name: "off",symbolName: builder.prefix+cls.name+"_off"});
+            }
+
+            return clsSpec;
         })
     });
 
@@ -61,11 +68,20 @@ export async function peabindMqjs({idl, includePath, sources, output, prefix}) {
         static JSVAL lock;
         static bool owned;
 
+        static void init_class_ids() {
+            ${builder.idl.classes.map(cls=>`
+                ${builder.prefix}${cls.name}_id=jsvalCreateInt(${cls.name}_CLASS_ID);
+            `).join("\n")}
+
+            //printf("init class ids\\n");
+        }
+
         void ${builder.prefix}init(JSContext *ctx) {
             jsvalMqjsInitBorrowed(ctx);
             owned=true;
             ${builder.prefix}initmod(jsvalGetGlobal());
             lock=jsvalEval("String(1337)");
+            init_class_ids();
         }
 
         void ${builder.prefix}init_jsval() {
@@ -73,6 +89,7 @@ export async function peabindMqjs({idl, includePath, sources, output, prefix}) {
             owned=false;
             ${builder.prefix}initmod(jsvalGetGlobal());
             lock=jsvalEval("String(1337)");
+            init_class_ids();
         }
 
         void ${builder.prefix}exit() {

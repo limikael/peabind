@@ -119,13 +119,9 @@ public:
 
 class Simple {
 public:
-	Simple(int v_) {
-		v=v_;
-	}
-
-	int getVal() {
-		return v;
-	}
+	Simple(int v_) { v=v_; }
+	int getVal() { return v; }
+	void emitData() { dataEvent.emit(); }
 
 	Dispatcher<> dataEvent;
 	int v;
