@@ -199,6 +199,23 @@ void test_jsval_mqjs_dup() {
     jsvalMqjsExit();
 }
 
+void test_jsval_mqjs_id() {
+    printf("- can have object ids.\n");
+    jsvalMqjsInit(65536,&js_stdlib);
+
+    JSVAL h1=jsvalEvalChecked("new Hello()");
+    JSVAL h2=jsvalEvalChecked("new Hello()");
+
+    JSVAL_ID h1id=jsvalGetObjectId(h1);
+    JSVAL_ID h2id=jsvalGetObjectId(h2);
+
+    assert(h1id==jsvalGetObjectId(h1));
+    assert(h2id==jsvalGetObjectId(h2));
+    assert(jsvalGetObjectId(h1)!=jsvalGetObjectId(h2));
+
+    jsvalMqjsExit();
+}
+
 int main() {
     printf("Running mquickjs jsval tests...\n");
 
@@ -208,6 +225,7 @@ int main() {
     test_jsval_mqjs_bindings();
     test_jsval_mqjs_call();
     test_jsval_mqjs_dup();
+    test_jsval_mqjs_id();
 
     return 0;
 }

@@ -9,6 +9,8 @@ static bool jsvalCtxBorrowed;
 static bool jsvalSeenException;
 void *jsvalMem=NULL;
 void *jsvalFinalizingOpaque=NULL;
+int jsvalRefCount=0;
+int jsvalNextId=1;
 
 void jsvalMqjsInitBorrowed(JSContext *ctx) {
     assert(jsvalCtx==NULL);
@@ -16,6 +18,8 @@ void jsvalMqjsInitBorrowed(JSContext *ctx) {
     jsvalSeenException=false;
     jsvalCtx=ctx;
     jsvalFinalizingOpaque=NULL;
+    jsvalRefCount=0;
+    jsvalNextId=1;
 }
 
 void jsvalMqjsInit(size_t memsize, const JSSTDLibraryDef *stdlib_def) {
@@ -25,10 +29,14 @@ void jsvalMqjsInit(size_t memsize, const JSSTDLibraryDef *stdlib_def) {
     jsvalMem=malloc(memsize);
     jsvalCtx=JS_NewContext(jsvalMem,memsize,stdlib_def);
     jsvalFinalizingOpaque=NULL;
+    jsvalRefCount=0;
+    jsvalNextId=1;
 }
 
 void jsvalMqjsExit() {
     assert(jsvalCtx!=NULL);
+    assert(jsvalRefCount==0);
+
     if (!jsvalCtxBorrowed) {
         JS_FreeContext(jsvalCtx);
         free(jsvalMem);
@@ -197,6 +205,7 @@ JSVAL_REF jsvalRefCreate(JSVAL v) {
     JSGCRef *gcRef=(JSGCRef *)malloc(sizeof(JSGCRef));
     JS_AddGCRef(jsvalCtx,gcRef);
     gcRef->val=v;
+    jsvalRefCount++;
 
     return gcRef;
 }
@@ -205,9 +214,20 @@ void jsvalRefFree(JSVAL_REF ref) {
     JSGCRef *gcRef=ref;
     JS_DeleteGCRef(jsvalCtx,gcRef);
     free(gcRef);
+    jsvalRefCount--;
 }
 
 JSVAL jsvalRefGetValue(JSVAL_REF ref) {
     JSGCRef *gcRef=ref;
     return gcRef->val;
+}
+
+JSVAL_ID jsvalGetObjectId(JSVAL obj) {
+    JSVAL idval=JS_GetPropertyStr(jsvalCtx,obj,"__jsval_id");
+    if (JS_IsUndefined(idval)) {
+        idval=jsvalCreateInt(jsvalNextId++);
+        JS_SetPropertyStr(jsvalCtx,obj,"__jsval_id",idval);
+    }
+
+    return jsvalGetInt(idval);
 }

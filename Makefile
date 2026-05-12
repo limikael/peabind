@@ -1,7 +1,7 @@
 #	./ext/mquickjs-main/mqjs_stdlib > lab/js_stdlib.out.h
-.PHONY: mqjslab test-quickjs test-mquickjs test test-jsval-mqjs
+.PHONY: mqjslab test-quickjs test-mqjs test test-jsval-mqjs
 
-test: test-quickjs test-jsval-mqjs test-mquickjs
+test: test-quickjs test-jsval-mqjs test-mqjs
 
 test-jsval-mqjs:
 	rm -f vgcore.*
@@ -29,7 +29,7 @@ test-jsval-mqjs:
 		--errors-for-leak-kinds=all \
 		./bin/test-jsval-mqjs
 
-test-mquickjs:
+test-mqjs:
 	rm -f vgcore.*
 	rm -f test/*.out.*
 	peabind -otest/basic.out.cpp \
