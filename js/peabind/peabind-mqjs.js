@@ -112,8 +112,6 @@ export async function peabindMqjs({idl, includePath, sources, output, prefix}) {
         extern "C" void ${builder.prefix}exit();
         extern "C" int ${builder.prefix}get_num_objects();
         extern "C" int ${builder.prefix}get_num_listeners();
-        extern "C" int ${builder.prefix}get_num_listeners();
-        extern "C" int ${builder.prefix}get_num_listeners();
         extern "C" const JSSTDLibraryDef *${builder.prefix}get_stdlib();
     `);
     fs.writeFileSync(headerOutput,headerContent);
