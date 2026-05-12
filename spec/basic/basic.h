@@ -116,3 +116,16 @@ public:
 	ExtendHello(): Hello(888) {
 	}
 };
+
+class Simple {
+public:
+	Simple(int v_) {
+		v=v_;
+	}
+
+	int getVal() {
+		return v;
+	}
+
+	int v;
+};

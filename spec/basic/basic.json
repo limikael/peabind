@@ -17,6 +17,12 @@
 		"doesntExist": {"return": "int", "ifdef": "NOTEXIST"}
 	},
 	"classes": {
+		"Simple": {
+			"ctorArgs": ["int"],
+			"methods": {
+				"getVal": {"return": "int"}
+			}
+		},
 		"DoesntExist": {
 			"ifdef": "NOTEXIST"
 		},

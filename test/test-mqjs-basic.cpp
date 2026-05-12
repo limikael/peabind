@@ -70,25 +70,13 @@ void test_mqjs_classes() {
     jsvalMqjsInit(MEMSIZE,basic_get_stdlib());
     basic_init_jsval();
     std::string s;
+    JSVAL v;
 
-    //jsvalEvalChecked("i think this will crash");
-
-    jsvalEvalChecked("globalThis.hello=new Hello(123);");
-    //jsvalEvalChecked("hello(123,456)");
-    //jsvalEvalChecked("new Object()");
-    s=jsvalToStdString(jsvalEvalChecked("String(Object)"));
-    printf("Object: %s\n",s.c_str());
-    s=jsvalToStdString(jsvalEvalChecked("String(Hello)"));
-    printf("Hello: %s\n",s.c_str());
-
-    jsvalEvalChecked("globalThis.hello=new Hello(123);");
-    //printf("Hello: %s\n",s.c_str());
-
-    /*s=jsvalToStdString(jsvalEval("globalThis.hello.getVal()"));
-    printf("s: %s\n",s.c_str());*/
-    /*jsvalEval("globalThis.hello='123'");
-    s=jsvalToStdString(jsvalEval("globalThis.x.y.z"));
-    assert(s=="123");*/
+    jsvalEvalChecked("globalThis.simple=new Simple(123);");
+    v=jsvalEvalChecked("globalThis.simple"); //.getVal()");
+    s=jsvalToStdString(v);
+    printf("s: %s\n",s.c_str());
+    //assert(s=="123");*/
 
     basic_exit();
     jsvalMqjsExit();
@@ -100,7 +88,7 @@ int main() {
     test_mqjs_basic();
     test_mqjs_basic_jsval();
     test_mqjs_types();
-    //test_mqjs_classes();
+    test_mqjs_classes();
 
     return 0;
 }
