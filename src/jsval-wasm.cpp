@@ -95,3 +95,17 @@ void jsvalNotifyFinalize(JSVAL clsid, JSVAL oid) {
 JSVAL_ID jsvalGetObjectId(JSVAL v) {
 	return v;
 }
+
+JSVAL_REF jsvalRefCreate(JSVAL v) {
+	jsvalDup(v);
+	return new JsvalRef(v);
+}
+
+void jsvalRefFree(JSVAL_REF ref) {
+	jsvalFree(ref->value);
+	delete ref;
+}
+
+JSVAL jsvalRefGetValue(JSVAL_REF ref) {
+	return ref->value;
+}

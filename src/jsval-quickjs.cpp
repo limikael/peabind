@@ -386,3 +386,17 @@ JSVAL jsvalThrow(const char *s) {
     jsvalSetProp(err,"message",msg);
     return JS_Throw(jsvalCtx,err);
 }
+
+JSVAL_REF jsvalRefCreate(JSVAL v) {
+    JSVAL dup=jsvalDup(v);
+    return new JsvalRef(dup);
+}
+
+void jsvalRefFree(JSVAL_REF ref) {
+    jsvalFree(ref->value);
+    delete ref;
+}
+
+JSVAL jsvalRefGetValue(JSVAL_REF ref) {
+    return ref->value;
+}

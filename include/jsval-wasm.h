@@ -5,9 +5,16 @@
 
 typedef int JSVAL;
 
+class JsvalRef {
+public:
+    JsvalRef(JSVAL value_) { value=value_; };
+    JSVAL value;
+};
+
 typedef JSVAL JSVAL_FUNC(JSVAL thisobj, int argc, JSVAL *argv);
 typedef void JSVAL_FINALIZER(JSVAL thisobj);
 typedef uint64_t JSVAL_ID;
+typedef JsvalRef *JSVAL_REF;
 
 #define JS_IMPORT(name) \
     __attribute__((import_module("env"), import_name(#name))) \
@@ -55,6 +62,9 @@ void *jsvalGetOpaque(JSVAL v);
 void jsvalNotifyFinalize(JSVAL clsid, JSVAL oid);
 void jsvalSetClassFinalizer(JSVAL clsid, JSVAL_FINALIZER *f);
 JSVAL_ID jsvalGetObjectId(JSVAL v);
+JSVAL_REF jsvalRefCreate(JSVAL v);
+void jsvalRefFree(JSVAL_REF ref);
+JSVAL jsvalRefGetValue(JSVAL_REF ref);
 
 }
 

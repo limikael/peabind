@@ -10,6 +10,13 @@ extern "C" {
 
 typedef JSValue JSVAL;
 
+class JsvalRef {
+public:
+    JsvalRef(JSVAL value_) { value=value_; };
+    JSVAL value;
+};
+
+typedef JsvalRef *JSVAL_REF;
 typedef JSVAL JSVAL_FUNC(JSVAL thisobj, int argc, JSVAL *argv);
 typedef void JSVAL_FINALIZER(JSVAL thisobj);
 typedef uint64_t JSVAL_ID;
@@ -46,6 +53,9 @@ JSVAL jsvalCatchException();
 JSVAL jsvalToString(JSVAL s);
 JSVAL jsvalThrow(const char *s);
 int jsvalInstanceOf(JSVAL v, JSVAL cls);
+JSVAL_REF jsvalRefCreate(JSVAL v);
+void jsvalRefFree(JSVAL_REF ref);
+JSVAL jsvalRefGetValue(JSVAL_REF ref);
 
 JSVAL jsvalFromQuickjs(JSValue val);
 JSValue jsvalToQuickjs(JSVAL val);

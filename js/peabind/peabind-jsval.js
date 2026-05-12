@@ -132,6 +132,7 @@ class PeabindJsvalBuilder {
                         ${this.ts(a).pack(`params[${i}]`,`a${i}`)}
                     `).join("\n")}
                     //Serial.printf("will call handle\\n");
+                    //printf("will call...\\n");
                     JSVAL res=jsvalCall(jsvalRefGetValue(cbRef),jsvalUndefined(),${event.args.length},params);
                     if (jsvalHasException()) {
                         //std::string s=jsvalCatchExceptionStdString();
