@@ -10,11 +10,11 @@
 		"createHello": {"return":"Hello"},
 		"setHelloVal": {"args": ["Hello","int"]},
 		"getHelloVal": {"args": ["Hello"], "return": "int"},
-		/*"getLiveHelloCount": {"return": "int", "ifdef": "FULLTEST"},
-		"removeHello": {"ifdef": "FULLTEST"},
+		"getLiveHelloCount": {"return": "int"},
+		"removeHello": {},
 		"createBuffer": {"return": "buffer", "ifdef": "FULLTEST"},
 		"peekBuffer": {"return": "int", "args":["buffer","int"], "ifdef": "FULLTEST"},
-		"doesntExist": {"return": "int", "ifdef": "NOTEXIST"}*/
+		"doesntExist": {"return": "int", "ifdef": "NOTEXIST"}
 	},
 	"classes": {
 		"Simple": {
@@ -47,7 +47,7 @@
 				"dataString": {"args": ["string"]},
 			}
 		},
-		/*"DoesntExist": {
+		"DoesntExist": {
 			"ifdef": "NOTEXIST"
 		},
 		"WithPrivateCtor": {
@@ -66,10 +66,10 @@
 				"getTheVal": {"return": "int"},
 				"getTheStaticVal": {"return": "int", "static": true}
 			}
-		},*/
-		/*"ExtendHello": {
+		},
+		"ExtendHello": {
 			"ifdef": "FULLTEST",
 			"extends": "Hello"
-		}*/
+		}
 	}
 }
