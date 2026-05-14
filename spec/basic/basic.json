@@ -47,11 +47,10 @@
 				"dataString": {"args": ["string"]},
 			}
 		},
-		"DoesntExist": {
-			"ifdef": "NOTEXIST"
+		"ExtendHello": {
+			"extends": "Hello"
 		},
 		"WithPrivateCtor": {
-			"ifdef": "FULLTEST",
 			"constructible": false,
 			"methods": {
 				"getNullish": {"return": "WithPrivateCtor", "static": true},
@@ -60,16 +59,14 @@
 			}
 		},
 		"Namespaced": {
-			"ifdef": "FULLTEST",
 			"namespace": "mynamespace",
 			"methods": {
 				"getTheVal": {"return": "int"},
 				"getTheStaticVal": {"return": "int", "static": true}
 			}
 		},
-		"ExtendHello": {
-			"ifdef": "FULLTEST",
-			"extends": "Hello"
-		}
+		"DoesntExist": {
+			"ifdef": "NOTEXIST"
+		},
 	}
 }

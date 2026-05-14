@@ -140,9 +140,9 @@ export async function jsvalMqjsStdlibgen({output, functions, classes}) {
 
     let content=autoIndent(`
 		#define JS_CLASS_COUNT (JS_CLASS_USER+${classes.length})
-    	${classes.map((cls,index)=>`
+    	${classes.map((cls,index)=>ifdefWrap(cls.ifdef,`
     		#define ${cls.name}_CLASS_ID (JS_CLASS_USER+${index})
-    	`).join("\n")}
+    	`)).join("\n")}
     	${generateStubs({functions, classes})}
     	#ifdef __cplusplus
     	extern "C" {
