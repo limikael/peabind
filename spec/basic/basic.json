@@ -12,8 +12,8 @@
 		"getHelloVal": {"args": ["Hello"], "return": "int"},
 		"getLiveHelloCount": {"return": "int"},
 		"removeHello": {},
-		"createBuffer": {"return": "buffer", "ifdef": "FULLTEST"},
-		"peekBuffer": {"return": "int", "args":["buffer","int"], "ifdef": "FULLTEST"},
+		"createBuffer": {"return": "buffer"},
+		"peekBuffer": {"return": "int", "args":["buffer","int"]},
 		"doesntExist": {"return": "int", "ifdef": "NOTEXIST"}
 	},
 	"classes": {

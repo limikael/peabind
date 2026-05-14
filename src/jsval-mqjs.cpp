@@ -1,4 +1,7 @@
 #include "jsval-mqjs.h"
+extern "C" {
+#include "mquickjs_priv.h"
+}
 #include <cassert>
 #include <cstdlib>
 #include <cstring>
@@ -87,13 +90,9 @@ int jsvalGetSize(JSVAL value) {
         return strlen(tmp);
     }
 
-    /*if (JS_IsInstanceOf(jsvalCtx,value,Uint8Array_ctor)) {
-        size_t offs,len,perElem;
-        JSValue buf=JS_GetTypedArrayBuffer(jsvalCtx,value,&offs,&len,&perElem);
-        JS_FreeValue(jsvalCtx,buf);
-        //printf("yep it is, size=%d\n",byte_length);
-        return len;
-    }*/
+    if (JS_GetClassID(jsvalCtx,value)==JS_CLASS_UINT8_ARRAY) {
+        return jsvalGetInt(JS_GetPropertyStr(jsvalCtx,value,"length"));
+    }
 
     return -1;
 }
@@ -126,7 +125,17 @@ JSVAL jsvalToString(JSVAL s) {
 }
 
 void *jsvalReadBuffer(JSVAL v, void *buf) {
-    assert(0 && "fix buffer!!!");
+    size_t sz=jsvalGetSize(v);
+    uint8_t *ubuf=(uint8_t *)buf;
+
+    //printf("read size: %d\n",sz);
+
+    for (size_t c=0; c<sz; c++) {
+        uint8_t b=jsvalGetInt(JS_GetPropertyUint32(jsvalCtx,v,c));
+        ubuf[c]=b;
+    }
+
+    return buf;
 }
 
 JSVAL jsvalCatchException() {
@@ -257,4 +266,27 @@ void jsvalSetProp(JSVAL obj, const char *prop, JSVAL val) {
 
 JSVAL jsvalGetProp(JSVAL obj, const char *prop) {
     return JS_GetPropertyStr(jsvalCtx,obj,prop);
+}
+
+JSVAL jsvalCreateBuffer(uint8_t *data, size_t size) {
+    JSValue argv[1];
+    argv[0] = JS_NewInt32(jsvalCtx, size);
+    JSValue buf = js_typed_array_constructor(
+        jsvalCtx,
+        NULL,       // this_val
+        1 | FRAME_CF_CTOR,
+        argv,
+        JS_CLASS_UINT8_ARRAY
+    );
+
+    for (size_t i=0; i<size; i++) {
+        JS_SetPropertyUint32(
+            jsvalCtx,
+            buf,
+            (uint32_t)i,
+            JS_NewInt32(jsvalCtx, data[i])
+        );
+    }
+
+    return buf;
 }

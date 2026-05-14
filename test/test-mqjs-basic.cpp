@@ -111,6 +111,44 @@ void test_mqjs_objects() {
     jsvalMqjsExit();
 }
 
+void test_mqjs_buffers() {
+    printf("- buffers\n");
+    jsvalMqjsInit(MEMSIZE,basic_get_stdlib());
+    basic_init_jsval();
+    std::string s;
+    JSVAL v;
+    uint8_t u[16];
+
+    v=jsvalEvalChecked("globalThis.b=createBuffer(); globalThis.b");
+    s=jsvalToStdString(v);
+    //printf("created: %s\n",s.c_str());
+    assert(s=="11,22,33,44,55,66,77,88,99,0");
+
+    /*v=jsvalEvalChecked("globalThis.v=new Uint8Array([1,2,3,4,5])");
+    s=jsvalToStdString(jsvalEvalChecked("globalThis.v[0]"));
+    //printf("v1: %s\n",s.c_str());
+    s=jsvalToStdString(jsvalEvalChecked("globalThis.v[1]"));
+    //printf("v2: %s\n",s.c_str());
+
+    for (int c=0; c<jsvalGetSize(v); c++) {
+        printf("i: %d\n",jsvalGetInt(JS_GetPropertyUint32(jsvalMqjsGetContext(),v,c)));
+    }
+
+    jsvalReadBuffer(v,u);*/
+
+    v=jsvalEvalChecked("peekBuffer(globalThis.b,2)");
+    s=jsvalToStdString(v);
+    //printf("read: %s\n",s.c_str());
+    assert(s=="33");
+
+    v=jsvalEvalChecked("peekBuffer(globalThis.b,4)");
+    s=jsvalToStdString(v);
+    assert(s=="55");
+
+    basic_exit();
+    jsvalMqjsExit();
+}
+
 int main() {
     printf("Running mquickjs tests...\n");
 
@@ -119,6 +157,7 @@ int main() {
     test_mqjs_types();
     test_mqjs_classes();
     test_mqjs_objects();
+    test_mqjs_buffers();
 
     return 0;
 }

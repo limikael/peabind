@@ -37,6 +37,7 @@ JSVAL jsvalCatchException();
 float jsvalGetFloat(JSVAL o);
 JSVAL jsvalCreateFloat(float f);
 JSVAL jsvalCreateString(const char *s);
+JSVAL jsvalCreateBuffer(uint8_t *data, size_t size);
 JSVAL jsvalUndefined();
 bool jsvalHasException();
 JSVAL jsvalCall(JSVAL fn, JSVAL thisobj, int argc, JSVAL *argv);
