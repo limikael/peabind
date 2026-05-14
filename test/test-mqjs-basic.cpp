@@ -88,6 +88,29 @@ void test_mqjs_classes() {
     jsvalMqjsExit();
 }
 
+void test_mqjs_objects() {
+    printf("- objects\n");
+    jsvalMqjsInit(MEMSIZE,basic_get_stdlib());
+    basic_init_jsval();
+    std::string s;
+    JSVAL v;
+
+    jsvalEvalChecked("globalThis.h=createHello();");
+    v=jsvalEvalChecked("globalThis.h.getVal()");
+    s=jsvalToStdString(v);
+    assert(s=="666");
+
+    jsvalEvalChecked("setHelloVal(globalThis.h,555)");
+    v=jsvalEvalChecked("globalThis.h.getVal()");
+    assert(jsvalToStdString(v)=="555");
+
+    v=jsvalEvalChecked("getHelloVal(globalThis.h)");
+    assert(jsvalToStdString(v)=="555");
+
+    basic_exit();
+    jsvalMqjsExit();
+}
+
 int main() {
     printf("Running mquickjs tests...\n");
 
@@ -95,6 +118,7 @@ int main() {
     test_mqjs_basic_jsval();
     test_mqjs_types();
     test_mqjs_classes();
+    test_mqjs_objects();
 
     return 0;
 }

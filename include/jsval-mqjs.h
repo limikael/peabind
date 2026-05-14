@@ -28,6 +28,7 @@ void *jsvalGetOpaque(JSVAL jsval);
 JSVAL jsvalCreateObject(JSVAL classId);
 int jsvalGetInt(JSVAL v);
 void jsvalSetProp(JSVAL obj, const char *prop, JSVAL val);
+JSVAL jsvalGetProp(JSVAL obj, const char *prop);
 void jsvalSetOpaque(JSVAL jsval, void *opaque);
 JSVAL jsvalThrow(const char *s);
 JSVAL jsvalToString(JSVAL s);

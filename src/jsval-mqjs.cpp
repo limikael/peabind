@@ -233,10 +233,28 @@ JSVAL_ID jsvalGetObjectId(JSVAL obj) {
 }
 
 int jsvalInstanceOf(JSVAL v, JSVAL cls) {
-    return (JS_GetClassID(jsvalCtx,v)==jsvalGetInt(cls));
+    int classId=jsvalGetInt(jsvalGetProp(cls,"__classId"));
+    return (JS_GetClassID(jsvalCtx,v)==classId);
 
     //printf("instanceof v...%d\n",JS_GetClassID(jsvalCtx,v));
-    //printf("instanceof cls...%d\n",jsvalGetInt(cls));
+    //printf("instanceof cls...%d\n",classId);
     //abort();
     //return 0;
+}
+
+JSVAL jsvalCreateObject(JSVAL cls) {
+    if (JS_IsUndefined(cls))
+        return JS_NewObject(jsvalCtx);
+
+    int classId=jsvalGetInt(jsvalGetProp(cls,"__classId"));
+    assert(classId);
+    return JS_NewObjectClassUser(jsvalCtx,classId);
+}
+
+void jsvalSetProp(JSVAL obj, const char *prop, JSVAL val) {
+    JS_SetPropertyStr(jsvalCtx,obj,prop,val);
+}
+
+JSVAL jsvalGetProp(JSVAL obj, const char *prop) {
+    return JS_GetPropertyStr(jsvalCtx,obj,prop);
 }

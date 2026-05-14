@@ -70,10 +70,9 @@ export async function peabindMqjs({idl, includePath, sources, output, prefix}) {
 
         static void init_class_ids() {
             ${builder.idl.classes.map(cls=>`
-                ${builder.prefix}${cls.name}_id=jsvalCreateInt(${cls.name}_CLASS_ID);
+                ${builder.prefix}${cls.name}_id=jsvalCreateObject(jsvalUndefined());
+                jsvalSetProp(${builder.prefix}${cls.name}_id,"__classId",jsvalCreateInt(${cls.name}_CLASS_ID));
             `).join("\n")}
-
-            //printf("init class ids\\n");
         }
 
         void ${builder.prefix}init(JSContext *ctx) {
