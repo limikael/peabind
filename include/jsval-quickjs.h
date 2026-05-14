@@ -45,7 +45,7 @@ void jsvalFree(JSVAL val);
 char *jsvalReadString(JSVAL s, char *dest);
 void *jsvalReadBuffer(JSVAL v, void *buf);
 JSVAL jsvalCreateString(const char *s);
-JSVAL jsvalDup(JSVAL v);
+//JSVAL jsvalDup(JSVAL v);
 JSVAL jsvalCall(JSVAL fn, JSVAL thisobj, int argc, JSVAL *argv);
 JSVAL_ID jsvalGetObjectId(JSVAL v);
 bool jsvalHasException();

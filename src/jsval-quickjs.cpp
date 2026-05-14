@@ -350,12 +350,12 @@ JSVAL jsvalCreateString(const char *s) {
     return JS_NewString(jsvalCtx,s);
 }
 
-JSVAL jsvalDup(JSVAL v) {
+/*JSVAL jsvalDup(JSVAL v) {
     JSVAL dup=JS_DupValue(jsvalCtx,v);
     //assert(dup==v);
 
     return dup;
-}
+}*/
 
 JSVAL jsvalCall(JSVAL fn, JSVAL thisobj, int argc, JSVAL *argv) {
     return JS_Call(jsvalCtx,fn,thisobj,argc,argv);
@@ -388,7 +388,7 @@ JSVAL jsvalThrow(const char *s) {
 }
 
 JSVAL_REF jsvalRefCreate(JSVAL v) {
-    JSVAL dup=jsvalDup(v);
+    JSVAL dup=JS_DupValue(jsvalCtx,v);
     return new JsvalRef(dup);
 }
 
