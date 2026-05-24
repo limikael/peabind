@@ -3,6 +3,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cassert>
+#include <vector>
+#include <memory>
 
 #ifdef ARDUINO
 #include <Arduino.h>
@@ -17,6 +19,47 @@ static int nextFunctionId=1;
 static JSVAL jsvalGlobal;
 static JSValue Uint8Array_ctor;
 
+class PromiseRejection {
+public:
+    PromiseRejection(JSValue promise_, JSValue reason_) {
+        //printf("ctor...\n");
+        promise=JS_DupValue(jsvalCtx,promise_);
+        reason=JS_DupValue(jsvalCtx,reason_);
+    }
+
+    ~PromiseRejection() {
+        //printf("dtor...\n");
+        JS_FreeValue(jsvalCtx,promise);
+        JS_FreeValue(jsvalCtx,reason);
+    }
+
+    JSValue promise;
+    JSValue reason;
+};
+
+static std::vector<std::shared_ptr<PromiseRejection>> promiseRejections;
+static JSVAL promiseRejection;
+
+void jsvalPromiseRejectionTracker(JSContext *ctx,
+        JSValueConst promise, JSValueConst reason, JS_BOOL is_handled, void *opaque) {
+    if (is_handled) {
+        for (auto it=promiseRejections.begin(); it!=promiseRejections.end(); ) {
+            if (JS_StrictEq(ctx,(*it)->promise,promise)) {
+                it=promiseRejections.erase(it);
+            }
+
+            else {
+                it++;
+            }
+        }
+    }
+
+    else {
+        auto p=std::make_shared<PromiseRejection>(promise,reason);
+        promiseRejections.push_back(p);
+    }
+}
+
 void jsvalQuickjsRunJobs() {
     assert(jsvalCtx!=NULL);
     JSRuntime *rt=JS_GetRuntime(jsvalCtx);
@@ -24,20 +67,28 @@ void jsvalQuickjsRunJobs() {
     int ret=1;
 
     while (ret>0) {
+        //printf("running pending...\n");
         ret=JS_ExecutePendingJob(rt, &tmpctx);
+        //printf("JS_ExecutePendingJob: %d\n",ret);
+
         if (ret) {
             //Serial.printf("execute pending: %d\n",ret);
         }
 
         if (ret<0) {
-            JSValue ex=JS_GetException(tmpctx);
-            const char *s=JS_ToCString(tmpctx, ex);
-            if (s) {
-                //Serial.printf("Unhandled promise rejection: %s\n",s);
-                JS_FreeCString(tmpctx,s);
+            //Serial.printf("execute pending: %d\n",ret);
+            return;
+        }
+
+        if (ret==0) {
+            if (promiseRejections.size()) {
+                if (!JS_IsUndefined(promiseRejection))
+                    JS_FreeValue(jsvalCtx,promiseRejection);
+
+                //printf("rejected promises: %d\n",promiseRejections.size());
+                promiseRejection=JS_DupValue(jsvalCtx,promiseRejections[0]->reason);
+                promiseRejections.clear();
             }
-            JS_FreeValue(tmpctx,ex);
-            break;
         }
     }
 }
@@ -48,6 +99,10 @@ void jsvalQuickjsInitBorrowed(JSContext *ctx) {
     jsvalCtx=ctx;
     jsvalGlobal=JS_GetGlobalObject(jsvalCtx);
     Uint8Array_ctor=JS_GetPropertyStr(jsvalCtx,jsvalGlobal,"Uint8Array");
+
+    promiseRejection=JS_UNDEFINED;
+    JSRuntime *rt=JS_GetRuntime(jsvalCtx);
+    JS_SetHostPromiseRejectionTracker(rt,jsvalPromiseRejectionTracker,NULL);
 }
 
 void jsvalQuickjsInit() {
@@ -58,10 +113,17 @@ void jsvalQuickjsInit() {
     jsvalCtx=JS_NewContext(rt);
     jsvalGlobal=JS_GetGlobalObject(jsvalCtx);
     Uint8Array_ctor=JS_GetPropertyStr(jsvalCtx,jsvalGlobal,"Uint8Array");
+
+    promiseRejection=JS_UNDEFINED;
+    JS_SetHostPromiseRejectionTracker(rt,jsvalPromiseRejectionTracker,NULL);
 }
 
 void jsvalQuickjsExit() {
     assert(jsvalCtx!=NULL);
+    if (!JS_IsUndefined(promiseRejection))
+        JS_FreeValue(jsvalCtx,promiseRejection);
+
+    promiseRejection=JS_UNDEFINED;
     functions.clear();
     nextFunctionId=1;
     JSRuntime *rt=JS_GetRuntime(jsvalCtx);
@@ -72,6 +134,7 @@ void jsvalQuickjsExit() {
         JS_FreeRuntime(rt);
     }
     jsvalCtx=NULL;
+    promiseRejections.clear();
 }
 
 JSContext *jsvalQuickjsGetContext() {
@@ -368,10 +431,20 @@ JSVAL_ID jsvalGetObjectId(JSVAL v) {
 }
 
 bool jsvalHasException() {
+    if (!JS_IsUndefined(promiseRejection))
+        return true;
+
     return JS_HasException(jsvalCtx);
 }
 
 JSVAL jsvalCatchException() {
+    if (!JS_IsUndefined(promiseRejection)) {
+        JSValue p=promiseRejection;
+        promiseRejection=JS_UNDEFINED;
+
+        return p;
+    }
+
     return JS_GetException(jsvalCtx);
 }
 

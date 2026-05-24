@@ -15,6 +15,7 @@ void test_throw_exceptions();
 void test_refactor_obj();
 void test_static_methods();
 void test_wrong_type();
+void test_microtasks();
 
 int main() {
 	printf("Running tests...\n");
@@ -27,6 +28,7 @@ int main() {
 	test_jsval_classid();
 	test_exceptions();
 	test_throw_exceptions();
+	test_microtasks();
 	test_basic();
 	test_buffers();
 	test_events();

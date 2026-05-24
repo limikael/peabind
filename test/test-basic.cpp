@@ -372,3 +372,34 @@ void test_borrowed_context() {
     JS_FreeContext(ctx);
     JS_FreeRuntime(rt);
 }
+
+void test_microtasks() {
+    printf("- microtasks...\n");
+    jsvalQuickjsInit();
+    basic_init_jsval();
+    JSVAL v;
+
+    jsvalEval("Promise.reject('bla').catch(()=>{}); undefined");
+    for (int i=0; i<10; i++)
+        jsvalQuickjsRunJobs();
+
+    assert(!jsvalHasException());
+
+    jsvalEval("globalThis.p=new Promise((res,rej)=>{globalThis.res=res; globalThis.rej=rej; }); undefined");
+    jsvalEval("globalThis.rej('bla'); undefined");
+    for (int i=0; i<10; i++)
+        jsvalQuickjsRunJobs();
+
+    /*assert(jsvalHasException());
+    std::string e=jsvalCatchExceptionStdString();
+    assert(e=="bla");
+
+    jsvalEval("globalThis.p=new Promise((res,rej)=>{globalThis.res=res; globalThis.rej=rej; }); undefined");
+    jsvalEval("globalThis.p.catch(()=>{}); undefined");
+    jsvalEval("globalThis.rej('bla'); undefined");
+    assert(!jsvalHasException());*/
+
+    basic_exit();
+    jsvalQuickjsExit();
+    //printf("microtasks done...\n");
+}
