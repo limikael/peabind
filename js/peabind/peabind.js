@@ -97,6 +97,39 @@ export function peabindGetLibConf(key, opts={}) {
 			return "-I"+path.join(__dirname,"../../include");
 			break;
 
+		case "vendor-cargs":
+			switch (target) {
+				case "quickjs":
+					/*return ([
+						path.join(__dirname,"../../ext/quickjs-2025-09-13/cutils.c"),
+						path.join(__dirname,"../../ext/quickjs-2025-09-13/dtoa.c"),
+						path.join(__dirname,"../../ext/quickjs-2025-09-13/libregexp.c"),
+						path.join(__dirname,"../../ext/quickjs-2025-09-13/libunicode.c"),
+						path.join(__dirname,"../../ext/quickjs-2025-09-13/quickjs.c"),
+						path.join(__dirname,"../../ext/quickjs-2025-09-13/unicode_gen.c"),
+						"-I"+path.join(__dirname,"../../ext/quickjs-2025-09-13")
+					]);*/
+					return ([
+						path.join(__dirname,"../../ext/quickjs-2025-09-13/libquickjs.a"),
+						"-I"+path.join(__dirname,"../../ext/quickjs-2025-09-13")
+					]);
+
+					break;
+
+				case "mqjs":
+					throw new Error("unimpl");
+					break;
+
+				case "wasm":
+					throw new Error("why on earth would you need that?");
+					return [];
+					break;
+
+				default:
+					throw new Error("vendor-cargs needs target");
+			}
+			break;
+
 		default:
 			throw new Error("Unknown conf key: "+key);
 	}
