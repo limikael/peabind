@@ -5,13 +5,15 @@
 
 std::string jsvalToStdString(JSVAL o) {
     JSVAL val=jsvalToString(o);
-    jsvalFree(o);
+    //jsvalFree(o); // should really not
 
     size_t size = jsvalGetSize(val);
     if (size == 0) return "";
     
     std::string result(size, '\0');
     jsvalReadString(val, result.data());
+    jsvalFree(val);
+
     return result;
 }
 

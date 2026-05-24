@@ -57,6 +57,7 @@ void test_throw_exceptions() {
 
     JSVAL v=jsvalEval("new WithPrivateCtor();");
     std::string vs=jsvalToStdString(v);
+    jsvalFree(v);
     //printf("r: %s\n",vs.c_str());
 
     assert(jsvalHasException()==true);
@@ -80,6 +81,7 @@ void test_throw_exceptions() {
 
     v=jsvalEval("new Hello()"); // wrong arg count
     vs=jsvalToStdString(v);
+    jsvalFree(v);
     assert(jsvalHasException());
     assert(jsvalCatchExceptionStdString()=="Error: wrong ctor arg count");
 
