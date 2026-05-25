@@ -45,6 +45,9 @@ JS_IMPORT(jsvalUndefined) JSVAL jsvalUndefined();
 JS_IMPORT(jsvalNull) JSVAL jsvalNull();
 JS_IMPORT(jsvalInstanceOf) int jsvalInstanceOf(JSVAL v, JSVAL cls);
 JS_IMPORT(jsvalToString) JSVAL jsvalToString(JSVAL s);
+// Creates a fresh JS Promise and returns a JSVAL array [promise, resolve, reject].
+// Caller must dup/refCreate items before releasing the array.
+JS_IMPORT(jsvalCreatePromiseCapability) JSVAL jsvalCreatePromiseCapability();
 
 extern "C" {
 
