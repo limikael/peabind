@@ -2,6 +2,7 @@
 #include <vector>
 #include <functional>
 #include <string>
+#include <memory>
 #include <cstdio>
 #include <cstdint>
 
@@ -106,5 +107,64 @@ public:
         for (auto& l : copy) {
             l.fn(args...);
         }
+    }
+};
+
+// A value-semantic Promise built on top of Dispatcher. Copies share state
+// via shared_ptr, so the C++ producer can keep a copy to resolve later
+// while the binding holds another copy that has subscribed JS handlers.
+// The binding lights up `thenDispatcher` (carries the resolved value)
+// and `catchDispatcher` (carries a rejection message).
+template<typename T>
+class Promise {
+public:
+    struct State {
+        Dispatcher<T> thenDispatcher;
+        Dispatcher<std::string> catchDispatcher;
+    };
+
+    std::shared_ptr<State> state;
+
+    Promise() : state(std::make_shared<State>()) {}
+
+    // One-shot semantics: after resolve or reject fires, both dispatchers
+    // are cleared so subsequent calls are no-ops and bound JS callbacks
+    // are released immediately rather than waiting for the producer to
+    // drop the Promise.
+    void resolve(T value) {
+        state->thenDispatcher.emit(value);
+        state->thenDispatcher.off();
+        state->catchDispatcher.off();
+    }
+
+    void reject(std::string reason) {
+        state->catchDispatcher.emit(reason);
+        state->thenDispatcher.off();
+        state->catchDispatcher.off();
+    }
+};
+
+template<>
+class Promise<void> {
+public:
+    struct State {
+        Dispatcher<> thenDispatcher;
+        Dispatcher<std::string> catchDispatcher;
+    };
+
+    std::shared_ptr<State> state;
+
+    Promise() : state(std::make_shared<State>()) {}
+
+    void resolve() {
+        state->thenDispatcher.emit();
+        state->thenDispatcher.off();
+        state->catchDispatcher.off();
+    }
+
+    void reject(std::string reason) {
+        state->catchDispatcher.emit(reason);
+        state->thenDispatcher.off();
+        state->catchDispatcher.off();
     }
 };

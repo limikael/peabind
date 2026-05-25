@@ -14,6 +14,14 @@
 		"removeHello": {},
 		"createBuffer": {"return": "buffer"},
 		"peekBuffer": {"return": "int", "args":["buffer","int"]},
+		"getPromisedInt": {"return": {"type": "int", "promise": true}},
+		"resolvePromisedInt": {"args": ["int"]},
+		"rejectPromisedInt": {"args": ["string"]},
+		"getPromisedString": {"return": {"type": "string", "promise": true}},
+		"resolvePromisedString": {"args": ["string"]},
+		"getPromisedVoid": {"return": {"type": "void", "promise": true}},
+		"resolvePromisedVoid": {},
+		"clearPendingPromises": {},
 		"doesntExist": {"return": "int", "ifdef": "NOTEXIST"}
 	},
 	"classes": {

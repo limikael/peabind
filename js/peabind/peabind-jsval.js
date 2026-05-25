@@ -58,7 +58,11 @@ class PeabindJsvalBuilder {
         }
 
         let call;
-        if (func.return.type=="void") {
+        if (func.return.promise) {
+            call=this.generatePromiseCall(func, callTarget);
+        }
+
+        else if (func.return.type=="void") {
             call=`
                 ${callTarget}(${func.args.map((arg,i)=>`a${i}`).join(",")});
                 return jsvalUndefined();
@@ -85,6 +89,93 @@ class PeabindJsvalBuilder {
             }
         `);
 	}
+
+    bareNativeType(typeDef) {
+        if (typeDef.type=="void")
+            return "void";
+
+        return this.ts(typeDef).nativeParam("").trim();
+    }
+
+    generatePromiseCall(func, callTarget) {
+        let valueDef=func.return;
+        let isVoid=valueDef.type=="void";
+        let valueType=this.bareNativeType(valueDef);
+        let callArgs=func.args.map((a,i)=>`a${i}`).join(",");
+
+        let thenLambdaParam,thenPackCode,thenCleanup,thenArgc,thenParamsArg;
+        if (isVoid) {
+            thenLambdaParam="";
+            thenPackCode="";
+            thenCleanup="";
+            thenArgc="0";
+            thenParamsArg="nullptr";
+        }
+        else {
+            let s=this.ts(valueDef);
+            thenLambdaParam=s.nativeParam("a0");
+            thenPackCode=`JSVAL params[1];\n${s.pack("params[0]","a0")}`;
+            thenCleanup=s.cleanup("params[0]");
+            thenArgc="1";
+            thenParamsArg="params";
+        }
+
+        return `
+            Promise<${valueType}> __peabind_promise=${callTarget}(${callArgs});
+
+            JSVAL __peabind_cap=jsvalCreatePromiseCapability();
+            jsvalDup(__peabind_cap);
+            JSVAL __peabind_jspromise=jsvalGetItemAt(__peabind_cap,0);
+            JSVAL __peabind_resolveCb=jsvalGetItemAt(__peabind_cap,1);
+            JSVAL __peabind_rejectCb=jsvalGetItemAt(__peabind_cap,2);
+
+            {
+                JSVAL_REF cbRef=jsvalRefCreate(__peabind_resolveCb);
+                int handle=__peabind_promise.state->thenDispatcher.on([cbRef](${thenLambdaParam}){
+                    ${thenPackCode}
+                    JSVAL res=jsvalCall(jsvalRefGetValue(cbRef),jsvalUndefined(),${thenArgc},${thenParamsArg});
+                    jsvalFree(res);
+                    ${thenCleanup}
+                });
+                Dispatcher<>* d=(Dispatcher<>*)&(__peabind_promise.state->thenDispatcher);
+                Listener *listener=new Listener(d,handle);
+                listeners.push_back(listener);
+                __peabind_promise.state->thenDispatcher.setDestructor(handle,[cbRef,listener](){
+                    auto it=std::remove(listeners.begin(),listeners.end(),listener);
+                    if (it!=listeners.end()) {
+                        listeners.erase(it,listeners.end());
+                        delete listener;
+                    }
+                    jsvalRefFree(cbRef);
+                });
+            }
+
+            {
+                JSVAL_REF cbRef=jsvalRefCreate(__peabind_rejectCb);
+                int handle=__peabind_promise.state->catchDispatcher.on([cbRef](std::string a0){
+                    JSVAL params[1];
+                    params[0]=jsvalCreateString(a0.c_str());
+                    JSVAL res=jsvalCall(jsvalRefGetValue(cbRef),jsvalUndefined(),1,params);
+                    jsvalFree(res);
+                    jsvalFree(params[0]);
+                });
+                Dispatcher<>* d=(Dispatcher<>*)&(__peabind_promise.state->catchDispatcher);
+                Listener *listener=new Listener(d,handle);
+                listeners.push_back(listener);
+                __peabind_promise.state->catchDispatcher.setDestructor(handle,[cbRef,listener](){
+                    auto it=std::remove(listeners.begin(),listeners.end(),listener);
+                    if (it!=listeners.end()) {
+                        listeners.erase(it,listeners.end());
+                        delete listener;
+                    }
+                    jsvalRefFree(cbRef);
+                });
+            }
+
+            jsvalFree(__peabind_cap);
+            return __peabind_jspromise;
+        `;
+    }
 
     ifdefWrap(ifdef, content) {
         if (!ifdef)

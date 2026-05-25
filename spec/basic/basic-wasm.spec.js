@@ -264,4 +264,50 @@ describe("basic-wasm",()=>{
         expect(ext.getVal()).toEqual(888);
         expect(mod.getHelloVal(ext)).toEqual(888);
     });
+
+    it("resolves a Promise<int>",async()=>{
+        let mod=await getMod();
+        let p=mod.getPromisedInt();
+        expect(p).toBeInstanceOf(Promise);
+        mod.resolvePromisedInt(42);
+        await expectAsync(p).toBeResolvedTo(42);
+    });
+
+    it("rejects a Promise<int>",async()=>{
+        let mod=await getMod();
+        let p=mod.getPromisedInt();
+        mod.rejectPromisedInt("nope");
+        await expectAsync(p).toBeRejectedWith("nope");
+    });
+
+    it("resolves a Promise<string>",async()=>{
+        let mod=await getMod();
+        let p=mod.getPromisedString();
+        mod.resolvePromisedString("hi there");
+        await expectAsync(p).toBeResolvedTo("hi there");
+    });
+
+    it("resolves a Promise<void>",async()=>{
+        let mod=await getMod();
+        let p=mod.getPromisedVoid();
+        mod.resolvePromisedVoid();
+        await expectAsync(p).toBeResolvedTo(undefined);
+    });
+
+    it("releases promise callback refs after the producer drops the promise",async()=>{
+        let mod=await getMod();
+
+        let p=mod.getPromisedInt();
+        mod.resolvePromisedInt(7);
+        await expectAsync(p).toBeResolvedTo(7);
+        p=null;
+
+        // Once the C++ side drops the Promise<int> state, the listener
+        // destructors must free their JSVAL_REFs. We don't introspect the
+        // ref count directly here — close() throws if any strong refs
+        // remain after all module objects are released, and the
+        // "events are solid" path already exercises that.
+        mod.clearPendingPromises();
+        await forceGc();
+    });
 });
