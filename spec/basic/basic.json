@@ -15,7 +15,8 @@
 		"createBuffer": {"return": "buffer"},
 		"peekBuffer": {"return": "int", "args":["buffer","int"]},
 		"doesntExist": {"return": "int", "ifdef": "NOTEXIST"},
-		/*"getSimplePromise": {"return": {"type": "Simple", "promise": true}}*/
+		"getIntPromise": {"return": {"type": "int", "promise": true}},
+		"resolveIntPromise": {"args": ["int"]}
 	},
 	"classes": {
 		"Simple": {

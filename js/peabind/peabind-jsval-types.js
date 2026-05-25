@@ -1,11 +1,21 @@
 import {peabindNormalize, idlGetClass} from "./peabind-idl.js";
 
 class IntTypeStrategy {
+    constructor(typeDef) {
+        this.typeDef=typeDef;
+    }
+
     nativeDecl(name) {
+        if (this.typeDef.promise)
+            return `Promise<int32_t> ${name};\n`;
+
         return `int32_t ${name};\n`;
     }
 
     nativeParam(name) {
+        if (this.typeDef.promise)
+            throw new Error("promises can't be parameters");
+
         return `int32_t ${name}`;
     }
 
@@ -18,6 +28,14 @@ class IntTypeStrategy {
     }
 
     pack(dest, src) {
+        if (this.typeDef.promise) {
+            return `
+                ${dest}=packPromise<int32_t>(${src},[](int32_t v) {
+                    return jsvalCreateInt(v);
+                });
+            `;
+        }
+
         return `${dest}=jsvalCreateInt(${src});\n`;
     }
 
@@ -127,10 +145,16 @@ class ObjectTypeStrategy {
     }
 
     nativeDecl(name) {
+        if (this.typeDef.promise)
+            return `Promise<std::shared_ptr<${this.getTemplateParam()}>> ${name};\n`;
+
         return `std::shared_ptr<${this.getTemplateParam()}> ${name};\n`;
     }
 
     nativeParam(name) {
+        if (this.typeDef.promise)
+            throw new Error("Can't use promise as param");
+
         return `std::shared_ptr<${this.getTemplateParam()}> ${name}`;
     }
 
@@ -146,8 +170,10 @@ class ObjectTypeStrategy {
     pack(dest, src) {
         let id=`${this.prefix}${this.typeDef.type}_id`;
 
-        if (this.typeDef.promise)
+        if (this.typeDef.promise) {
+            //return `printf("packing promise!!!\\n"); abort(); `;
             return `${dest}=packPromise<${this.getTemplateParam()}>(${src},${id});`
+        }
 
         return `${dest}=pack<${this.getTemplateParam()}>(${src},${id});`
     }
@@ -160,7 +186,7 @@ class ObjectTypeStrategy {
 export function createTypeStrategy(typeDef, {idl, prefix}) {
     switch (typeDef.type) {
         case "int":
-            return new IntTypeStrategy();
+            return new IntTypeStrategy(typeDef);
             break;
 
         case "float":

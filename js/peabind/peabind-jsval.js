@@ -324,6 +324,7 @@ class PeabindJsvalBuilder {
 
             std::vector<Opaque*> opaques;
             std::vector<Listener*> listeners;
+            JSVAL promiseClassId;
 
             ${this.idl.classes.map(c=>this.generateClassId(c)).join("\n")}
             ${this.idl.functions.map(f=>this.generateFunctionDef(f)).join("\n")}
@@ -331,6 +332,11 @@ class PeabindJsvalBuilder {
 
             extern "C" void ${this.prefix}initmod(JSVAL mod) {
                 ${this.symbolRegs?`
+                    promiseClassId=jsvalCreateClass(Promise_constructor);
+                    jsvalSetClassFinalizer(promiseClassId,Promise_finalizer);
+                    jsvalSetProp(mod,"PeabindPromise",promiseClassId);
+                    jsvalSetProtoProp(promiseClassId,"then",jsvalCreateFunc(Promise_then));
+                    jsvalSetProtoProp(promiseClassId,"catch",jsvalCreateFunc(Promise_catch));
                     ${this.idl.functions.map(f=>this.generateFunctionReg(f)).join("\n")}
                     ${this.idl.classes.map(c=>this.generateClassReg(c)).join("\n")}
                 `:""}

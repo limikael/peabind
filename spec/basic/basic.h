@@ -126,3 +126,6 @@ public:
 	Dispatcher<> dataEvent;
 	int v;
 };
+
+Promise<int> getIntPromise();
+void resolveIntPromise(int val);

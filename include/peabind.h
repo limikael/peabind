@@ -108,3 +108,35 @@ public:
         }
     }
 };
+
+template <typename T>
+class PromiseState {
+public:
+    Dispatcher<T> thenEvent;
+    Dispatcher<std::string> catchEvent;
+};
+
+template <typename T>
+class Promise {
+public:
+    Promise() {
+        state=std::make_shared<PromiseState<T>>();
+    }
+
+    int then(std::function<void(T)> handler) {
+        return state->thenEvent.on(handler);
+        //return 1;
+    }
+
+    void removeThen(int handle) {
+        //printf("remove listener: %d\n",handle);
+        state->thenEvent.off(handle);
+    }
+
+    void resolve(T val) {
+        state->thenEvent.emit(val);
+    }
+
+private:
+    std::shared_ptr<PromiseState<T>> state;
+};

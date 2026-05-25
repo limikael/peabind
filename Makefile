@@ -76,10 +76,9 @@ test-quickjs:
 		test/testmain-quickjs.cpp \
 		ext/quickjs-2025-09-13/libquickjs.a \
 		$(shell peabind --lib-conf=cargs -tquickjs) -O0
-	./bin/testmain-quickjs
-
-#	valgrind --quiet \
+	valgrind --quiet \
 		--leak-check=full \
 		--show-leak-kinds=all \
 		--error-exitcode=1 \
 		--errors-for-leak-kinds=all \
+		./bin/testmain-quickjs

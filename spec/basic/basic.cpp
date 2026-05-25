@@ -67,3 +67,13 @@ std::vector<uint8_t> createBuffer() {
 int peekBuffer(std::vector<uint8_t> buffer, int i) {
 	return buffer[i];
 }
+
+Promise<int> theIntPromise;
+
+Promise<int> getIntPromise() {
+	return theIntPromise;
+}
+
+void resolveIntPromise(int v) {
+	theIntPromise.resolve(v);
+}

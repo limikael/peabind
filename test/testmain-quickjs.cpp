@@ -16,6 +16,7 @@ void test_refactor_obj();
 void test_static_methods();
 void test_wrong_type();
 void test_microtasks();
+void test_promises();
 
 int main() {
 	printf("Running tests...\n");
@@ -36,6 +37,7 @@ int main() {
 	test_event_types();
 	test_strings();
 	test_gc();
+	test_promises();
 
 	return 0;
 }

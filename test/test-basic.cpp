@@ -10,6 +10,25 @@ extern "C" {
 #include "quickjs.h"
 }
 
+void jsvalCheckException() {
+    if (jsvalHasException()) {
+        std::string ex=jsvalCatchExceptionStdString();
+        printf("Check Error: %s\n",ex.c_str());
+        abort();
+    }
+}
+
+JSVAL jsvalEvalChecked(std::string code) {
+    JSVAL res=jsvalEval(code.c_str());
+    if (jsvalHasException()) {
+        std::string ex=jsvalCatchExceptionStdString();
+        printf("Eval Error: %s\n",ex.c_str());
+        abort();
+    }
+
+    return res;
+}
+
 std::string runjs(JSContext *ctx, const char *code) {
     JSValue result=JS_Eval(ctx,
         code,
@@ -402,4 +421,19 @@ void test_microtasks() {
     basic_exit();
     jsvalQuickjsExit();
     //printf("microtasks done...\n");
+}
+
+void test_promises() {
+    printf("- promises...\n");
+    jsvalQuickjsInit();
+    basic_init_jsval();
+
+    jsvalEvalChecked("globalThis.p=getIntPromise(); undefined");
+    jsvalEvalChecked("globalThis.p.then(v=>globalThis.resto=v); undefined");
+    jsvalEvalChecked("resolveIntPromise(123);");
+
+    assert(evaljs("globalThis.resto")=="123");
+
+    basic_exit();
+    jsvalQuickjsExit();
 }
