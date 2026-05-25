@@ -126,3 +126,15 @@ public:
 	Dispatcher<> dataEvent;
 	int v;
 };
+
+Promise<int> getPromisedInt();
+void resolvePromisedInt(int v);
+void rejectPromisedInt(std::string reason);
+
+Promise<std::string> getPromisedString();
+void resolvePromisedString(std::string s);
+
+Promise<void> getPromisedVoid();
+void resolvePromisedVoid();
+
+void clearPendingPromises();

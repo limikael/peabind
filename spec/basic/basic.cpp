@@ -67,3 +67,44 @@ std::vector<uint8_t> createBuffer() {
 int peekBuffer(std::vector<uint8_t> buffer, int i) {
 	return buffer[i];
 }
+
+static Promise<int> pendingInt;
+static Promise<std::string> pendingString;
+static Promise<void> pendingVoid;
+
+Promise<int> getPromisedInt() {
+	pendingInt=Promise<int>();
+	return pendingInt;
+}
+
+void resolvePromisedInt(int v) {
+	pendingInt.resolve(v);
+}
+
+void rejectPromisedInt(std::string reason) {
+	pendingInt.reject(reason);
+}
+
+Promise<std::string> getPromisedString() {
+	pendingString=Promise<std::string>();
+	return pendingString;
+}
+
+void resolvePromisedString(std::string s) {
+	pendingString.resolve(s);
+}
+
+Promise<void> getPromisedVoid() {
+	pendingVoid=Promise<void>();
+	return pendingVoid;
+}
+
+void resolvePromisedVoid() {
+	pendingVoid.resolve();
+}
+
+void clearPendingPromises() {
+	pendingInt=Promise<int>();
+	pendingString=Promise<std::string>();
+	pendingVoid=Promise<void>();
+}

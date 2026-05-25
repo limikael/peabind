@@ -56,6 +56,7 @@ class JsvalWasmModule {
                 jsvalThrow: this.jsvalThrow,
                 jsvalInstanceOf: this.jsvalInstanceOf,
                 jsvalToString: this.jsvalToString,
+                jsvalCreatePromiseCapability: this.jsvalCreatePromiseCapability,
             }
         });
 
@@ -65,6 +66,12 @@ class JsvalWasmModule {
         this.mod.close=()=>this.close();
 
         return this.mod;
+    }
+
+    jsvalCreatePromiseCapability=()=>{
+        let resolveFn, rejectFn;
+        let promise=new Promise((res,rej)=>{ resolveFn=res; rejectFn=rej; });
+        return this.pack([promise,resolveFn,rejectFn]);
     }
 
     jsvalToString=(objId)=>{
