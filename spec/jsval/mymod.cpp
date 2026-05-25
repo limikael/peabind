@@ -113,6 +113,26 @@ static JSVAL checkInstanceOf(JSVAL thisobj, int argc, JSVAL *argv) {
 	return jsvalInstanceOf(argv[0],argv[1]);
 }
 
+// Round-trips an int through C++. Used by jsval.spec.js to verify that
+// small ints stay tagged (no host roundtrip, no registry entry).
+static JSVAL echoInt(JSVAL thisobj, int argc, JSVAL *argv) {
+	return jsvalCreateInt(jsvalGetInt(argv[0]));
+}
+
+// Sums argc ints. Lets the test create many tagged JSVALs in one call
+// to verify the registry doesn't grow.
+static JSVAL sumInts(JSVAL thisobj, int argc, JSVAL *argv) {
+	int total=0;
+	for (int i=0; i<argc; i++)
+		total+=jsvalGetInt(argv[i]);
+	return jsvalCreateInt(total);
+}
+
+// Reports whether the C++ side sees a JSVAL as a tagged int (low cost path).
+static JSVAL isArgTaggedInt(JSVAL thisobj, int argc, JSVAL *argv) {
+	return jsvalCreateInt(jsvalIsTaggedInt(argv[0]) ? 1 : 0);
+}
+
 extern "C" void init(JSVAL mod) {
 	JSVAL cls=jsvalCreateClass(MyClass_constructor);
 	jsvalSetProp(mod,"MyClass",cls);
@@ -134,4 +154,7 @@ extern "C" void init(JSVAL mod) {
 	jsvalSetProp(mod,"concat",jsvalCreateFunc(concat));
 	jsvalSetProp(mod,"getNumLiveMyClass",jsvalCreateFunc(getNumLiveMyClass));
 	jsvalSetProp(mod,"checkInstanceOf",jsvalCreateFunc(checkInstanceOf));
+	jsvalSetProp(mod,"echoInt",jsvalCreateFunc(echoInt));
+	jsvalSetProp(mod,"sumInts",jsvalCreateFunc(sumInts));
+	jsvalSetProp(mod,"isArgTaggedInt",jsvalCreateFunc(isArgTaggedInt));
 }

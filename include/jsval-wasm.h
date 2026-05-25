@@ -28,23 +28,55 @@ JS_IMPORT(jsvalCreateString) JSVAL jsvalCreateString(const char *p);
 JS_IMPORT(jsvalCreateObject) JSVAL jsvalCreateObject(JSVAL classId);
 JS_IMPORT(jsvalSetPropJsval) JSVAL jsvalSetPropJsval(JSVAL o, JSVAL prop, JSVAL val);
 JS_IMPORT(jsvalGetPropJsval) JSVAL jsvalGetPropJsval(JSVAL o, JSVAL prop);
-JS_IMPORT(jsvalGetInt) int jsvalGetInt(JSVAL o);
+JS_IMPORT(jsvalGetIntBoxed) int jsvalGetIntBoxed(JSVAL o);
 JS_IMPORT(jsvalGetFloat) float jsvalGetFloat(JSVAL o);
 JS_IMPORT(jsvalCreateFuncStub) JSVAL jsvalCreateFuncStub();
 JS_IMPORT(jsvalCreateClassStub) JSVAL jsvalCreateClassStub();
-JS_IMPORT(jsvalCreateInt) JSVAL jsvalCreateInt(int i);
+JS_IMPORT(jsvalCreateIntBoxed) JSVAL jsvalCreateIntBoxed(int i);
 JS_IMPORT(jsvalCreateFloat) JSVAL jsvalCreateFloat(float f);
 JS_IMPORT(jsvalCreateArray) JSVAL jsvalCreateArray(int size);
 JS_IMPORT(jsvalCreateBuffer) JSVAL jsvalCreateBuffer(uint8_t *data, size_t size);
 JS_IMPORT(jsvalReadString) char *jsvalReadString(JSVAL s, char *dest);
 JS_IMPORT(jsvalReadBuffer) void *jsvalReadBuffer(JSVAL v, void *buf);
-JS_IMPORT(jsvalDup) JSVAL jsvalDup(JSVAL id);
-JS_IMPORT(jsvalFree) void jsvalFree(JSVAL id);
+JS_IMPORT(jsvalDupBoxed) JSVAL jsvalDupBoxed(JSVAL id);
+JS_IMPORT(jsvalFreeBoxed) void jsvalFreeBoxed(JSVAL id);
 JS_IMPORT(jsvalThrow) JSVAL jsvalThrow(const char *s);
 JS_IMPORT(jsvalUndefined) JSVAL jsvalUndefined();
 JS_IMPORT(jsvalNull) JSVAL jsvalNull();
 JS_IMPORT(jsvalInstanceOf) int jsvalInstanceOf(JSVAL v, JSVAL cls);
 JS_IMPORT(jsvalToString) JSVAL jsvalToString(JSVAL s);
+
+// Tagged small-int encoding. Bit 31 set => low 31 bits are a signed int
+// (sign-extended from bit 30). Range [-2^30, 2^30-1]. Bit 31 clear =>
+// registry handle (existing host-allocated boxed value). Eliminates the
+// host call + registry allocation for small ints crossing C++<->JS.
+static inline bool jsvalIsTaggedInt(JSVAL v) { return v < 0; }
+static inline bool jsvalIntFits(int i) {
+    return i >= -(1 << 30) && i < (1 << 30);
+}
+static inline JSVAL jsvalTagInt(int i) {
+    return (JSVAL)(0x80000000u | ((uint32_t)i & 0x7FFFFFFFu));
+}
+static inline int jsvalUntagInt(JSVAL v) {
+    return (int32_t)((uint32_t)v << 1) >> 1;
+}
+
+static inline JSVAL jsvalCreateInt(int i) {
+    if (jsvalIntFits(i)) return jsvalTagInt(i);
+    return jsvalCreateIntBoxed(i);
+}
+static inline int jsvalGetInt(JSVAL v) {
+    if (jsvalIsTaggedInt(v)) return jsvalUntagInt(v);
+    return jsvalGetIntBoxed(v);
+}
+static inline JSVAL jsvalDup(JSVAL v) {
+    if (v == 0 || jsvalIsTaggedInt(v)) return v;
+    return jsvalDupBoxed(v);
+}
+static inline void jsvalFree(JSVAL v) {
+    if (v == 0 || jsvalIsTaggedInt(v)) return;
+    jsvalFreeBoxed(v);
+}
 
 extern "C" {
 
