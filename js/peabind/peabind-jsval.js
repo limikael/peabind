@@ -320,79 +320,12 @@ class PeabindJsvalBuilder {
         return autoIndent(`
             ${this.include.map(i=>`#include "${i}"`).join("\n")}
             ${this.idl.include.map(i=>`#include "${i}"`).join("\n")}
-            #include <string>
-            #include <map>
-            #include <memory>
-            #include <algorithm>
-            #include <cassert>
-            #include "jsval-util.h"
-            #include "peabind.h"
+            #include "peabind-priv.h"
 
-            class Opaque {
-            public:
-                Opaque(std::shared_ptr<void> instance_, JSVAL val_) { 
-                    instance=instance_; 
-                    val=val_;
-                };
-
-                std::shared_ptr<void> instance;
-                JSVAL val;
-            };
-
-            static std::vector<Opaque*> opaques;
-
-            template<typename T>
-            static std::shared_ptr<T> unpack(JSVAL v, JSVAL classId) {
-                if (!jsvalInstanceOf(v,classId))
-                    return nullptr;
-
-                Opaque *opaque=(Opaque *)jsvalGetOpaque(v);
-                if (!opaque)
-                    return nullptr;
-
-                std::shared_ptr<T> p=std::static_pointer_cast<T>(opaque->instance);
-                return p;
-            }
-
-            template<typename T>
-            static JSVAL pack(std::shared_ptr<T> instance, JSVAL classId) {
-                if (instance==nullptr)
-                    return jsvalNull();
-
-                // Causes a leak, dunno why...
-                /*for (Opaque *o: opaques) {
-                    if (o->instance.get()==instance.get()) {
-                        printf("reusing...\\n");
-                        JSVAL val=jsvalDup(o->val);
-                        Opaque *opaque=new Opaque(instance,val);
-                        opaques.push_back(opaque);
-                        jsvalSetOpaque(val,opaque);
-                        return val;
-                    }
-                }*/
-
-                JSVAL val=jsvalCreateObject(classId);
-                Opaque *opaque=new Opaque(instance,val);
-                opaques.push_back(opaque);
-                jsvalSetOpaque(val,opaque);
-                return val;
-            }
-
-            class Listener {
-            public:
-                Listener(Dispatcher<> *dispatcher_, int handle_) {
-                    dispatcher=dispatcher_;
-                    handle=handle_;
-                }
-
-                Dispatcher<> *dispatcher;
-                int handle;
-            };
-
-            static std::vector<Listener*> listeners;
+            std::vector<Opaque*> opaques;
+            std::vector<Listener*> listeners;
 
             ${this.idl.classes.map(c=>this.generateClassId(c)).join("\n")}
-
             ${this.idl.functions.map(f=>this.generateFunctionDef(f)).join("\n")}
             ${this.idl.classes.map(c=>this.generateClassDef(c)).join("\n")}
 

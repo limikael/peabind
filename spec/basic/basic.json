@@ -14,7 +14,8 @@
 		"removeHello": {},
 		"createBuffer": {"return": "buffer"},
 		"peekBuffer": {"return": "int", "args":["buffer","int"]},
-		"doesntExist": {"return": "int", "ifdef": "NOTEXIST"}
+		"doesntExist": {"return": "int", "ifdef": "NOTEXIST"},
+		/*"getSimplePromise": {"return": {"type": "Simple", "promise": true}}*/
 	},
 	"classes": {
 		"Simple": {

@@ -145,6 +145,10 @@ class ObjectTypeStrategy {
 
     pack(dest, src) {
         let id=`${this.prefix}${this.typeDef.type}_id`;
+
+        if (this.typeDef.promise)
+            return `${dest}=packPromise<${this.getTemplateParam()}>(${src},${id});`
+
         return `${dest}=pack<${this.getTemplateParam()}>(${src},${id});`
     }
 

@@ -41,6 +41,7 @@ export function peabindNormalize(def) {
 		normalizeObjectKeys(f,["args","return","name","namespace","ifdef"]);
 		f.args=normalizeArray(f.args).map(a=>normalizeStringOrObject(a,"type"));
 		f.return=normalizeStringOrObject(f.return,"type","void");
+		normalizeObjectKeys(f.return,["type","promise"]);
 	}
 
 	def.classes=normalizeMapOrArray(def.classes,"name");
