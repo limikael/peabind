@@ -413,12 +413,23 @@ JSVAL jsvalCreateString(const char *s) {
     return JS_NewString(jsvalCtx,s);
 }
 
-/*JSVAL jsvalDup(JSVAL v) {
-    JSVAL dup=JS_DupValue(jsvalCtx,v);
-    //assert(dup==v);
+JSVAL jsvalDup(JSVAL v) {
+    return JS_DupValue(jsvalCtx,v);
+}
 
-    return dup;
-}*/
+JSVAL jsvalGetItemAt(JSVAL v, int index) {
+    return JS_GetPropertyUint32(jsvalCtx,v,(uint32_t)index);
+}
+
+JSVAL jsvalCreatePromiseCapability() {
+    JSValue resolving[2];
+    JSValue promise=JS_NewPromiseCapability(jsvalCtx,resolving);
+    JSValue arr=JS_NewArray(jsvalCtx);
+    JS_SetPropertyUint32(jsvalCtx,arr,0,promise);
+    JS_SetPropertyUint32(jsvalCtx,arr,1,resolving[0]);
+    JS_SetPropertyUint32(jsvalCtx,arr,2,resolving[1]);
+    return arr;
+}
 
 JSVAL jsvalCall(JSVAL fn, JSVAL thisobj, int argc, JSVAL *argv) {
     return JS_Call(jsvalCtx,fn,thisobj,argc,argv);
