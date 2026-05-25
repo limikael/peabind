@@ -41,6 +41,7 @@ public:
         for (auto it = listeners.begin(); it != listeners.end(); ++it) {
             if (it->handle == handle) {
                 it->destructor=std::move(destructor);
+                return;
             }
         }
     }
@@ -77,6 +78,7 @@ public:
         for (auto it = listeners.begin(); it != listeners.end(); ++it) {
             if (it->handle == handle) {
                 it->idInt=idInt;
+                return;
             }
         }
     }
