@@ -58,7 +58,7 @@ class PeabindJsvalBuilder {
         }
 
         let call;
-        if (func.return.type=="void") {
+        if (func.return.type=="void" && !func.return.promise) {
             call=`
                 ${callTarget}(${func.args.map((arg,i)=>`a${i}`).join(",")});
                 return jsvalUndefined();

@@ -480,19 +480,18 @@ void test_promises_lifetime() {
 
 void test_promises_types() {
     printf("- promise types...\n");
-    theSimplePromise=Promise<std::shared_ptr<Simple>>();
-
     jsvalQuickjsInit();
     basic_init_jsval();
 
+    theSimplePromise=Promise<std::shared_ptr<Simple>>();
     jsvalEvalChecked("getSimplePromise().then(s=>globalThis.resto=s.getVal()); undefined");
     theSimplePromise.resolve(std::make_shared<Simple>(456));
+    assert(evaljs("globalThis.resto")=="456");
 
-    JSVAL v=jsvalEvalChecked("globalThis.resto");
-    std::string s=jsvalToStdString(v);
-    jsvalFree(v);
-    assert(s=="456");
-
+    theVoidPromise=VoidPromise();
+    jsvalEvalChecked("getVoidPromise().then(()=>globalThis.voidres=true); undefined");
+    theVoidPromise.resolve();
+    assert(evaljs("globalThis.voidres")=="true");
 
     basic_exit();
     jsvalQuickjsExit();

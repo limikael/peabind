@@ -17,7 +17,7 @@
 		"doesntExist": {"return": "int", "ifdef": "NOTEXIST"},
 		"getIntPromise": {"return": {"type": "int", "promise": true}},
 		"getSimplePromise": {"return": {"type": "Simple", "promise": true}},
-		"resolveIntPromise": {"args": ["int"]}
+		"getVoidPromise": {"return": {"type": "void", "promise": true}},
 	},
 	"classes": {
 		"Simple": {

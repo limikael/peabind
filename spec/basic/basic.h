@@ -134,4 +134,3 @@ extern Promise<> theVoidPromise;
 Promise<> getVoidPromise();
 Promise<int> getIntPromise();
 Promise<std::shared_ptr<Simple>> getSimplePromise();
-void resolveIntPromise(int val);

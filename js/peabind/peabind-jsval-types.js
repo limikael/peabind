@@ -192,8 +192,52 @@ class ObjectTypeStrategy {
     }
 }
 
+class VoidTypeStrategy {
+    constructor(typeDef) {
+        this.typeDef=typeDef;
+    }
+
+    nativeDecl(name) {
+        if (!this.typeDef.promise)
+            throw new Error("declaring void without promise???");
+
+        return `VoidPromise ${name};\n`;
+    }
+
+    nativeParam(name) {
+        throw new Error("can't have void parameters");
+    }
+
+    abiDecl(name) {
+        return `JSVAL ${name};\n`;
+    }
+
+    unpack(dest, src) {
+        throw new Error("can't unpack void");
+    }
+
+    pack(dest, src) {
+        if (!this.typeDef.promise)
+            throw new Error("packing void without promise???");
+
+        return `
+            ${dest}=packPromise<std::monostate>(${src},[](std::monostate m) {
+                return jsvalUndefined();
+            });
+        `;
+    }
+
+    cleanup(name) {
+        console.log("cleanup void... why?");
+        return `jsvalFree(${name});\n`
+    }
+}
+
 export function createTypeStrategy(typeDef, {idl, prefix}) {
     switch (typeDef.type) {
+        case "void":
+            return new VoidTypeStrategy(typeDef);
+
         case "int":
             return new IntTypeStrategy(typeDef);
             break;
