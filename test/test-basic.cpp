@@ -6,6 +6,7 @@
 #include "basic.out.h"
 #include "jsval-util.h"
 #include "peabind.h"
+#include "basic.h"
 
 extern "C" {
 #include "quickjs.h"
@@ -424,12 +425,6 @@ void test_microtasks() {
     //printf("microtasks done...\n");
 }
 
-extern Promise<int> theIntPromise;
-extern Promise<int> getIntPromise();
-
-//next... check that .then() and .catch() works after the promise is settled...
-//and then test with promised objects...
-
 void test_promises() {
     printf("- promises...\n");
     theIntPromise=Promise<int>();
@@ -495,6 +490,26 @@ void test_promises_lifetime() {
     assert(s=="lost promise");
 
     //printf("old one overwritten...\n");
+
+    basic_exit();
+    jsvalQuickjsExit();
+}
+
+void test_promise_types() {
+    printf("- promise types...\n");
+    theSimplePromise=Promise<std::shared_ptr<Simple>>();
+
+    jsvalQuickjsInit();
+    basic_init_jsval();
+
+    jsvalEvalChecked("getSimplePromise().then(s=>globalThis.resto=s.getVal()); undefined");
+    theSimplePromise.resolve(std::make_shared<Simple>(456));
+
+    JSVAL v=jsvalEvalChecked("globalThis.resto");
+    std::string s=jsvalToStdString(v);
+    jsvalFree(v);
+    assert(s=="456");
+
 
     basic_exit();
     jsvalQuickjsExit();

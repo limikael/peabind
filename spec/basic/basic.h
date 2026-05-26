@@ -127,5 +127,9 @@ public:
 	int v;
 };
 
+extern Promise<int> theIntPromise;
+extern Promise<std::shared_ptr<Simple>> theSimplePromise;
+
 Promise<int> getIntPromise();
+Promise<std::shared_ptr<Simple>> getSimplePromise();
 void resolveIntPromise(int val);

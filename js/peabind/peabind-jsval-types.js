@@ -171,6 +171,15 @@ class ObjectTypeStrategy {
         let id=`${this.prefix}${this.typeDef.type}_id`;
 
         if (this.typeDef.promise) {
+            return `
+                ${dest}=packPromise<std::shared_ptr<${this.getTemplateParam()}>>(${src},[](std::shared_ptr<${this.getTemplateParam()}> v) {
+                    return pack<${this.getTemplateParam()}>(v,${id});
+                });
+            `;
+        }
+
+
+        if (this.typeDef.promise) {
             //return `printf("packing promise!!!\\n"); abort(); `;
             return `${dest}=packPromise<${this.getTemplateParam()}>(${src},${id});`
         }

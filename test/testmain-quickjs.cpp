@@ -18,6 +18,7 @@ void test_wrong_type();
 void test_microtasks();
 void test_promises();
 void test_promises_lifetime();
+void test_promise_types();
 
 int main() {
 	printf("Running tests...\n");
@@ -40,6 +41,7 @@ int main() {
 	test_gc();
 	test_promises();
 	test_promises_lifetime();
+	test_promise_types();
 
 	return 0;
 }

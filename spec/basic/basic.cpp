@@ -77,3 +77,8 @@ Promise<int> getIntPromise() {
 void resolveIntPromise(int v) {
 	theIntPromise.resolve(v);
 }
+
+Promise<std::shared_ptr<Simple>> theSimplePromise;
+Promise<std::shared_ptr<Simple>> getSimplePromise() {
+	return theSimplePromise;
+}

@@ -16,6 +16,7 @@
 		"peekBuffer": {"return": "int", "args":["buffer","int"]},
 		"doesntExist": {"return": "int", "ifdef": "NOTEXIST"},
 		"getIntPromise": {"return": {"type": "int", "promise": true}},
+		"getSimplePromise": {"return": {"type": "Simple", "promise": true}},
 		"resolveIntPromise": {"args": ["int"]}
 	},
 	"classes": {
