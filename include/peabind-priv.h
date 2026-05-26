@@ -8,6 +8,7 @@
 #include <cassert>
 #include <cstdio>
 #include <variant>
+#include <optional>
 
 class Opaque;
 class Listener;
@@ -41,46 +42,22 @@ public:
 class PromiseOpaque {
 public:
     std::function<void(JSVAL)> then;
+    //std::function<void(JSVAL)> onCatch;
 };
 
-template<typename T>
-PromiseOpaque* makePromiseOpaque(Promise<T> promise, std::function<JSVAL(T)> packer) {
-    PromiseOpaque* op=new PromiseOpaque();
+void removeListener(Listener *listener) {
+    //printf("listeer destr... weak exp=%d\\n",instanceWeak.expired());
+    auto it = std::remove(listeners.begin(), listeners.end(), listener);
+    assert(it!=listeners.end());
 
-    op->then=[promise, packer](JSVAL cb) mutable {
-        JSVAL_REF ref=jsvalRefCreate(cb);
-        Dispatcher<T> *thenDispatcher=promise.getThenDispatcher();
-        int handle=thenDispatcher->on([promise, ref, packer](T val) mutable {
-            JSVAL args[1];
-            args[0]=packer(val);
-            JSVAL cbv=jsvalRefGetValue(ref);
-            jsvalCall(cbv,jsvalUndefined(),1,args);
-            jsvalRefFree(ref);
-        });
+    if (it != listeners.end()) {
+        listeners.erase(it, listeners.end());
+        delete listener;
+    }
 
-        Dispatcher<> *d=(Dispatcher<>*) thenDispatcher;
-        Listener *listener=new Listener(d,handle);
-        listeners.push_back(listener);
-
-        thenDispatcher->setDestructor(handle,[listener](){
-            //printf("listeer destr... weak exp=%d\\n",instanceWeak.expired());
-            auto it = std::remove(listeners.begin(), listeners.end(), listener);
-            assert(it!=listeners.end());
-
-            if (it != listeners.end()) {
-                listeners.erase(it, listeners.end());
-                delete listener;
-            }
-
-            else {
-                printf("listener not found!\\n");
-            }
-
-            //jsvalRefFree(cbRef);
-        });
-    };
-
-    return op;
+    else {
+        printf("listener not found!\\n");
+    }
 }
 
 template<typename T>
@@ -123,8 +100,45 @@ static JSVAL pack(std::shared_ptr<T> instance, JSVAL classId) {
 template<typename T>
 static JSVAL packPromise(Promise<T> promise, std::function<JSVAL(T)> packer) {
     JSVAL promiseVal=jsvalCreateObject(promiseClassId);
-    PromiseOpaque *promiseOpaque=makePromiseOpaque<T>(promise, packer);
+    PromiseOpaque *promiseOpaque=new PromiseOpaque();
     jsvalSetOpaque(promiseVal,promiseOpaque);
+
+    promiseOpaque->then=[promise, packer](JSVAL cb) mutable {
+        Dispatcher<T> *thenDispatcher=promise.getThenDispatcher();
+        JSVAL_REF cbRef=jsvalRefCreate(cb);
+        int handle=thenDispatcher->on([cbRef, packer](T val) mutable {
+            JSVAL args[1];
+            args[0]=packer(val);
+            JSVAL cbv=jsvalRefGetValue(cbRef);
+            jsvalCall(cbv,jsvalUndefined(),1,args);
+        });
+
+        Listener *listener=new Listener((Dispatcher<>*) thenDispatcher,handle);
+        listeners.push_back(listener);
+        thenDispatcher->setDestructor(handle,[listener, cbRef](){
+            removeListener(listener);
+            jsvalRefFree(cbRef);
+        });
+    };
+
+    /*promiseOpaque->onCatch=[promise, packer](JSVAL cb) mutable {
+        Dispatcher<std::string> *catchDispatcher=promise.getCatchDispatcher();
+        JSVAL_REF cbRef=jsvalRefCreate(cb);
+        int handle=catchDispatcher->on([cbRef](std::string reason) mutable {
+            JSVAL args[1];
+            args[0]=jsvalCreateString(reason.c_str());
+            JSVAL cbv=jsvalRefGetValue(cbRef);
+            jsvalCall(cbv,jsvalUndefined(),1,args);
+        });
+
+        Listener *listener=new Listener((Dispatcher<>*) catchDispatcher,handle);
+        listeners.push_back(listener);
+        catchDispatcher->setDestructor(handle,[listener, cbRef](){
+            removeListener(listener);
+            jsvalRefFree(cbRef);
+        });
+    };*/
+
     return promiseVal;
 }
 
@@ -142,13 +156,16 @@ void Promise_finalizer(JSVAL thisobj) {
 }
 
 JSVAL Promise_then(JSVAL thisobj, int argc, JSVAL *argv) {
-    //printf("promise then...\n");
     PromiseOpaque *p=(PromiseOpaque *)jsvalGetOpaque(thisobj);
     p->then(argv[0]);
 
-    return jsvalUndefined();
+    //return thisobj;
+    return jsvalUndefined(); //thisobj;
 }
 
 JSVAL Promise_catch(JSVAL thisobj, int argc, JSVAL *argv) {
-    return jsvalUndefined();
+    /*PromiseOpaque *p=(PromiseOpaque *)jsvalGetOpaque(thisobj);
+    p->onCatch(argv[0]);*/
+
+    return thisobj;
 }

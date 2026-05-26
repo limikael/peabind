@@ -4,6 +4,7 @@
 #include <string>
 #include <cstdio>
 #include <cstdint>
+#include <memory>
 
 template<typename... Args>
 class Dispatcher {
@@ -112,6 +113,14 @@ public:
 template <typename T>
 class PromiseState {
 public:
+    PromiseState() {
+        //printf("promisestate ctor...\n");
+    }
+
+    ~PromiseState() {
+        printf("promisestate dtor...\n");
+    }
+
     Dispatcher<T> thenEvent;
     Dispatcher<std::string> catchEvent;
 };
@@ -120,6 +129,7 @@ template <typename T>
 class Promise {
 public:
     Promise() {
+        printf("promise ctor...\n");
         state=std::make_shared<PromiseState<T>>();
     }
 
@@ -131,11 +141,6 @@ public:
     Dispatcher<T> *getThenDispatcher() {
         return &state->thenEvent;
     }
-
-    /*void removeThen(int handle) {
-        //printf("remove listener: %d\n",handle);
-        state->thenEvent.off(handle);
-    }*/
 
     void resolve(T val) {
         state->thenEvent.emit(val);

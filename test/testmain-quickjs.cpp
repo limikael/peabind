@@ -17,6 +17,7 @@ void test_static_methods();
 void test_wrong_type();
 void test_microtasks();
 void test_promises();
+void test_promises_lifetime();
 
 int main() {
 	printf("Running tests...\n");
@@ -38,6 +39,7 @@ int main() {
 	test_strings();
 	test_gc();
 	test_promises();
+	test_promises_lifetime();
 
 	return 0;
 }

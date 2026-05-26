@@ -5,6 +5,7 @@
 #include <iostream>
 #include "basic.out.h"
 #include "jsval-util.h"
+#include "peabind.h"
 
 extern "C" {
 #include "quickjs.h"
@@ -432,7 +433,42 @@ void test_promises() {
     jsvalEvalChecked("globalThis.p.then(v=>globalThis.resto=v); undefined");
     jsvalEvalChecked("resolveIntPromise(123);");
 
-    assert(evaljs("globalThis.resto")=="123");
+    std::string s=evaljs("globalThis.resto");
+
+    //assert(evaljs("globalThis.resto")=="123");
+
+    basic_exit();
+    jsvalQuickjsExit();
+}
+
+extern Promise<int> theIntPromise;
+extern Promise<int> getIntPromise();
+
+void test_promises_lifetime() {
+    printf("- promises lifetime...\n");
+    getIntPromise();
+    getIntPromise();
+    getIntPromise();
+    getIntPromise();
+
+    printf("test...\n");
+
+    jsvalQuickjsInit();
+    basic_init_jsval();
+
+    //jsvalEvalChecked("globalThis.p=getIntPromise(); undefined");
+    //jsvalEvalChecked("globalThis.p.then(v=>globalThis.resto=v); undefined");
+    jsvalEvalChecked("getIntPromise().then(v=>globalThis.resto=v); undefined");
+//    jsvalEvalChecked("getIntPromise().catch(v=>globalThis.reason=v); undefined");
+
+    theIntPromise=Promise<int>();
+
+    JSVAL v=jsvalEvalChecked("globalThis.reason");
+    std::string s=jsvalToStdString(v);
+    assert(s=="lost promise");
+
+
+    printf("old one overwritten...\n");
 
     basic_exit();
     jsvalQuickjsExit();

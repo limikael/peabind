@@ -152,19 +152,7 @@ class PeabindJsvalBuilder {
                 listeners.push_back(listener);
                 instance->${event.dispatcher}.setIdInt(handle,cbId);
                 instance->${event.dispatcher}.setDestructor(handle,[cbRef,listener](){
-                    //printf("listeer destr... weak exp=%d\\n",instanceWeak.expired());
-                    auto it = std::remove(listeners.begin(), listeners.end(), listener);
-                    assert(it!=listeners.end());
-
-                    if (it != listeners.end()) {
-                        listeners.erase(it, listeners.end());
-                        delete listener;
-                    }
-
-                    else {
-                        printf("listener not found!\\n");
-                    }
-
+                    removeListener(listener);
                     jsvalRefFree(cbRef);
                 });
             }

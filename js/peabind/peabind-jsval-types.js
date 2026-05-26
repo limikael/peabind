@@ -7,7 +7,7 @@ class IntTypeStrategy {
 
     nativeDecl(name) {
         if (this.typeDef.promise)
-            return `Promise<int32_t> ${name};\n`;
+            return `std::optional<Promise<int32_t>> ${name};\n`;
 
         return `int32_t ${name};\n`;
     }
@@ -30,7 +30,7 @@ class IntTypeStrategy {
     pack(dest, src) {
         if (this.typeDef.promise) {
             return `
-                ${dest}=packPromise<int32_t>(${src},[](int32_t v) {
+                ${dest}=packPromise<int32_t>(*${src},[](int32_t v) {
                     return jsvalCreateInt(v);
                 });
             `;
