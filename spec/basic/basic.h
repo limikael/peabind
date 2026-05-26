@@ -132,8 +132,10 @@ extern Promise<int> theIntPromise;
 extern Promise<std::shared_ptr<Simple>> theSimplePromise;
 extern Promise<> theVoidPromise;
 extern Promise<std::string> theStringPromise;
+extern Promise<std::vector<uint8_t>> theBufferPromise;
 
 Promise<> getVoidPromise();
 Promise<int> getIntPromise();
 Promise<std::shared_ptr<Simple>> getSimplePromise();
 Promise<std::string> getStringPromise();
+Promise<std::vector<uint8_t>> getBufferPromise();

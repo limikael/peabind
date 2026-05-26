@@ -498,6 +498,12 @@ void test_promises_types() {
     theStringPromise.resolve("hello");
     assert(evaljs("globalThis.strres")=="hello");
 
+    theBufferPromise=Promise<std::vector<uint8_t>>();
+    jsvalEvalChecked("getBufferPromise().then(b=>globalThis.buflen=b.length); undefined");
+    std::vector<uint8_t> v = {1, 2, 3};
+    theBufferPromise.resolve(v);
+    assert(evaljs("globalThis.buflen")=="3");
+
     basic_exit();
     jsvalQuickjsExit();
 }

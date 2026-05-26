@@ -72,6 +72,7 @@ Promise<int> theIntPromise;
 Promise<std::string> theStringPromise;
 Promise<std::shared_ptr<Simple>> theSimplePromise;
 Promise<> theVoidPromise;
+Promise<std::vector<uint8_t>> theBufferPromise;
 
 Promise<int> getIntPromise() {
 	return theIntPromise;
@@ -87,4 +88,8 @@ Promise<std::shared_ptr<Simple>> getSimplePromise() {
 
 Promise<> getVoidPromise() {
 	return theVoidPromise;
+}
+
+Promise<std::vector<uint8_t>> getBufferPromise() {
+	return theBufferPromise;
 }

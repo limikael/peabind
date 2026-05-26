@@ -45,6 +45,12 @@ class IntTypeStrategy {
 }
 
 class FloatTypeStrategy {
+    constructor(typeDef) {
+        this.typeDef=typeDef;
+        if (this.typeDef.promise)
+            throw new Error("float promise not impl");
+    }
+
     nativeDecl(name) {
         return `float ${name};\n`;
     }
@@ -112,7 +118,14 @@ class StringTypeStrategy {
 }
 
 class BufferTypeStrategy {
+    constructor(typeDef) {
+        this.typeDef=typeDef;
+    }
+
     nativeDecl(name) {
+        if (this.typeDef.promise)
+            return `Promise<std::vector<uint8_t>> ${name};\n`;
+
         return `std::vector<uint8_t> ${name};\n`;
     }
 
@@ -125,6 +138,14 @@ class BufferTypeStrategy {
     }
 
     pack(dest, src) {
+        if (this.typeDef.promise) {
+            return `
+                ${dest}=packPromise<std::vector<uint8_t>>(${src},[](std::vector<uint8_t> b) {
+                    return jsvalCreateBuffer(b.data(),b.size());
+                });
+            `;
+        }
+
         return `${dest}=jsvalCreateBuffer(${src}.data(),${src}.size());\n`;
     }
 
