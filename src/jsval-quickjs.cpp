@@ -131,6 +131,8 @@ void jsvalQuickjsExit() {
     JS_FreeValue(jsvalCtx,jsvalGlobal);
     if (!jsvalCtxBorrowed) {
         JS_FreeContext(jsvalCtx);
+
+        //printf("free runtime!!!\n");
         JS_FreeRuntime(rt);
     }
     jsvalCtx=NULL;
@@ -413,12 +415,12 @@ JSVAL jsvalCreateString(const char *s) {
     return JS_NewString(jsvalCtx,s);
 }
 
-/*JSVAL jsvalDup(JSVAL v) {
+JSVAL jsvalDup(JSVAL v) {
     JSVAL dup=JS_DupValue(jsvalCtx,v);
     //assert(dup==v);
 
     return dup;
-}*/
+}
 
 JSVAL jsvalCall(JSVAL fn, JSVAL thisobj, int argc, JSVAL *argv) {
     return JS_Call(jsvalCtx,fn,thisobj,argc,argv);

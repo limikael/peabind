@@ -72,6 +72,10 @@ char *jsvalReadString(JSVAL val, char *dest) {
     return dest;
 }
 
+JSVAL jsvalDup(JSVAL v) {
+    return v;
+}
+
 // fix!!! when fixing dup
 void jsvalFree(JSVAL val) {
 }

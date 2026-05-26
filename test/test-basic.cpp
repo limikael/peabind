@@ -424,51 +424,49 @@ void test_microtasks() {
     //printf("microtasks done...\n");
 }
 
+extern Promise<int> theIntPromise;
+extern Promise<int> getIntPromise();
+
 void test_promises() {
     printf("- promises...\n");
+    theIntPromise=Promise<int>();
+
     jsvalQuickjsInit();
     basic_init_jsval();
 
-    jsvalEvalChecked("globalThis.p=getIntPromise(); undefined");
-    jsvalEvalChecked("globalThis.p.then(v=>globalThis.resto=v); undefined");
-    jsvalEvalChecked("resolveIntPromise(123);");
+    jsvalEvalChecked("getIntPromise().then(v=>globalThis.resto=v); undefined");
+    theIntPromise.resolve(123);
+    assert(evaljs("globalThis.resto")=="123");
 
-    std::string s=evaljs("globalThis.resto");
+    theIntPromise=Promise<int>();
+    jsvalEvalChecked("getIntPromise().catch(v=>globalThis.rejto=v); undefined");
 
-    //assert(evaljs("globalThis.resto")=="123");
+    std::string str="nope";
+    theIntPromise.reject(str);
+    assert(evaljs("globalThis.rejto")=="nope");
 
     basic_exit();
     jsvalQuickjsExit();
 }
 
-extern Promise<int> theIntPromise;
-extern Promise<int> getIntPromise();
-
 void test_promises_lifetime() {
     printf("- promises lifetime...\n");
-    getIntPromise();
-    getIntPromise();
-    getIntPromise();
-    getIntPromise();
-
-    printf("test...\n");
+    theIntPromise=Promise<int>();
 
     jsvalQuickjsInit();
     basic_init_jsval();
 
-    //jsvalEvalChecked("globalThis.p=getIntPromise(); undefined");
-    //jsvalEvalChecked("globalThis.p.then(v=>globalThis.resto=v); undefined");
     jsvalEvalChecked("getIntPromise().then(v=>globalThis.resto=v); undefined");
-//    jsvalEvalChecked("getIntPromise().catch(v=>globalThis.reason=v); undefined");
+    jsvalEvalChecked("getIntPromise().catch(v=>globalThis.reason=v); undefined");
 
     theIntPromise=Promise<int>();
 
     JSVAL v=jsvalEvalChecked("globalThis.reason");
     std::string s=jsvalToStdString(v);
+    jsvalFree(v);
     assert(s=="lost promise");
 
-
-    printf("old one overwritten...\n");
+    //printf("old one overwritten...\n");
 
     basic_exit();
     jsvalQuickjsExit();

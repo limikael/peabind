@@ -114,36 +114,80 @@ template <typename T>
 class PromiseState {
 public:
     PromiseState() {
-        //printf("promisestate ctor...\n");
+        state=PENDING;
     }
 
     ~PromiseState() {
-        printf("promisestate dtor...\n");
+        if (!isSettled())
+            reject("lost promise");
+    }
+
+    void resolve(T val) {
+        if (isSettled())
+            return;
+
+        state=RESOLVED;
+        thenEvent.emit(val);
+        thenEvent.off();
+        catchEvent.off();
+    }
+
+    void reject(std::string s) {
+        if (isSettled())
+            return;
+
+        state=REJECTED;
+        catchEvent.emit(s);
+        thenEvent.off();
+        catchEvent.off();
+    }
+
+    bool isSettled() {
+        return (state!=PENDING);
     }
 
     Dispatcher<T> thenEvent;
     Dispatcher<std::string> catchEvent;
+
+private:
+    enum State {
+        PENDING,
+        RESOLVED,
+        REJECTED
+    };
+    State state;
 };
 
 template <typename T>
 class Promise {
 public:
     Promise() {
-        printf("promise ctor...\n");
+        //printf("promise ctor...\n");
         state=std::make_shared<PromiseState<T>>();
     }
 
-    int then(std::function<void(T)> handler) {
-        return state->thenEvent.on(handler);
-        //return 1;
+    void then(std::function<void(T)> handler) {
+        state->thenEvent.on(handler);
+    }
+
+    void onCatch(std::function<void(std::string)> handler) {
+        state->catchEvent.on(handler);
     }
 
     Dispatcher<T> *getThenDispatcher() {
         return &state->thenEvent;
     }
 
+    Dispatcher<std::string> *getCatchDispatcher() {
+        return &state->catchEvent;
+    }
+
     void resolve(T val) {
-        state->thenEvent.emit(val);
+        state->resolve(val);
+    }
+
+    void reject(std::string s) {
+        state->reject(s);
     }
 
 private:

@@ -45,6 +45,7 @@ JSVAL_REF jsvalRefCreate(JSVAL v);
 void jsvalRefFree(JSVAL_REF ref);
 JSVAL jsvalRefGetValue(JSVAL_REF ref);
 JSVAL_ID jsvalGetObjectId(JSVAL v);
+JSVAL jsvalDup(JSVAL v);
 
 void jsvalMqjsInit(size_t memsize, const JSSTDLibraryDef *stdlib_def);
 void jsvalMqjsInitBorrowed(JSContext *ctx);

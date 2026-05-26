@@ -42,7 +42,7 @@ public:
 class PromiseOpaque {
 public:
     std::function<void(JSVAL)> then;
-    //std::function<void(JSVAL)> onCatch;
+    std::function<void(JSVAL)> onCatch;
 };
 
 void removeListener(Listener *listener) {
@@ -110,7 +110,9 @@ static JSVAL packPromise(Promise<T> promise, std::function<JSVAL(T)> packer) {
             JSVAL args[1];
             args[0]=packer(val);
             JSVAL cbv=jsvalRefGetValue(cbRef);
-            jsvalCall(cbv,jsvalUndefined(),1,args);
+            JSVAL res=jsvalCall(cbv,jsvalUndefined(),1,args);
+            jsvalFree(res);
+            jsvalFree(args[0]);
         });
 
         Listener *listener=new Listener((Dispatcher<>*) thenDispatcher,handle);
@@ -121,14 +123,16 @@ static JSVAL packPromise(Promise<T> promise, std::function<JSVAL(T)> packer) {
         });
     };
 
-    /*promiseOpaque->onCatch=[promise, packer](JSVAL cb) mutable {
+    promiseOpaque->onCatch=[promise](JSVAL cb) mutable {
         Dispatcher<std::string> *catchDispatcher=promise.getCatchDispatcher();
         JSVAL_REF cbRef=jsvalRefCreate(cb);
         int handle=catchDispatcher->on([cbRef](std::string reason) mutable {
             JSVAL args[1];
             args[0]=jsvalCreateString(reason.c_str());
             JSVAL cbv=jsvalRefGetValue(cbRef);
-            jsvalCall(cbv,jsvalUndefined(),1,args);
+            JSVAL res=jsvalCall(cbv,jsvalUndefined(),1,args);
+            jsvalFree(res);
+            jsvalFree(args[0]);
         });
 
         Listener *listener=new Listener((Dispatcher<>*) catchDispatcher,handle);
@@ -137,7 +141,7 @@ static JSVAL packPromise(Promise<T> promise, std::function<JSVAL(T)> packer) {
             removeListener(listener);
             jsvalRefFree(cbRef);
         });
-    };*/
+    };
 
     return promiseVal;
 }
@@ -158,14 +162,11 @@ void Promise_finalizer(JSVAL thisobj) {
 JSVAL Promise_then(JSVAL thisobj, int argc, JSVAL *argv) {
     PromiseOpaque *p=(PromiseOpaque *)jsvalGetOpaque(thisobj);
     p->then(argv[0]);
-
-    //return thisobj;
-    return jsvalUndefined(); //thisobj;
+    return jsvalDup(thisobj);
 }
 
 JSVAL Promise_catch(JSVAL thisobj, int argc, JSVAL *argv) {
-    /*PromiseOpaque *p=(PromiseOpaque *)jsvalGetOpaque(thisobj);
-    p->onCatch(argv[0]);*/
-
-    return thisobj;
+    PromiseOpaque *p=(PromiseOpaque *)jsvalGetOpaque(thisobj);
+    p->onCatch(argv[0]);
+    return jsvalDup(thisobj);
 }
