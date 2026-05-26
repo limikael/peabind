@@ -438,6 +438,8 @@ void test_promises() {
     basic_init_jsval();
 
     jsvalEvalChecked("getIntPromise().then(v=>globalThis.resto=v); undefined");
+    jsvalQuickjsRunGc();
+
     theIntPromise.resolve(123);
     assert(evaljs("globalThis.resto")=="123");
 
