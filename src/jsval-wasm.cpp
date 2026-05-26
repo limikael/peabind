@@ -16,8 +16,6 @@ JSVAL *jsvalReadArray(JSVAL a, JSVAL *dest) {
 }
 
 void jsvalSetInternalOpaque(JSVAL v, void *opaque) {
-	//printf("setting opaque for v=%d f=%p\n",v,opaque);
-
 	internalOpaques[v]=opaque;
 }
 
@@ -26,8 +24,6 @@ void *jsvalGetInternalOpaque(JSVAL v) {
 }
 
 void jsvalSetOpaque(JSVAL v, void *opaque) {
-	//printf("setting opaque for v=%d f=%p\n",v,opaque);
-
 	opaques[v]=opaque;
 }
 
@@ -41,8 +37,6 @@ JSVAL jsvalCallNative(JSVAL stub, JSVAL thisobj, JSVAL args) {
 	jsvalReadArray(args,argv);
 
 	JSVAL_FUNC *func=(JSVAL_FUNC *)jsvalGetInternalOpaque(stub);
-
-	//printf("going to call.. f=%p\n",func);
 
 	return func(thisobj, argc, argv);
 }
