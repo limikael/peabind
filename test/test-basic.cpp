@@ -451,23 +451,6 @@ void test_promises() {
     jsvalEvalChecked("getIntPromise().catch(v=>globalThis.otherrejto=v); undefined");
     assert(evaljs("globalThis.otherrejto")=="nope");
 
-    // promises in just C++
-    int result=0;
-    Promise<int> intPromise=Promise<int>();
-    intPromise.then([&result](int i){
-        result=i;
-    });
-
-    intPromise.resolve(789);
-    assert(result==789);
-
-    result=0;
-    intPromise.then([&result](int i){
-        result=i;
-    });
-
-    assert(result==789);
-
     basic_exit();
     jsvalQuickjsExit();
 }
@@ -495,7 +478,7 @@ void test_promises_lifetime() {
     jsvalQuickjsExit();
 }
 
-void test_promise_types() {
+void test_promises_types() {
     printf("- promise types...\n");
     theSimplePromise=Promise<std::shared_ptr<Simple>>();
 
@@ -513,4 +496,31 @@ void test_promise_types() {
 
     basic_exit();
     jsvalQuickjsExit();
+}
+
+void test_promises_cpp() {
+    printf("- promises work in cpp...\n");
+
+    int result=0;
+    Promise<int> intPromise=Promise<int>();
+    intPromise.then([&result](int i){
+        result=i;
+    });
+
+    intPromise.resolve(789);
+    assert(result==789);
+
+    result=0;
+    intPromise.then([&result](int i){
+        result=i;
+    });
+
+    assert(result==789);
+
+    bool called=false;
+    VoidPromise voidPromise;
+    voidPromise.then([&called](){ called=true; });
+    voidPromise.resolve();
+    voidPromise.reject("hello");
+    assert(called);
 }

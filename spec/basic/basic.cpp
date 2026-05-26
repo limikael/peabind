@@ -69,6 +69,8 @@ int peekBuffer(std::vector<uint8_t> buffer, int i) {
 }
 
 Promise<int> theIntPromise;
+Promise<std::shared_ptr<Simple>> theSimplePromise;
+Promise<> theVoidPromise;
 
 Promise<int> getIntPromise() {
 	return theIntPromise;
@@ -78,7 +80,10 @@ void resolveIntPromise(int v) {
 	theIntPromise.resolve(v);
 }
 
-Promise<std::shared_ptr<Simple>> theSimplePromise;
 Promise<std::shared_ptr<Simple>> getSimplePromise() {
 	return theSimplePromise;
+}
+
+Promise<> getVoidPromise() {
+	return theVoidPromise;
 }

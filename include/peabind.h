@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <cstdint>
 #include <memory>
+#include <variant>
 
 template<typename... Args>
 class Dispatcher {
@@ -178,11 +179,10 @@ private:
     std::string reason;
 };
 
-template <typename T>
+template <typename T=void>
 class Promise {
 public:
     Promise() {
-        //printf("promise ctor...\n");
         state=std::make_shared<PromiseState<T>>();
     }
 
@@ -218,6 +218,20 @@ public:
     T getResult() { return state->getResult(); }
     std::string getReason() { return state->getReason(); }
 
-private:
+protected:
     std::shared_ptr<PromiseState<T>> state;
 };
+
+template <>
+class Promise<void>: public Promise<std::monostate> {
+public:
+    void then(std::function<void()> handler) {
+        Promise<std::monostate>::then([handler](std::monostate) {
+            handler();
+        });
+    }
+
+    void resolve() { state->resolve(std::monostate{}); }
+};
+
+typedef Promise<> VoidPromise;
