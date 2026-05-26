@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include <string>
 #include "peabind.h"
 
 int hello(int a, int b);
@@ -130,7 +131,9 @@ public:
 extern Promise<int> theIntPromise;
 extern Promise<std::shared_ptr<Simple>> theSimplePromise;
 extern Promise<> theVoidPromise;
+extern Promise<std::string> theStringPromise;
 
 Promise<> getVoidPromise();
 Promise<int> getIntPromise();
 Promise<std::shared_ptr<Simple>> getSimplePromise();
+Promise<std::string> getStringPromise();

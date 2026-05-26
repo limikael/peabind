@@ -71,7 +71,14 @@ class FloatTypeStrategy {
 }
 
 class StringTypeStrategy {
+    constructor(typeDef) {
+        this.typeDef=typeDef;
+    }
+
     nativeDecl(name) {
+        if (this.typeDef.promise)
+            return `Promise<std::string> ${name};\n`;
+
         return `std::string ${name};\n`;
     }
 
@@ -84,17 +91,19 @@ class StringTypeStrategy {
     }
 
     pack(dest, src) {
+        if (this.typeDef.promise) {
+            return `
+                ${dest}=packPromise<std::string>(${src},[](std::string v) {
+                    return jsvalCreateString(v.c_str());
+                });
+            `;
+        }
+
         return `${dest}=jsvalCreateString(${src}.c_str());\n`;
     }
 
     unpack(dest, src) {
         return `${dest}=jsvalToStdString(${src});\n`;
-        /*return `
-            int ${dest}_len=jsvalGetSize(${src});
-            char ${dest}_str[${dest}_len+1];
-            jsvalReadString(${src},${dest}_str);
-            ${dest}=std::string(${dest}_str);
-        `;*/
     }
 
     cleanup(name) {
@@ -243,15 +252,15 @@ export function createTypeStrategy(typeDef, {idl, prefix}) {
             break;
 
         case "float":
-            return new FloatTypeStrategy();
+            return new FloatTypeStrategy(typeDef);
             break;
 
         case "string":
-            return new StringTypeStrategy();
+            return new StringTypeStrategy(typeDef);
             break;
 
         case "buffer":
-            return new BufferTypeStrategy();
+            return new BufferTypeStrategy(typeDef);
             break;
 
         default:

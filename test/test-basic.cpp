@@ -493,6 +493,11 @@ void test_promises_types() {
     theVoidPromise.resolve();
     assert(evaljs("globalThis.voidres")=="true");
 
+    theStringPromise=Promise<std::string>();
+    jsvalEvalChecked("getStringPromise().then(s=>globalThis.strres=s); undefined");
+    theStringPromise.resolve("hello");
+    assert(evaljs("globalThis.strres")=="hello");
+
     basic_exit();
     jsvalQuickjsExit();
 }

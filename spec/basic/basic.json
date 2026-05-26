@@ -18,6 +18,7 @@
 		"getIntPromise": {"return": {"type": "int", "promise": true}},
 		"getSimplePromise": {"return": {"type": "Simple", "promise": true}},
 		"getVoidPromise": {"return": {"type": "void", "promise": true}},
+		"getStringPromise": {"return": {"type": "string", "promise": true}},
 	},
 	"classes": {
 		"Simple": {
