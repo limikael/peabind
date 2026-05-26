@@ -104,6 +104,18 @@ static JSVAL packPromise(Promise<T> promise, std::function<JSVAL(T)> packer) {
     jsvalSetOpaque(promiseVal,promiseOpaque);
 
     promiseOpaque->then=[promise, packer](JSVAL cb) mutable {
+        if (promise.isSettled()) {
+            if (promise.isResolved()) {
+                JSVAL args[1];
+                args[0]=packer(promise.getResult());
+                JSVAL res=jsvalCall(cb,jsvalUndefined(),1,args);
+                jsvalFree(res);
+                jsvalFree(args[0]);
+            }
+
+            return;
+        }
+
         Dispatcher<T> *thenDispatcher=promise.getThenDispatcher();
         JSVAL_REF cbRef=jsvalRefCreate(cb);
         int handle=thenDispatcher->on([cbRef, packer](T val) mutable {
@@ -124,6 +136,19 @@ static JSVAL packPromise(Promise<T> promise, std::function<JSVAL(T)> packer) {
     };
 
     promiseOpaque->onCatch=[promise](JSVAL cb) mutable {
+        if (promise.isSettled()) {
+            if (promise.isRejected()) {
+                std::string reason=promise.getReason();
+                JSVAL args[1];
+                args[0]=jsvalCreateString(reason.c_str());
+                JSVAL res=jsvalCall(cb,jsvalUndefined(),1,args);
+                jsvalFree(res);
+                jsvalFree(args[0]);
+            }
+
+            return;
+        }
+
         Dispatcher<std::string> *catchDispatcher=promise.getCatchDispatcher();
         JSVAL_REF cbRef=jsvalRefCreate(cb);
         int handle=catchDispatcher->on([cbRef](std::string reason) mutable {

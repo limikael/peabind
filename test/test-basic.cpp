@@ -427,6 +427,9 @@ void test_microtasks() {
 extern Promise<int> theIntPromise;
 extern Promise<int> getIntPromise();
 
+//next... check that .then() and .catch() works after the promise is settled...
+//and then test with promised objects...
+
 void test_promises() {
     printf("- promises...\n");
     theIntPromise=Promise<int>();
@@ -438,12 +441,35 @@ void test_promises() {
     theIntPromise.resolve(123);
     assert(evaljs("globalThis.resto")=="123");
 
+    jsvalEvalChecked("getIntPromise().then(v=>globalThis.otherresto=v); undefined");
+    assert(evaljs("globalThis.otherresto")=="123");
+
     theIntPromise=Promise<int>();
     jsvalEvalChecked("getIntPromise().catch(v=>globalThis.rejto=v); undefined");
 
     std::string str="nope";
     theIntPromise.reject(str);
     assert(evaljs("globalThis.rejto")=="nope");
+
+    jsvalEvalChecked("getIntPromise().catch(v=>globalThis.otherrejto=v); undefined");
+    assert(evaljs("globalThis.otherrejto")=="nope");
+
+    // promises in just C++
+    int result=0;
+    Promise<int> intPromise=Promise<int>();
+    intPromise.then([&result](int i){
+        result=i;
+    });
+
+    intPromise.resolve(789);
+    assert(result==789);
+
+    result=0;
+    intPromise.then([&result](int i){
+        result=i;
+    });
+
+    assert(result==789);
 
     basic_exit();
     jsvalQuickjsExit();

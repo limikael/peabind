@@ -127,6 +127,7 @@ public:
             return;
 
         state=RESOLVED;
+        result=val;
         thenEvent.emit(val);
         thenEvent.off();
         catchEvent.off();
@@ -137,6 +138,7 @@ public:
             return;
 
         state=REJECTED;
+        reason=s;
         catchEvent.emit(s);
         thenEvent.off();
         catchEvent.off();
@@ -144,6 +146,22 @@ public:
 
     bool isSettled() {
         return (state!=PENDING);
+    }
+
+    bool isResolved() {
+        return (state==RESOLVED);
+    }
+
+    bool isRejected() {
+        return (state==REJECTED);
+    }
+
+    T getResult() {
+        return result;
+    }
+
+    std::string getReason() {
+        return reason;
     }
 
     Dispatcher<T> thenEvent;
@@ -156,6 +174,8 @@ private:
         REJECTED
     };
     State state;
+    T result;
+    std::string reason;
 };
 
 template <typename T>
@@ -167,28 +187,36 @@ public:
     }
 
     void then(std::function<void(T)> handler) {
+        if (state->isSettled()) {
+            if (state->isResolved())
+                handler(state->getResult());
+
+            return;
+        }
+
         state->thenEvent.on(handler);
     }
 
-    void onCatch(std::function<void(std::string)> handler) {
+    void onCatch(std::function<void(std::string)> handler) { 
+        if (state->isSettled()) {
+            if (state->isRejected())
+                handler(state->getReason());
+
+            return;
+        }
+
         state->catchEvent.on(handler);
     }
 
-    Dispatcher<T> *getThenDispatcher() {
-        return &state->thenEvent;
-    }
-
-    Dispatcher<std::string> *getCatchDispatcher() {
-        return &state->catchEvent;
-    }
-
-    void resolve(T val) {
-        state->resolve(val);
-    }
-
-    void reject(std::string s) {
-        state->reject(s);
-    }
+    Dispatcher<T> *getThenDispatcher() { return &state->thenEvent; }
+    Dispatcher<std::string> *getCatchDispatcher() { return &state->catchEvent; }
+    void resolve(T val) { state->resolve(val); }
+    void reject(std::string s) { state->reject(s); }
+    bool isSettled() { return state->isSettled(); }
+    bool isResolved() { return state->isResolved(); }
+    bool isRejected() { return state->isRejected(); }
+    T getResult() { return state->getResult(); }
+    std::string getReason() { return state->getReason(); }
 
 private:
     std::shared_ptr<PromiseState<T>> state;
