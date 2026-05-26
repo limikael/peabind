@@ -321,6 +321,7 @@ class PeabindJsvalBuilder {
             ${this.include.map(i=>`#include "${i}"`).join("\n")}
             ${this.idl.include.map(i=>`#include "${i}"`).join("\n")}
             #include "peabind-priv.h"
+            #include "jsval-util.h"
 
             std::vector<Opaque*> opaques;
             std::vector<Listener*> listeners;
@@ -343,19 +344,10 @@ class PeabindJsvalBuilder {
             }
 
             extern "C" void ${this.prefix}exitmod() {
-                //printf("listeners size: %d\\n",listeners.size());
-                //jsvalQuickjsRunGc();
-
-                //printf("removing listeners...\\n");
                 while (listeners.size()) {
                     //printf("remove listeners size: %d\\n",listeners.size());
                     listeners[0]->dispatcher->off(listeners[0]->handle);
                 }
-                //printf("done removing listeners...\\n");
-
-                //jsvalQuickjsRunGc();
-                //printf("listeners size after: %d\\n",listeners.size());
-                //Serial.printf("exitmod.. pointers: %d\\n",jsvalByPointer.size());
             }
 
             extern "C" int ${this.prefix}get_num_objects() {

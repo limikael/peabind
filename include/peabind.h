@@ -128,10 +128,14 @@ public:
         //return 1;
     }
 
-    void removeThen(int handle) {
+    Dispatcher<T> *getThenDispatcher() {
+        return &state->thenEvent;
+    }
+
+    /*void removeThen(int handle) {
         //printf("remove listener: %d\n",handle);
         state->thenEvent.off(handle);
-    }
+    }*/
 
     void resolve(T val) {
         state->thenEvent.emit(val);

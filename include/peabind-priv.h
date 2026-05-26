@@ -10,8 +10,11 @@
 #include <variant>
 
 class Opaque;
+class Listener;
+
 extern std::vector<Opaque*> opaques;
 extern JSVAL promiseClassId;
+extern std::vector<Listener*> listeners;
 
 class Listener {
 public:
@@ -37,27 +40,17 @@ public:
 
 class PromiseOpaque {
 public:
-    PromiseOpaque() {
-    }
-
-    ~PromiseOpaque() {
-        destructor();
-    }
-
     std::function<void(JSVAL)> then;
-    std::function<void()> destructor;
-    std::vector<int> handles;
 };
 
 template<typename T>
 PromiseOpaque* makePromiseOpaque(Promise<T> promise, std::function<JSVAL(T)> packer) {
     PromiseOpaque* op=new PromiseOpaque();
-    auto* handles = &op->handles;
 
-    op->then=[promise, handles, packer](JSVAL cb) mutable {
+    op->then=[promise, packer](JSVAL cb) mutable {
         JSVAL_REF ref=jsvalRefCreate(cb);
-        int handle=promise.then([promise, ref, packer](T val) mutable {
-            //printf("promise resolved...\n");
+        Dispatcher<T> *thenDispatcher=promise.getThenDispatcher();
+        int handle=thenDispatcher->on([promise, ref, packer](T val) mutable {
             JSVAL args[1];
             args[0]=packer(val);
             JSVAL cbv=jsvalRefGetValue(ref);
@@ -65,15 +58,26 @@ PromiseOpaque* makePromiseOpaque(Promise<T> promise, std::function<JSVAL(T)> pac
             jsvalRefFree(ref);
         });
 
-        handles->push_back(handle);
-    };
+        Dispatcher<> *d=(Dispatcher<>*) thenDispatcher;
+        Listener *listener=new Listener(d,handle);
+        listeners.push_back(listener);
 
-    op->destructor=[promise, handles]() mutable {
-        //printf("destructor, handles.size() = %d\n",handles->size());
-        for (auto h: *handles)
-            promise.removeThen(h);
+        thenDispatcher->setDestructor(handle,[listener](){
+            //printf("listeer destr... weak exp=%d\\n",instanceWeak.expired());
+            auto it = std::remove(listeners.begin(), listeners.end(), listener);
+            assert(it!=listeners.end());
 
-        handles->clear();
+            if (it != listeners.end()) {
+                listeners.erase(it, listeners.end());
+                delete listener;
+            }
+
+            else {
+                printf("listener not found!\\n");
+            }
+
+            //jsvalRefFree(cbRef);
+        });
     };
 
     return op;
@@ -118,14 +122,10 @@ static JSVAL pack(std::shared_ptr<T> instance, JSVAL classId) {
 
 template<typename T>
 static JSVAL packPromise(Promise<T> promise, std::function<JSVAL(T)> packer) {
-    //printf("pack promise...\n");
-
     JSVAL promiseVal=jsvalCreateObject(promiseClassId);
     PromiseOpaque *promiseOpaque=makePromiseOpaque<T>(promise, packer);
     jsvalSetOpaque(promiseVal,promiseOpaque);
     return promiseVal;
-
-    //return jsvalUndefined();
 }
 
 JSVAL Promise_constructor(JSVAL thisobj, int argc, JSVAL *argv) {
