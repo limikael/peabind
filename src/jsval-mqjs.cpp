@@ -54,9 +54,7 @@ JSContext *jsvalMqjsGetContext() {
 
 JSVAL jsvalEval(const char *s) {
     JSValue val=JS_Eval(jsvalCtx,s,strlen(s),"<inline>",JS_EVAL_RETVAL);
-    //printf("evaled...\n");
     if (JS_IsException(val)) {
-        //printf("it is an exception!!!\n");
         jsvalSeenException=true;
     }
 
@@ -127,8 +125,6 @@ JSVAL jsvalToString(JSVAL s) {
 void *jsvalReadBuffer(JSVAL v, void *buf) {
     size_t sz=jsvalGetSize(v);
     uint8_t *ubuf=(uint8_t *)buf;
-
-    //printf("read size: %d\n",sz);
 
     for (size_t c=0; c<sz; c++) {
         uint8_t b=jsvalGetInt(JS_GetPropertyUint32(jsvalCtx,v,c));
@@ -244,11 +240,6 @@ JSVAL_ID jsvalGetObjectId(JSVAL obj) {
 int jsvalInstanceOf(JSVAL v, JSVAL cls) {
     int classId=jsvalGetInt(jsvalGetProp(cls,"__classId"));
     return (JS_GetClassID(jsvalCtx,v)==classId);
-
-    //printf("instanceof v...%d\n",JS_GetClassID(jsvalCtx,v));
-    //printf("instanceof cls...%d\n",classId);
-    //abort();
-    //return 0;
 }
 
 JSVAL jsvalCreateObject(JSVAL cls) {
