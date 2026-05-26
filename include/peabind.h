@@ -11,7 +11,6 @@ class Dispatcher {
         int handle;
         std::function<void(Args...)> fn;
         std::function<void()> destructor;
-        //void *idPtr;
         uint64_t idInt;
     };
 
@@ -33,7 +32,7 @@ public:
 
     int on(std::function<void(Args...)> listener) {
         int handle = nextHandle++;
-        listeners.push_back({handle, std::move(listener), nullptr, /*nullptr,*/ 0});
+        listeners.push_back({handle, std::move(listener), nullptr, 0});
         return handle;
     }
 
@@ -44,24 +43,6 @@ public:
             }
         }
     }
-
-    /*int getHandleByIdPtr(void *idPtr) {
-        for (auto it = listeners.begin(); it != listeners.end(); ++it) {
-            if (it->idPtr == idPtr) {
-                return it->handle;
-            }
-        }
-
-        return 0;
-    }
-
-    void setIdPtr(int handle, void *idPtr) {
-        for (auto it = listeners.begin(); it != listeners.end(); ++it) {
-            if (it->handle == handle) {
-                it->idPtr=idPtr;
-            }
-        }
-    }*/
 
     int getHandleByIdInt(uint64_t idInt) {
         for (auto it = listeners.begin(); it != listeners.end(); ++it) {
