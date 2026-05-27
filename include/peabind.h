@@ -119,6 +119,8 @@ public:
     }
 
     ~PromiseState() {
+        //printf("promise state destructor\n");
+
         if (!isSettled())
             reject("lost promise");
     }

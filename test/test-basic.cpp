@@ -465,7 +465,9 @@ void test_promises_lifetime() {
     jsvalEvalChecked("getIntPromise().then(v=>globalThis.resto=v); undefined");
     jsvalEvalChecked("getIntPromise().catch(v=>globalThis.reason=v); undefined");
 
+    //printf("creating new promise...\n");
     theIntPromise=Promise<int>();
+    //printf("new promise created...\n");
 
     JSVAL v=jsvalEvalChecked("globalThis.reason");
     std::string s=jsvalToStdString(v);
