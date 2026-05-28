@@ -187,6 +187,9 @@ void Promise_finalizer(JSVAL thisobj) {
 JSVAL Promise_then(JSVAL thisobj, int argc, JSVAL *argv) {
     PromiseOpaque *p=(PromiseOpaque *)jsvalGetOpaque(thisobj);
     p->then(argv[0]);
+    if (argc>=2)
+        p->onCatch(argv[1]);
+
     return jsvalDup(thisobj);
 }
 
