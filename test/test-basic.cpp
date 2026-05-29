@@ -536,3 +536,21 @@ void test_promises_cpp() {
     voidPromise.reject("hello");
     assert(called);
 }
+
+void test_setters() {
+    printf("- setters...\n");
+
+    jsvalQuickjsInit();
+    basic_init_jsval();
+
+    auto simple=std::make_shared<Simple>(6665);
+    basic_set_Simple("theSimple",simple);
+
+    JSVAL v=jsvalEvalChecked("theSimple.getVal()");
+    std::string s=jsvalToStdString(v);
+    assert(s=="6665");
+    //jsvalFree(v);
+
+    basic_exit();
+    jsvalQuickjsExit();
+}

@@ -3,7 +3,7 @@ import os from "os";
 import fs from "fs";
 import {createPeabindJsvalBuilder} from "./peabind-jsval.js";
 import {dirnameFromImportMeta} from "../utils/node-util.js";
-import {autoIndent} from "../utils/lang-util.js";
+import {autoIndent, ifdefWrap} from "../utils/lang-util.js";
 
 let __dirname=dirnameFromImportMeta(import.meta);
 
@@ -48,6 +48,12 @@ export async function peabindQuickjs({idl, includePath, sources, output, prefix}
             if (owned)
                 jsvalQuickjsExit();
         }
+
+        ${builder.idl.classes.map(cls=>ifdefWrap(cls.ifdef,`
+            void ${builder.prefix}set_${cls.name}(const char *name, std::shared_ptr<${builder.getExtClassName(cls)}> val) {
+                jsvalSetProp(jsvalGetGlobal(),name,pack<${builder.getExtClassName(cls)}>(val,${builder.prefix}${cls.name}_id));
+            }
+        `)).join("\n")}
     `);
 
     fs.writeFileSync(output,source);
@@ -58,11 +64,18 @@ export async function peabindQuickjs({idl, includePath, sources, output, prefix}
         #include "quickjs.h"
         #include "jsval-quickjs.h"
         #include "jsval-util.h"
+        #include <memory>
+        ${builder.idl.include.map(i=>`#include "${i}"`).join("\n")}
+
         extern "C" void ${builder.prefix}init(JSContext *ctx);
         extern "C" void ${builder.prefix}init_jsval();
         extern "C" void ${builder.prefix}exit();
         extern "C" int ${builder.prefix}get_num_objects();
         extern "C" int ${builder.prefix}get_num_listeners();
+
+        ${builder.idl.classes.map(cls=>ifdefWrap(cls.ifdef,`
+            void ${builder.prefix}set_${cls.name}(const char *name, std::shared_ptr<${builder.getExtClassName(cls)}> val);
+        `)).join("\n")}
     `);
     fs.writeFileSync(headerOutput,headerContent);
 }

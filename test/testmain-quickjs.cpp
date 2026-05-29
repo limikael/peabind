@@ -20,6 +20,7 @@ void test_promises();
 void test_promises_lifetime();
 void test_promises_types();
 void test_promises_cpp();
+void test_setters();
 
 int main() {
 	printf("Running tests...\n");
@@ -44,6 +45,7 @@ int main() {
 	test_promises_lifetime();
 	test_promises_types();
 	test_promises_cpp();
+	test_setters();
 
 	return 0;
 }
