@@ -50,6 +50,10 @@
 				"dataFloat": {"args": ["float"]},
 				"dataHello": {"args": ["Hello"]},
 				"dataString": {"args": ["string"]},
+			},
+			"const": {
+				"HELLO": 1,
+				"HELLO_AGAIN": 2
 			}
 		},
 		"ExtendHello": {

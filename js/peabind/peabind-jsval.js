@@ -287,7 +287,6 @@ class PeabindJsvalBuilder {
             return m;
         });
     }
-            //${cls.methods.map(m=>this.generateFunctionReg(m)).join("\n")}
 
     generateClassReg(cls) {
         return this.ifdefWrap(cls.ifdef,`
@@ -301,6 +300,10 @@ class PeabindJsvalBuilder {
                 jsvalSetProtoProp(${this.prefix}${cls.name}_id,"on",jsvalCreateFunc(${this.prefix}${cls.name}_on));
                 jsvalSetProtoProp(${this.prefix}${cls.name}_id,"off",jsvalCreateFunc(${this.prefix}${cls.name}_off));
             `:""}
+
+            ${Object.keys(cls.const).map(c=>`
+                jsvalSetProp(${this.prefix}${cls.name}_id,"${c}",jsvalCreateInt(${cls.const[c]}));
+            `).join("\n")}
         `);
     }
 
