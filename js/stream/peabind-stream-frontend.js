@@ -3,6 +3,7 @@ import path from "node:path";
 import {ifdefWrap, autoIndent, namespaceWrap} from "../utils/lang-util.js";
 import {createTypeStrategy} from "../peabind/peabind-jsval-types.js";
 import {createFuncBuilder} from "../idl/FuncBuilder.js";
+import {createClassBuilder} from "../idl/ClassBuilder.js";
 
 class PeabindStreamFrontendBuilder {
     constructor({idl, prefix, projectName, namespace}) {
@@ -24,6 +25,10 @@ class PeabindStreamFrontendBuilder {
 
     fs(func) {
         return createFuncBuilder({idl: this.idl, prefix: this.prefix, func});
+    }
+
+    cs(cls) {
+        return createClassBuilder({idl: this.idl, prefix: this.prefix, cls});
     }
 
     generateSource() {
@@ -54,6 +59,7 @@ class PeabindStreamFrontendBuilder {
             #include "CborStream.h"
             ${namespaceWrap(this.namespace,`
                 ${this.idl.functions.map(f=>this.fs(f).generateSignature()).join("\n")}
+                ${this.idl.classes.map(f=>this.cs(f).generateSignature()).join("\n")}
             `)}
             void ${this.prefix}init(StreamTransport &transport);
         `);

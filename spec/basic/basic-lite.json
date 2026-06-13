@@ -32,7 +32,7 @@
 				"data": {"dispatcher": "dataEvent"}
 			}
 		},
-		"Hello": {
+		/*"Hello": {
 			"ctorArgs": ["int"],
 			"methods": {
 				"getVal": {"return":"int"},
@@ -76,6 +76,6 @@
 		},
 		"DoesntExist": {
 			"ifdef": "NOTEXIST"
-		},
+		},*/
 	}
 }

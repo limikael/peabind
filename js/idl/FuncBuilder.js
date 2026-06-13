@@ -14,9 +14,12 @@ export default class FuncBuilder {
 
 	generateSignature() {
 		let args=this.func.args.map(a=>this.ts(a).nativeType()).join(",");
+        let typeSpec=this.ts(this.func.return).nativeType();
+        if (this.func.ctor)
+            typeSpec="";
 
 		return ifdefWrap(this.func.ifdef,`
-			${this.ts(this.func.return).nativeType()} ${this.func.name}(${args});
+			${typeSpec} ${this.func.name}(${args});
 		`);
 	}
 
