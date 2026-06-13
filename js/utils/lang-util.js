@@ -61,3 +61,14 @@ export function ifdefWrap(ifdef, content) {
         #endif
     `
 }
+
+export function namespaceWrap(namespace, content) {
+    if (!namespace)
+        return content;
+
+    return `
+        namespace ${namespace} {
+        ${content}
+        }
+    `
+}

@@ -2,6 +2,7 @@
 
 class StreamTransport {
 public:
+	virtual ~StreamTransport()=default;
 	virtual void loop()=0;
 	virtual bool available()=0;
 	virtual int read()=0;

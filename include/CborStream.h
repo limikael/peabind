@@ -9,11 +9,12 @@ class CborStream {
 public:
 	CborStream(StreamTransport &transport_);
 	std::vector<uint8_t> read();
-	void loop();
+	//void loop();
 	bool available();
 	void write(std::vector<uint8_t> v);
+	StreamTransport* getTransport() { return &transport; }
 
 private:
-	StreamTransport &transport;
+	StreamTransport& transport;
 	std::vector<uint8_t> buffer;
 };

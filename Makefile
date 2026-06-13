@@ -83,19 +83,27 @@ test-quickjs:
 		--errors-for-leak-kinds=all \
 		./bin/testmain-quickjs
 
-#		test/stream-backend.out.cpp \
-
 test-stream:
 	rm -f vgcore.*
 	rm -f test/*.out.*
 	peabind -otest/stream-backend.out.cpp \
-		spec/basic/basic.json \
+		spec/basic/basic-lite.json \
 		-pbasic_ \
 		-tstream-backend
-	wrapcc --linker=g++ gcc -g -o bin/testmain-stream \
+	peabind -otest/stream-frontend.out.cpp \
+		-nBasicFrontend \
+		spec/basic/basic-lite.json \
+		-pbasic_ \
+		-tstream-frontend
+	wrapcc --linker=g++ gcc -o bin/testmain-stream \
+		-fsanitize=address -fno-omit-frame-pointer -g \
+		-Wnon-virtual-dtor \
 		-Iinclude \
+		-Ispec/basic \
 		-Iext/cbor-lite/include \
+		spec/basic/basic.cpp \
 		test/testmain-stream.cpp \
+		test/stream-backend.out.cpp \
+		test/stream-frontend.out.cpp \
 		src/CborStream.cpp
-	./bin/testmain-stream
-
+	ASAN_OPTIONS=detect_leaks=1 ./bin/testmain-stream

@@ -9,6 +9,7 @@ program
     .argument('[idl..]', 'Idl file. At least one required. (ext: .json)')
     .argument('[sources...]', 'Additional source files. (ext: .c, .cpp)')
     .option("-o, --output <output file>","Primary output. Required.")
+    .option("-n, --namespace <namespace","Namespace for output symbols.")
     .option("-t, --target <target>","Target (wasm, quickjs, mqjs).")
     .option("-p, --prefix <prefix>","Function prefix.")
     .option("--lib-conf <conf>","Print local library config. [cargs,includeDir,cflags-only-I]")

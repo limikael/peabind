@@ -1,24 +1,24 @@
 #include "CborStream.h"
 #include "cbor-util.h"
+#include <cassert>
 
 CborStream::CborStream(StreamTransport& transport_)
 		:transport(transport_) {
 }
 
-void CborStream::loop() {
+bool CborStream::available() {
+	if (cborByteSize(buffer.begin(),buffer.end())>=0)
+		return true;
+
 	while (transport.available())
 		buffer.push_back(transport.read());
-}
 
-bool CborStream::available() {
-	loop();
-
-	ssize_t size=cborByteSize(buffer.begin(),buffer.end());
-	return (size>0);
+	return (cborByteSize(buffer.begin(),buffer.end())>=0);
 }
 
 std::vector<uint8_t> CborStream::read() {
-	loop();
+	while (cborByteSize(buffer.begin(),buffer.end())<0)
+		buffer.push_back(transport.read());
 
 	ssize_t size=cborByteSize(buffer.begin(),buffer.end());
 	std::vector<uint8_t> res;

@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include "stream-backend.out.h"
+#include "stream-frontend.out.h"
 #include <deque>
 #include <cassert>
 #include "CborStream.h"
+#include "basic.h"
 
 using namespace CborLite;
 
@@ -22,14 +24,20 @@ public:
 	}
 
 	virtual void write(int value) override {
-		other->buffer.push_back(value);
+		other->handleIncoming(value);
+	}
+
+	void handleIncoming(int value) {
+		buffer.push_back(value);
+		dataEvent.emit();
 	}
 
 	std::deque<uint8_t> buffer;
 	MockStreamTransport *other;
+	Dispatcher<> dataEvent;
 };
 
-std::pair<StreamTransport *, StreamTransport *> createMockStreamPair() {
+std::pair<MockStreamTransport *, MockStreamTransport *> createMockStreamPair() {
 	auto a=new MockStreamTransport();
 	auto b=new MockStreamTransport();
 	a->other=b;
@@ -38,10 +46,16 @@ std::pair<StreamTransport *, StreamTransport *> createMockStreamPair() {
 	return std::make_pair(a,b);
 }
 
+std::pair<CborStream *, CborStream *> createMockCborStreamPair() {
+	auto p=createMockStreamPair();
+	auto a=new CborStream(*(p.first)), b=new CborStream(*(p.second));
+
+	return std::make_pair(a,b);
+}
+
 void test_stream() {
 	fprintf(stderr,"- Stream...\n");
-	auto p=createMockStreamPair();
-	auto a=p.first, b=p.second;
+	auto [a,b]=createMockStreamPair();
 	int i;
 
 	assert(!b->available());
@@ -55,14 +69,13 @@ void test_stream() {
 	assert(i==125);
 	assert(!b->available());
 
-	delete p.first;
-	delete p.second;
+	delete a;
+	delete b;
 }
 
 void test_cbor() {
 	fprintf(stderr,"- Cbor stream...\n");
-	auto p=createMockStreamPair();
-	auto a=new CborStream(*(p.first)), b=new CborStream(*(p.second));
+	auto [a,b]=createMockCborStreamPair();
 
     std::vector<unsigned char> outm;
     size_t size=5;
@@ -89,6 +102,27 @@ void test_cbor() {
     std::vector<unsigned char> inm2=b->read();
     assert(inm2.size()==2);
 	assert(!b->available());
+
+	delete a->getTransport();
+	delete b->getTransport();
+	delete a;
+	delete b;
+}
+
+void test_stream_basic() {
+	auto [a,b]=createMockStreamPair();
+	basic_Backend backend(*b);
+	b->dataEvent.on([&backend](){
+		backend.loop();
+	});
+
+	basic_init(*a);
+
+	int i=BasicFrontend::hello(1,2);
+	assert(i==3);
+
+	delete a;
+	delete b;
 }
 
 int main() {
@@ -96,6 +130,7 @@ int main() {
 
 	test_stream();
 	test_cbor();
+	test_stream_basic();
 
 	return 0;
 }

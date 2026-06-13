@@ -5,6 +5,10 @@ class IntTypeStrategy {
         this.typeDef=typeDef;
     }
 
+    nativeType() {
+        return "int";
+    }
+
     nativeDecl(name) {
         if (this.typeDef.promise)
             return `std::optional<Promise<int32_t>> ${name};\n`;
@@ -41,6 +45,23 @@ class IntTypeStrategy {
 
     cleanup(name) {
         return `jsvalFree(${name});\n`
+    }
+
+    cborPack(msg, name) {
+        return `CborLite::encodeInteger(${msg},${name});\n`;
+    }
+
+    cborUnpack(name, msg) {
+        return `
+            auto ${msg}_it=${msg}.begin();
+            CborLite::decodeInteger(${msg}_it,${msg}.end(),${name});
+        `;
+    }
+
+    cborUnpackIt(name, it, msg) {
+        return `
+            CborLite::decodeInteger(it,${msg}.end(),${name});
+        `;
     }
 }
 
@@ -225,6 +246,10 @@ class ObjectTypeStrategy {
 class VoidTypeStrategy {
     constructor(typeDef) {
         this.typeDef=typeDef;
+    }
+
+    nativeType() {
+        return "void";
     }
 
     nativeDecl(name) {
