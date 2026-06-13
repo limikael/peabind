@@ -1,7 +1,7 @@
 #	./ext/mquickjs-main/mqjs_stdlib > lab/js_stdlib.out.h
 .PHONY: mqjslab test-quickjs test-mqjs test test-jsval-mqjs
 
-test: test-quickjs test-jsval-mqjs test-mqjs
+test: test-quickjs test-jsval-mqjs test-mqjs test-stream
 
 test-jsval-mqjs:
 	rm -f vgcore.*
@@ -82,3 +82,20 @@ test-quickjs:
 		--error-exitcode=1 \
 		--errors-for-leak-kinds=all \
 		./bin/testmain-quickjs
+
+#		test/stream-backend.out.cpp \
+
+test-stream:
+	rm -f vgcore.*
+	rm -f test/*.out.*
+	peabind -otest/stream-backend.out.cpp \
+		spec/basic/basic.json \
+		-pbasic_ \
+		-tstream-backend
+	wrapcc --linker=g++ gcc -g -o bin/testmain-stream \
+		-Iinclude \
+		-Iext/cbor-lite/include \
+		test/testmain-stream.cpp \
+		src/CborStream.cpp
+	./bin/testmain-stream
+

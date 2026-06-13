@@ -8,6 +8,7 @@ import path from "path";
 import fs from "fs";
 export {peabindMerge} from "./peabind-idl.js";
 import {dirnameFromImportMeta} from "../utils/node-util.js";
+import {peabindStreamBackend} from "../stream/peabind-stream-backend.js";
 
 let __dirname=dirnameFromImportMeta(import.meta);
 
@@ -37,6 +38,9 @@ export async function peabind(options) {
 
 		case "mqjs":
 			return await peabindMqjs(options);
+
+		case "stream-backend":
+			return await peabindStreamBackend(options);
 
 		default:
 			throw new Error("Unknown target: "+options.target);
