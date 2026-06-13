@@ -27,8 +27,9 @@ export default class FuncBuilder {
 
 	generateBackendStub() {
         let name,callTarget;//,prelude,,argStart;
-        /*if (func.className) {
-            if (func.static) {
+        if (this.func.className) {
+            throw new Error("unimpl...");
+            /*if (func.static) {
                 name=`${this.prefix}${func.className}_${func.name}`;
                 prelude="";
                 callTarget=`${this.getExtClassName(func.className)}::${func.name}`
@@ -42,16 +43,16 @@ export default class FuncBuilder {
                     std::shared_ptr<${this.getExtClassName(func.className)}> instance=std::static_pointer_cast<${this.getExtClassName(func.className)}>(opaque->instance);
                 `;
                 callTarget=`instance->${func.name}`;
-            }
+            }*/
         }
 
-        else {*/
+        else {
             name=`${this.prefix}${this.func.name}`;
             callTarget=`${this.func.name}`;
-            /*prelude="";
-            if (func.namespace)
-                callTarget=`${func.namespace}::${func.name}`
-        }*/
+            //prelude="";
+            if (this.func.namespace)
+                callTarget=`${this.func.namespace}::${this.func.name}`
+        }
 
         let call;
         if (this.func.return.type=="void" && !this.func.return.promise) {

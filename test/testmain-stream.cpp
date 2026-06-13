@@ -121,6 +121,12 @@ void test_stream_basic() {
 	int i=BasicFrontend::hello(1,2);
 	assert(i==3);
 
+	i=BasicFrontend::hello2();
+	assert(i==222);
+
+	i=BasicFrontend::hello3();
+	assert(i==333);
+
 	delete a;
 	delete b;
 }
