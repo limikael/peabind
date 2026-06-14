@@ -32,31 +32,31 @@
 				"data": {"dispatcher": "dataEvent"}
 			}
 		},
-		/*"Hello": {
+		"Hello": {
 			"ctorArgs": ["int"],
 			"methods": {
 				"getVal": {"return":"int"},
 				"setVal": {"args":["int"]},
-				"emitData": {"args":["int","int"]},
+				/*"emitData": {"args":["int","int"]},
 				"emitDataVoid": {},
 				"emitDataFloat": {"args": ["float"]},
 				"emitDataHello": {"args": ["Hello"]},
 				"emitDataString": {"args": ["string"]},
-				"staticAddOne": {"args": ["int"], "return": "int", "static": true}
+				"staticAddOne": {"args": ["int"], "return": "int", "static": true}*/
 			},
-			"events": {
+			/*"events": {
 				"data": {"args": ["int","int"], "dispatcher": "dataEvent"},
 				"dataVoid": {},
 				"dataFloat": {"args": ["float"]},
 				"dataHello": {"args": ["Hello"]},
 				"dataString": {"args": ["string"]},
-			},
+			},*/
 			"const": {
 				"HELLO": 1,
 				"HELLO_AGAIN": 2
 			}
 		},
-		"ExtendHello": {
+		/*"ExtendHello": {
 			"extends": "Hello"
 		},
 		"WithPrivateCtor": {

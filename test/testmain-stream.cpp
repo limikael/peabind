@@ -142,6 +142,13 @@ void test_stream_basic() {
 	delete s2;
 	assert(backend->getNumLiveInstances()==0);
 
+	BasicFrontend::Hello *h=new BasicFrontend::Hello(123);
+	assert(h->getVal()==123);
+	h->setVal(777);
+	assert(h->getVal()==777);
+
+	delete h;
+
 	basic_exit();
 
 	delete backend;

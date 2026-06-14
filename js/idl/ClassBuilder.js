@@ -39,9 +39,9 @@ export default class ClassBuilder {
 	}
 
     getId() {
-        let names=this.idl.classes.map(f=>f.name);
-        if (names.indexOf(this.cls.name))
-            throw new Error("unknown class");
+        let names=this.idl.classes.map(c=>c.name);
+        if (names.indexOf(this.cls.name)<0)
+            throw new Error("unknown class: "+this.cls.name);
 
         return ((1+names.indexOf(this.cls.name))*1000);
     }

@@ -83,6 +83,7 @@ export default class FuncBuilder {
         if (this.func.return.type=="void" && !this.func.return.promise) {
             call=`
                 ${callTarget}(${this.func.args.map((arg,i)=>`a${i}`).join(",")});
+                CborLite::encodeInteger(res,-1);
             `;
         }
 
