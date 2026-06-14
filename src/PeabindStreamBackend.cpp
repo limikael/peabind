@@ -10,7 +10,7 @@ PeabindStreamBackend::~PeabindStreamBackend() {
 	delete cborStream;
 }
 
-std::vector<uint8_t> PeabindStreamBackend::handleFunction(std::vector<uint8_t> req) {
+std::vector<uint8_t> PeabindStreamBackend::handleCall(std::vector<uint8_t> req) {
 	std::vector<uint8_t> res;
 	auto it=req.begin();
 	size_t items;
@@ -20,12 +20,51 @@ std::vector<uint8_t> PeabindStreamBackend::handleFunction(std::vector<uint8_t> r
 	CborLite::decodeInteger(it,req.end(),opcode);
 	CborLite::decodeInteger(it,req.end(),funcid);
 
-	if (functions.find(funcid)==functions.end()) // FIXME
+	if (functions.find(funcid)==functions.end()) { // FIXME
+        assert(0 && "unknown function");
 		return res;
+    }
 
-	res=functions[funcid](req);
+	res=functions[funcid](this,req);
 
 	return res;
+}
+
+std::vector<uint8_t> PeabindStreamBackend::handleNew(std::vector<uint8_t> req) {
+    std::vector<uint8_t> res;
+    auto it=req.begin();
+    size_t items;
+    int opcode,clsid;
+
+    CborLite::decodeArraySize(it,req.end(),items);
+    CborLite::decodeInteger(it,req.end(),opcode);
+    CborLite::decodeInteger(it,req.end(),clsid);
+
+    if (constructors.find(clsid)==constructors.end()) // FIXME
+        return res;
+
+    res=constructors[clsid](this,req);
+
+    return res;
+}
+
+std::vector<uint8_t> PeabindStreamBackend::handleDelete(std::vector<uint8_t> req) {
+    std::vector<uint8_t> res;
+    auto it=req.begin();
+    size_t items;
+    int opcode,instanceId;
+
+    CborLite::decodeArraySize(it,req.end(),items);
+    CborLite::decodeInteger(it,req.end(),opcode);
+    CborLite::decodeInteger(it,req.end(),instanceId);
+
+    //printf("delete id: %d\n",instanceId);
+    instances.erase(instanceId);
+
+    int v=0;
+    CborLite::encodeInteger(res,v);
+
+    return res;
 }
 
 void PeabindStreamBackend::loop() {
@@ -39,47 +78,48 @@ void PeabindStreamBackend::loop() {
         CborLite::decodeArraySize(it,req.end(),items);
         CborLite::decodeInteger(it,req.end(),opcode);
 
+        //printf("opcode: %d\n",opcode);
+
         switch (opcode) {
             case PEABIND_STREAMOP_CALL:
-            	res=handleFunction(req);
+            	res=handleCall(req);
             	break;
 
             case PEABIND_STREAMOP_NEW:
-            	assert(0 && "new not impl");
+                res=handleNew(req);
             	break;
+
+            case PEABIND_STREAMOP_DELETE:
+            	res=handleDelete(req);
+            	break;
+
+            default:
+                assert(0 && "unknown op");
+                break;
         }
 
         cborStream->write(res);
 	}
 }
 
+int PeabindStreamBackend::addInstance(std::shared_ptr<void> instance) {
+	int instanceId=nextInstanceId++;
+	instances[instanceId]=instance;
+
+	return instanceId;
+}
+
 void PeabindStreamBackend::addFunction(int id, PeabindStreamBackendFunction* f) {
 	functions[id]=f;
 }
 
-/*
+void PeabindStreamBackend::addClass(int id, PeabindStreamBackendFunction* f) {
+	constructors[id]=f;
+}
 
-             {
-                            int funcid;
-                            CborLite::decodeInteger(it,req.end(),funcid);
-                            switch (funcid) {
-                                ${this.idl.functions.map(func=>`
-                                    case ${this.fs(func).getId()}:
-                                        res=${this.prefix}${func.name}(req);
-                                        break;
-                                `).join("\n")}
-                            }
-                        }
-                        break;
+std::shared_ptr<void> PeabindStreamBackend::getInstance(int instanceId) {
+    if (instances.find(instanceId)==instances.end())
+        return nullptr;
 
-                            int clsid;
-                            CborLite::decodeInteger(it,req.end(),clsid);
-                            // create the class here!!!
-                        }
-                        break;
-                    }
-                }
-            }
-
-
-*/
+    return instances[instanceId];
+}

@@ -127,7 +127,20 @@ void test_stream_basic() {
 	i=BasicFrontend::hello3();
 	assert(i==333);
 
-	//BasicFrontend::Simple *s=new BasicFrontend::Simple(123);
+	BasicFrontend::Simple *s1=new BasicFrontend::Simple(123);
+	BasicFrontend::Simple *s2=new BasicFrontend::Simple(456);
+
+	assert(s1->getVal()==123);
+	assert(s2->getVal()==456);
+
+	assert(s1->instanceId==1);
+	assert(s2->instanceId==2);
+
+	assert(backend->getNumLiveInstances()==2);
+	delete s1;
+	assert(backend->getNumLiveInstances()==1);
+	delete s2;
+	assert(backend->getNumLiveInstances()==0);
 
 	basic_exit();
 

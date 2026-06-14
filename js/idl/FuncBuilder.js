@@ -1,5 +1,7 @@
 import {createTypeStrategy} from "../peabind/peabind-jsval-types.js";
 import {ifdefWrap} from "../utils/lang-util.js";
+import {idlGetClass} from "../peabind/peabind-idl.js";
+import {createClassBuilder} from "./ClassBuilder.js";
 
 export default class FuncBuilder {
 	constructor({idl, func, prefix}) {
@@ -10,6 +12,13 @@ export default class FuncBuilder {
 
     ts(type) {
         return createTypeStrategy(type, {idl: this.idl, prefix: this.prefix});
+    }
+
+    cs(cls) {
+        if (typeof cls=="string")
+            cls=idlGetClass(this.idl,cls);
+
+        return createClassBuilder({idl: this.idl, prefix: this.prefix, cls});
     }
 
 	generateSignature() {
@@ -24,35 +33,48 @@ export default class FuncBuilder {
 	}
 
 	getId() {
+        if (this.func.className) {
+            let cls=idlGetClass(this.idl,this.func.className)
+            let clsId=this.cs(cls).getId();
+            let names=cls.methods.map(f=>f.name);
+            let idx=names.indexOf(this.func.name);
+            if (idx<0)
+                throw new Error("method not found");
+
+            return clsId+idx;
+        }
+
 		let names=this.idl.functions.map(f=>f.name);
+        if (names.indexOf(this.func.name)<0)
+            throw new Error("function not found");
+
 		return names.indexOf(this.func.name);
 	}
 
 	generateBackendStub() {
-        let name,callTarget;//,prelude,,argStart;
+        let name,callTarget,prelude;
         if (this.func.className) {
-            throw new Error("unimpl...");
-            /*if (func.static) {
-                name=`${this.prefix}${func.className}_${func.name}`;
+            if (this.func.static) {
+                throw new Error("unimpl...");
+                name=`${this.prefix}${this.func.className}_${this.func.name}`;
                 prelude="";
-                callTarget=`${this.getExtClassName(func.className)}::${func.name}`
+                callTarget=`${this.getExtClassName(this.func.className)}::${this.func.name}`
             }
 
             else {
-                name=`${this.prefix}${func.className}_${func.name}`;
+                name=`${this.prefix}${this.func.className}_${this.func.name}`;
+                let extName=this.cs(this.func.className).getExtClassName();
                 prelude=`
-                    Opaque *opaque=(Opaque *)jsvalGetOpaque(thisobj);
-                    assert(opaque!=NULL);
-                    std::shared_ptr<${this.getExtClassName(func.className)}> instance=std::static_pointer_cast<${this.getExtClassName(func.className)}>(opaque->instance);
+                    std::shared_ptr<${extName}> instance=std::static_pointer_cast<${extName}>(backend->getInstance(thisid));
                 `;
-                callTarget=`instance->${func.name}`;
-            }*/
+                callTarget=`instance->${this.func.name}`;
+            }
         }
 
         else {
             name=`${this.prefix}${this.func.name}`;
             callTarget=`${this.func.name}`;
-            //prelude="";
+            prelude="";
             if (this.func.namespace)
                 callTarget=`${this.func.namespace}::${this.func.name}`
         }
@@ -73,17 +95,19 @@ export default class FuncBuilder {
         }
 
         return ifdefWrap(this.func.ifdef,`
-            static std::vector<uint8_t> ${name}(std::vector<uint8_t> req) {
+            static std::vector<uint8_t> ${name}(PeabindStreamBackend* backend, std::vector<uint8_t> req) {
         		//printf("calling backend func\\n");
         		std::vector<uint8_t> res;
         		auto it=req.begin();
             	size_t items;
 				CborLite::decodeArraySize(it,req.end(),items);
-                int opcode,funcid;
+                int opcode,funcid,thisid;
                 CborLite::decodeInteger(it,req.end(),opcode);
                 CborLite::decodeInteger(it,req.end(),funcid);
+                CborLite::decodeInteger(it,req.end(),thisid);
                 ${this.func.args.map((a,i)=>this.ts(a).nativeDecl(`a${i}`)).join("\n")}
                 ${this.func.args.map((a,i)=>this.ts(a).cborUnpackIt(`a${i}`,"it","req")).join("\n")}
+                ${prelude}
                 ${call}
                 return res;
             }
@@ -92,10 +116,16 @@ export default class FuncBuilder {
 
 	generateFrontendStub() {
 		let args=this.func.args.map((a,i)=>this.ts(a).nativeParam(`arg_${i}`)).join(",");
+        let declName=this.func.name;
+        let instanceIdExpr="0";
+        if (this.func.className) {
+            declName=`${this.func.className}::${this.func.name}`;
+            instanceIdExpr="instanceId";
+        }
 
-        let prelude="";
+        let epilogue="";
         if (this.func.return.type!="void" || this.func.return.promise) {
-            prelude=`
+            epilogue=`
                 ${this.ts(this.func.return).nativeDecl("ret")}
                 ${this.ts(this.func.return).cborUnpack("ret","res")}
                 return ret;
@@ -103,15 +133,17 @@ export default class FuncBuilder {
         }
 
 		return ifdefWrap(this.func.ifdef,`
-			${this.ts(this.func.return).nativeType()} ${this.func.name}(${args}) {
+			${this.ts(this.func.return).nativeType()} ${declName}(${args}) {
 				std::vector<uint8_t> req;
-				size_t numParams=${this.func.args.length+2};
-				CborLite::encodeArraySize(req,numParams); // num params
-				CborLite::encodeInteger(req,PEABIND_STREAMOP_CALL); // function call op
-				CborLite::encodeInteger(req,${this.getId()}); // function id
+				size_t numParams=${this.func.args.length+3};
+                int thisId=${instanceIdExpr};
+				CborLite::encodeArraySize(req,numParams);
+                CborLite::encodeInteger(req,PEABIND_STREAMOP_CALL);
+				CborLite::encodeInteger(req,${this.getId()});
+                CborLite::encodeInteger(req,thisId);
 				${this.func.args.map((a,i)=>this.ts(a).cborPack("req",`arg_${i}`)).join("\n")}
 				std::vector<uint8_t> res=${this.prefix}frontend->query(req);
-				${prelude}
+				${epilogue}
 			}
 		`);
 	}

@@ -3,18 +3,29 @@
 #include "CborStream.h"
 #include <map>
 
-typedef std::vector<uint8_t> PeabindStreamBackendFunction(std::vector<uint8_t>);
+class PeabindStreamBackend;
+
+typedef std::vector<uint8_t> PeabindStreamBackendFunction(PeabindStreamBackend*, std::vector<uint8_t>);
 
 class PeabindStreamBackend {
 public:
     PeabindStreamBackend(StreamTransport *streamTransport_);
     ~PeabindStreamBackend();
     void addFunction(int id, PeabindStreamBackendFunction *f);
+    void addClass(int id, PeabindStreamBackendFunction *f);
+    int addInstance(std::shared_ptr<void> instance);
+    std::shared_ptr<void> getInstance(int instanceId);
     void loop();
-    std::vector<uint8_t> handleFunction(std::vector<uint8_t> req);
+    std::vector<uint8_t> handleCall(std::vector<uint8_t> req);
+    std::vector<uint8_t> handleNew(std::vector<uint8_t> req);
+    std::vector<uint8_t> handleDelete(std::vector<uint8_t> req);
+    int getNumLiveInstances() { return instances.size(); }
 
 private:
+    int nextInstanceId=1;
     std::map<int,PeabindStreamBackendFunction*> functions;
+    std::map<int,PeabindStreamBackendFunction*> constructors;
+    std::map<int,std::shared_ptr<void>> instances;
     StreamTransport *streamTransport;
     CborStream *cborStream;
 };

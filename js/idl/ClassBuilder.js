@@ -31,14 +31,19 @@ export default class ClassBuilder {
             class ${this.cls.name} {
             public:
                 ${this.fs(this.getCtorFunc()).generateSignature()}
+                ~${this.cls.name}();
                 ${this.cls.methods.map(m=>this.fs(m).generateSignature()).join("\n")}
+                int instanceId;
             };
 		`);
 	}
 
     getId() {
         let names=this.idl.classes.map(f=>f.name);
-        return names.indexOf(this.cls.name);
+        if (names.indexOf(this.cls.name))
+            throw new Error("unknown class");
+
+        return ((1+names.indexOf(this.cls.name))*1000);
     }
 
     generateFrontendStub() {
@@ -50,11 +55,59 @@ export default class ClassBuilder {
                 std::vector<uint8_t> req;
                 size_t numParams=${func.args.length+2};
                 CborLite::encodeArraySize(req,numParams); // num params
-                CborLite::encodeInteger(req,PEABIND_STREAMOP_NEW); // function call op
+                CborLite::encodeInteger(req,PEABIND_STREAMOP_NEW); // new op
                 CborLite::encodeInteger(req,${this.getId()}); // class id
                 ${func.args.map((a,i)=>this.ts(a).cborPack("req",`arg_${i}`)).join("\n")}
+                //printf("doing new q\\n");
                 std::vector<uint8_t> res=${this.prefix}frontend->query(req);
+                auto it=res.begin();
+                CborLite::decodeInteger(it,res.end(),instanceId);
             }
+
+            ${this.cls.name}::~${this.cls.name}() {
+                std::vector<uint8_t> req;
+                size_t numParams=2;
+                CborLite::encodeArraySize(req,numParams);
+                CborLite::encodeInteger(req,PEABIND_STREAMOP_DELETE);
+                CborLite::encodeInteger(req,instanceId);
+                ${this.prefix}frontend->query(req);
+            }
+
+            ${this.cls.methods.map(m=>this.fs(m).generateFrontendStub()).join("")}
+        `);
+    }
+
+    getExtClassName() {
+        let name=this.cls.name;
+        if (this.cls.namespace)
+            name=`${this.cls.namespace}::${this.cls.name}`;
+
+        return name;
+    }
+
+    generateBackendStub() {
+        let func=this.getCtorFunc();
+        let params=this.cls.ctorArgs.map((a,i)=>`a${i}`).join(",");
+
+        return ifdefWrap(this.cls.ifdef,`
+            static std::vector<uint8_t> ${this.prefix}${this.cls.name}_constructor(PeabindStreamBackend* backend, std::vector<uint8_t> req) {
+                //printf("ctor\\n");
+                std::vector<uint8_t> res;
+                auto it=req.begin();
+                size_t items;
+                CborLite::decodeArraySize(it,req.end(),items);
+                int opcode,clsid;
+                CborLite::decodeInteger(it,req.end(),opcode);
+                CborLite::decodeInteger(it,req.end(),clsid);
+                ${func.args.map((a,i)=>this.ts(a).nativeDecl(`a${i}`)).join("\n")}
+                ${func.args.map((a,i)=>this.ts(a).cborUnpackIt(`a${i}`,"it","req")).join("\n")}
+                auto instance=std::make_shared<${this.getExtClassName()}>(${params});
+                int objid=backend->addInstance(instance);
+                CborLite::encodeInteger(res,objid);
+                return res;
+            }
+
+            ${this.cls.methods.map(func=>this.fs(func).generateBackendStub()).join("\n")}
         `);
     }
 }

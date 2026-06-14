@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import {ifdefWrap, autoIndent} from "../utils/lang-util.js";
 import {createFuncBuilder} from "../idl/FuncBuilder.js";
+import {createClassBuilder} from "../idl/ClassBuilder.js";
 
 class PeabindStreamBackendBuilder {
     constructor({idl, prefix, projectName}) {
@@ -14,17 +15,27 @@ class PeabindStreamBackendBuilder {
         return createFuncBuilder({idl: this.idl, prefix: this.prefix, func});
     }
 
+    cs(cls) {
+        return createClassBuilder({idl: this.idl, prefix: this.prefix, cls});
+    }
+
     generateSource() {
         return autoIndent(`
             #include "${this.projectName}.h"
             ${this.idl.include.map(i=>`#include "${i}"`).join("\n")}
             ${this.idl.functions.map(func=>this.fs(func).generateBackendStub()).join("\n")}
+            ${this.idl.classes.map(cls=>this.cs(cls).generateBackendStub()).join("\n")}
             PeabindStreamBackend* ${this.prefix}create_stream_backend(StreamTransport* streamTransport) {
                 PeabindStreamBackend* backend=new PeabindStreamBackend(streamTransport);
                 ${this.idl.functions.map(func=>`
                     backend->addFunction(${this.fs(func).getId()},${this.prefix}${func.name});
                 `).join("")}
-
+                ${this.idl.classes.map(cls=>`
+                    backend->addClass(${this.cs(cls).getId()},${this.prefix}${cls.name}_constructor);
+                    ${cls.methods.map(func=>`
+                        backend->addFunction(${this.fs(func).getId()},${this.prefix}${cls.name}_${func.name});
+                    `).join("")}
+                `).join("")}
                 return backend;
             }
 
