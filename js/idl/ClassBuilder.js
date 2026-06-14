@@ -36,10 +36,27 @@ export default class ClassBuilder {
 		`);
 	}
 
-	/*getId() {
-		let names=this.idl.functions.map(f=>f.name);
-		return names.indexOf(this.func.name);
-	}*/
+    getId() {
+        let names=this.idl.classes.map(f=>f.name);
+        return names.indexOf(this.cls.name);
+    }
+
+    generateFrontendStub() {
+        let func=this.getCtorFunc();
+        let args=func.args.map((a,i)=>this.ts(a).nativeParam(`arg_${i}`)).join(",");
+
+        return ifdefWrap(this.cls.ifdef,`
+            ${this.cls.name}::${this.cls.name}(${args}) {
+                std::vector<uint8_t> req;
+                size_t numParams=${func.args.length+2};
+                CborLite::encodeArraySize(req,numParams); // num params
+                CborLite::encodeInteger(req,PEABIND_STREAMOP_NEW); // function call op
+                CborLite::encodeInteger(req,${this.getId()}); // class id
+                ${func.args.map((a,i)=>this.ts(a).cborPack("req",`arg_${i}`)).join("\n")}
+                std::vector<uint8_t> res=${this.prefix}query(req);
+            }
+        `);
+    }
 }
 
 export function createClassBuilder({idl, cls, prefix}) {

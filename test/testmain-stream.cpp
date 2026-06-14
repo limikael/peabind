@@ -127,6 +127,8 @@ void test_stream_basic() {
 	i=BasicFrontend::hello3();
 	assert(i==333);
 
+	//BasicFrontend::Simple *s=new BasicFrontend::Simple(123);
+
 	delete a;
 	delete b;
 }

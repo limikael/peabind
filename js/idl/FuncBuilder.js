@@ -90,7 +90,7 @@ export default class FuncBuilder {
         `);
 	}
 
-	generateFrontendImpl() {
+	generateFrontendStub() {
 		let args=this.func.args.map((a,i)=>this.ts(a).nativeParam(`arg_${i}`)).join(",");
 
         let prelude="";
@@ -107,8 +107,8 @@ export default class FuncBuilder {
 				std::vector<uint8_t> req;
 				size_t numParams=${this.func.args.length+2};
 				CborLite::encodeArraySize(req,numParams); // num params
-				CborLite::encodeInteger(req,1); // function call op
-				CborLite::encodeInteger(req,1000+${this.getId()}); // function id
+				CborLite::encodeInteger(req,PEABIND_STREAMOP_CALL); // function call op
+				CborLite::encodeInteger(req,${this.getId()}); // function id
 				${this.func.args.map((a,i)=>this.ts(a).cborPack("req",`arg_${i}`)).join("\n")}
 				std::vector<uint8_t> res=${this.prefix}query(req);
 				${prelude}

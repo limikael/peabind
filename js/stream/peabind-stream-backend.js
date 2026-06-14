@@ -24,23 +24,33 @@ class PeabindStreamBackendBuilder {
             void ${this.prefix}Backend::loop() {
                 if (cborStream.available()) {
                     std::vector<uint8_t> req=cborStream.read();
+                    std::vector<uint8_t> res;
                     auto it=req.begin();
                     size_t items;
                     CborLite::decodeArraySize(it,req.end(),items);
                     int opcode;
                     CborLite::decodeInteger(it,req.end(),opcode);
-                    int funcid;
-                    CborLite::decodeInteger(it,req.end(),funcid);
-                    std::vector<uint8_t> res;
-                    //printf("call funcid=%d\\n",funcid);
-                    switch (funcid) {
-                        ${this.idl.functions.map(func=>`
-                            case 1000+${this.fs(func).getId()}:
-                                res=${this.prefix}${func.name}(req);
-                                break;
-                        `).join("\n")}
+                    switch (opcode) {
+                        case PEABIND_STREAMOP_CALL: {
+                            int funcid;
+                            CborLite::decodeInteger(it,req.end(),funcid);
+                            switch (funcid) {
+                                ${this.idl.functions.map(func=>`
+                                    case ${this.fs(func).getId()}:
+                                        res=${this.prefix}${func.name}(req);
+                                        break;
+                                `).join("\n")}
+                            }
+                        }
+                        break;
+
+                        case PEABIND_STREAMOP_NEW: {
+                            int clsid;
+                            CborLite::decodeInteger(it,req.end(),clsid);
+                            // create the class here!!!
+                        }
+                        break;
                     }
-                    //printf("response size=%d\\n",res.size());
                     cborStream.write(res);
                 }
             }

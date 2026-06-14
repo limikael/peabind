@@ -7,5 +7,6 @@
 #include <memory>
 #include <variant>
 #include "async_primitives.hpp"
-/*#include "StreamTransport.h"
-#include "CborStream.h"*/
+
+#define PEABIND_STREAMOP_CALL 1
+#define PEABIND_STREAMOP_NEW 2

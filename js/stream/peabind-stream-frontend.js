@@ -42,7 +42,8 @@ class PeabindStreamFrontendBuilder {
                 return ${this.prefix}stream->read();
             }
             ${namespaceWrap(this.namespace,`
-                ${this.idl.functions.map(f=>this.fs(f).generateFrontendImpl()).join("\n")}
+                ${this.idl.functions.map(f=>this.fs(f).generateFrontendStub()).join("\n")}
+                ${this.idl.classes.map(c=>this.cs(c).generateFrontendStub()).join("\n")}
             `)}
             void ${this.prefix}init(StreamTransport &transport) {
                 ${this.prefix}stream=new CborStream(transport);
