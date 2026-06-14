@@ -129,6 +129,8 @@ void test_stream_basic() {
 
 	//BasicFrontend::Simple *s=new BasicFrontend::Simple(123);
 
+	basic_exit();
+
 	delete backend;
 	delete a;
 	delete b;

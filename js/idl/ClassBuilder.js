@@ -53,7 +53,7 @@ export default class ClassBuilder {
                 CborLite::encodeInteger(req,PEABIND_STREAMOP_NEW); // function call op
                 CborLite::encodeInteger(req,${this.getId()}); // class id
                 ${func.args.map((a,i)=>this.ts(a).cborPack("req",`arg_${i}`)).join("\n")}
-                std::vector<uint8_t> res=${this.prefix}query(req);
+                std::vector<uint8_t> res=${this.prefix}frontend->query(req);
             }
         `);
     }

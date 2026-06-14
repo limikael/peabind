@@ -34,19 +34,16 @@ class PeabindStreamFrontendBuilder {
     generateSource() {
         return autoIndent(`
             #include "${this.projectName}.h"
-            #include "cbor-lite/codec.h"
-            #include "CborStream.h"
-            CborStream *${this.prefix}stream=nullptr;
-            std::vector<uint8_t> ${this.prefix}query(std::vector<uint8_t> req) {
-                ${this.prefix}stream->write(req);
-                return ${this.prefix}stream->read();
-            }
+            PeabindStreamFrontend* ${this.prefix}frontend=nullptr;
             ${namespaceWrap(this.namespace,`
                 ${this.idl.functions.map(f=>this.fs(f).generateFrontendStub()).join("\n")}
                 ${this.idl.classes.map(c=>this.cs(c).generateFrontendStub()).join("\n")}
             `)}
             void ${this.prefix}init(StreamTransport* transport) {
-                ${this.prefix}stream=new CborStream(transport);
+                ${this.prefix}frontend=new PeabindStreamFrontend(transport);
+            }
+            void ${this.prefix}exit() {
+                delete ${this.prefix}frontend;
             }
         `);
     }
@@ -54,15 +51,14 @@ class PeabindStreamFrontendBuilder {
     generateHeaderSource() {
         return autoIndent(`
             #pragma once
-            #include <peabind.h>
-            #include <vector>
-            #include "StreamTransport.h"
-            #include "CborStream.h"
+            #include <PeabindStreamFrontend.h>
+            extern PeabindStreamFrontend* ${this.prefix}frontend;
             ${namespaceWrap(this.namespace,`
                 ${this.idl.functions.map(f=>this.fs(f).generateSignature()).join("\n")}
                 ${this.idl.classes.map(f=>this.cs(f).generateSignature()).join("\n")}
             `)}
             void ${this.prefix}init(StreamTransport* transport);
+            void ${this.prefix}exit();
         `);
     }
 }

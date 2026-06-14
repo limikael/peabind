@@ -110,7 +110,7 @@ export default class FuncBuilder {
 				CborLite::encodeInteger(req,PEABIND_STREAMOP_CALL); // function call op
 				CborLite::encodeInteger(req,${this.getId()}); // function id
 				${this.func.args.map((a,i)=>this.ts(a).cborPack("req",`arg_${i}`)).join("\n")}
-				std::vector<uint8_t> res=${this.prefix}query(req);
+				std::vector<uint8_t> res=${this.prefix}frontend->query(req);
 				${prelude}
 			}
 		`);
