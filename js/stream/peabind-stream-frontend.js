@@ -44,6 +44,7 @@ class PeabindStreamFrontendBuilder {
             }
             void ${this.prefix}exit() {
                 delete ${this.prefix}frontend;
+                ${this.prefix}frontend=nullptr;
             }
         `);
     }

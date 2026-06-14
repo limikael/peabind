@@ -96,7 +96,7 @@ test-stream:
 		-pbasic_ \
 		-tstream-frontend
 	wrapcc --linker=g++ gcc -o bin/testmain-stream \
-		-fsanitize=address -fno-omit-frame-pointer -g \
+		-fsanitize=address -fsanitize=leak -fno-omit-frame-pointer -g \
 		-Wnon-virtual-dtor \
 		-Iinclude \
 		-Ispec/basic \
