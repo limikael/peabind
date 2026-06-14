@@ -105,5 +105,6 @@ test-stream:
 		test/testmain-stream.cpp \
 		test/stream-backend.out.cpp \
 		test/stream-frontend.out.cpp \
-		src/CborStream.cpp
+		src/CborStream.cpp \
+		src/PeabindStreamBackend.cpp
 	ASAN_OPTIONS=detect_leaks=1 ./bin/testmain-stream

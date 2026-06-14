@@ -48,7 +48,7 @@ std::pair<MockStreamTransport *, MockStreamTransport *> createMockStreamPair() {
 
 std::pair<CborStream *, CborStream *> createMockCborStreamPair() {
 	auto p=createMockStreamPair();
-	auto a=new CborStream(*(p.first)), b=new CborStream(*(p.second));
+	auto a=new CborStream(p.first), b=new CborStream(p.second);
 
 	return std::make_pair(a,b);
 }
@@ -111,12 +111,12 @@ void test_cbor() {
 
 void test_stream_basic() {
 	auto [a,b]=createMockStreamPair();
-	basic_Backend backend(*b);
-	b->dataEvent.on([&backend](){
-		backend.loop();
+	auto backend=basic_create_stream_backend(b);
+	b->dataEvent.on([backend](){
+		backend->loop();
 	});
 
-	basic_init(*a);
+	basic_init(a);
 
 	int i=BasicFrontend::hello(1,2);
 	assert(i==3);
@@ -129,6 +129,7 @@ void test_stream_basic() {
 
 	//BasicFrontend::Simple *s=new BasicFrontend::Simple(123);
 
+	delete backend;
 	delete a;
 	delete b;
 }

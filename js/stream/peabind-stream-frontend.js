@@ -45,7 +45,7 @@ class PeabindStreamFrontendBuilder {
                 ${this.idl.functions.map(f=>this.fs(f).generateFrontendStub()).join("\n")}
                 ${this.idl.classes.map(c=>this.cs(c).generateFrontendStub()).join("\n")}
             `)}
-            void ${this.prefix}init(StreamTransport &transport) {
+            void ${this.prefix}init(StreamTransport* transport) {
                 ${this.prefix}stream=new CborStream(transport);
             }
         `);
@@ -62,7 +62,7 @@ class PeabindStreamFrontendBuilder {
                 ${this.idl.functions.map(f=>this.fs(f).generateSignature()).join("\n")}
                 ${this.idl.classes.map(f=>this.cs(f).generateSignature()).join("\n")}
             `)}
-            void ${this.prefix}init(StreamTransport &transport);
+            void ${this.prefix}init(StreamTransport* transport);
         `);
     }
 }

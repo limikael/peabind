@@ -17,60 +17,25 @@ class PeabindStreamBackendBuilder {
     generateSource() {
         return autoIndent(`
             #include "${this.projectName}.h"
-            ${this.prefix}Backend::${this.prefix}Backend(StreamTransport &streamTransport_)
-                    :cborStream(streamTransport_) {
-            }
+            ${this.idl.include.map(i=>`#include "${i}"`).join("\n")}
             ${this.idl.functions.map(func=>this.fs(func).generateBackendStub()).join("\n")}
-            void ${this.prefix}Backend::loop() {
-                if (cborStream.available()) {
-                    std::vector<uint8_t> req=cborStream.read();
-                    std::vector<uint8_t> res;
-                    auto it=req.begin();
-                    size_t items;
-                    CborLite::decodeArraySize(it,req.end(),items);
-                    int opcode;
-                    CborLite::decodeInteger(it,req.end(),opcode);
-                    switch (opcode) {
-                        case PEABIND_STREAMOP_CALL: {
-                            int funcid;
-                            CborLite::decodeInteger(it,req.end(),funcid);
-                            switch (funcid) {
-                                ${this.idl.functions.map(func=>`
-                                    case ${this.fs(func).getId()}:
-                                        res=${this.prefix}${func.name}(req);
-                                        break;
-                                `).join("\n")}
-                            }
-                        }
-                        break;
+            PeabindStreamBackend* ${this.prefix}create_stream_backend(StreamTransport* streamTransport) {
+                PeabindStreamBackend* backend=new PeabindStreamBackend(streamTransport);
+                ${this.idl.functions.map(func=>`
+                    backend->addFunction(${this.fs(func).getId()},${this.prefix}${func.name});
+                `).join("")}
 
-                        case PEABIND_STREAMOP_NEW: {
-                            int clsid;
-                            CborLite::decodeInteger(it,req.end(),clsid);
-                            // create the class here!!!
-                        }
-                        break;
-                    }
-                    cborStream.write(res);
-                }
+                return backend;
             }
+
         `);
     }
 
     generateHeaderSource() {
         return autoIndent(`
             #pragma once
-            #include <peabind.h>
-            #include "StreamTransport.h"
-            #include "CborStream.h"
-            ${this.idl.include.map(i=>`#include "${i}"`).join("\n")}
-            class ${this.prefix}Backend {
-            public:
-                ${this.prefix}Backend(StreamTransport &streamTransport_);
-                void loop();
-            private:
-                CborStream cborStream;
-            };
+            #include <PeabindStreamBackend.h>
+            PeabindStreamBackend* ${this.prefix}create_stream_backend(StreamTransport*);
         `);
     }
 }
