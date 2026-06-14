@@ -95,8 +95,7 @@ test-stream:
 		spec/basic/basic-lite.json \
 		-pbasic_ \
 		-tstream-frontend
-	wrapcc --linker=g++ gcc -o bin/testmain-stream \
-		-fsanitize=address -fsanitize=leak -fno-omit-frame-pointer -g \
+	wrapcc --linker=g++ gcc -o bin/testmain-stream -g \
 		-Wnon-virtual-dtor \
 		-Iinclude \
 		-Ispec/basic \
@@ -108,4 +107,9 @@ test-stream:
 		src/CborStream.cpp \
 		src/PeabindStreamBackend.cpp \
 		src/PeabindStreamFrontend.cpp
-	ASAN_OPTIONS=detect_leaks=1 ./bin/testmain-stream
+	valgrind --quiet \
+		--leak-check=full \
+		--show-leak-kinds=all \
+		--error-exitcode=1 \
+		--errors-for-leak-kinds=all \
+		./bin/testmain-stream
