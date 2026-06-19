@@ -17,7 +17,7 @@ export default class IdlRenderer {
 
 		this.fr=(...args)=>this.getFunctionRenderer(...args);
 		this.tr=(...args)=>this.getTypeRenderer(...args);
-    	this.cls=(...args)=>this.getClassRenderer(...args);
+    	this.cr=(...args)=>this.getClassRenderer(...args);
 	}
 
 	getOutput(prefix) {

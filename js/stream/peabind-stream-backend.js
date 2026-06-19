@@ -20,14 +20,14 @@ class StreamBackendRenderer extends IdlRenderer {
             #include "${this.projectName}.h"
             ${this.idl.include.map(i=>`#include "${i}"`).join("\n")}
             ${this.idl.functions.map(func=>this.fr(func).generateBackendStub()).join("\n")}
-            ${this.idl.classes.map(cls=>this.cls(cls).generateBackendStub()).join("\n")}
+            ${this.idl.classes.map(cls=>this.cr(cls).generateBackendStub()).join("\n")}
             PeabindStreamBackend* ${this.prefix}create_stream_backend(StreamTransport* streamTransport) {
                 PeabindStreamBackend* backend=new PeabindStreamBackend(streamTransport);
                 ${this.idl.functions.map(func=>`
                     backend->addFunction(${this.fr(func).getId()},${this.prefix}${func.name});
                 `).join("")}
                 ${this.idl.classes.map(cls=>`
-                    backend->addClass(${this.cls(cls).getId()},${this.prefix}${cls.name}_constructor);
+                    backend->addClass(${this.cr(cls).getId()},${this.prefix}${cls.name}_constructor);
                     ${cls.methods.map(func=>`
                         backend->addFunction(${this.fr(func).getId()},${this.prefix}${cls.name}_${func.name});
                     `).join("")}

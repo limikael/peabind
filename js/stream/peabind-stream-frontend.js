@@ -21,7 +21,7 @@ class StreamFrontendRenderer extends IdlRenderer {
             PeabindStreamFrontend* ${this.prefix}frontend=nullptr;
             ${namespaceWrap(this.namespace,`
                 ${this.idl.functions.map(f=>this.fr(f).generateFrontendStub()).join("\n")}
-                ${this.idl.classes.map(c=>this.cls(c).generateFrontendStub()).join("\n")}
+                ${this.idl.classes.map(c=>this.cr(c).generateFrontendStub()).join("\n")}
             `)}
             void ${this.prefix}init(StreamTransport* transport) {
                 ${this.prefix}frontend=new PeabindStreamFrontend(transport);
@@ -40,7 +40,7 @@ class StreamFrontendRenderer extends IdlRenderer {
             extern PeabindStreamFrontend* ${this.prefix}frontend;
             ${namespaceWrap(this.namespace,`
                 ${this.idl.functions.map(f=>this.fr(f).generateSignature()).join("\n")}
-                ${this.idl.classes.map(f=>this.cls(f).generateSignature()).join("\n")}
+                ${this.idl.classes.map(f=>this.cr(f).generateSignature()).join("\n")}
             `)}
             void ${this.prefix}init(StreamTransport* transport);
             void ${this.prefix}exit();

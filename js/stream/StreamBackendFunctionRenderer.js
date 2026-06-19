@@ -17,7 +17,7 @@ export default class StreamBackendFunctionRenderer extends FuncBuilder {
 
             else {
                 name=`${this.prefix}${this.func.className}_${this.func.name}`;
-                let extName=this.idlRenderer.cls(this.func.className).getExtClassName();
+                let extName=this.idlRenderer.cr(this.func.className).getExtClassName();
                 prelude=`
                     std::shared_ptr<${extName}> instance=std::static_pointer_cast<${extName}>(backend->getInstance(thisid));
                 `;

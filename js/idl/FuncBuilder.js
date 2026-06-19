@@ -13,7 +13,7 @@ export default class FuncBuilder {
         if (!this.idlRenderer)
             throw new Error("got no renderer!!!");
 
-        this.cls=(...args)=>this.idlRenderer.cls(...args);
+        this.cr=(...args)=>this.idlRenderer.cr(...args);
         this.tr=(...args)=>this.idlRenderer.tr(...args);
 	}
 
@@ -31,7 +31,7 @@ export default class FuncBuilder {
 	getId() {
         if (this.func.className) {
             let cls=idlGetClass(this.idl,this.func.className)
-            let clsId=this.cls(cls).getId();
+            let clsId=this.cr(cls).getId();
             let names=cls.methods.map(f=>f.name);
             let idx=names.indexOf(this.func.name);
             if (idx<0)
