@@ -61,8 +61,9 @@ std::vector<uint8_t> PeabindStreamBackend::handleDelete(std::vector<uint8_t> req
     //printf("delete id: %d\n",instanceId);
     instances.erase(instanceId);
 
-    int v=0;
-    CborLite::encodeInteger(res,v);
+    size_t arraySize=1;
+    CborLite::encodeArraySize(res,arraySize);
+    CborLite::encodeInteger(res,PEABIND_STREAMOP_RETURN);
 
     return res;
 }

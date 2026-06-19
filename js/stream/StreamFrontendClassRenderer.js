@@ -35,7 +35,14 @@ export default class StreamFrontendClassRenderer extends ClassRenderer {
                 CborLite::encodeArraySize(req,numParams);
                 CborLite::encodeInteger(req,PEABIND_STREAMOP_DELETE);
                 CborLite::encodeInteger(req,instanceId);
-                ${this.prefix}frontend->query(req);
+                std::vector<uint8_t> res=${this.prefix}frontend->query(req);
+                auto it=res.begin();
+                size_t arraySize;
+                CborLite::decodeArraySize(it,res.end(),arraySize);
+                assert(arraySize==1);
+                int returnOpCode;
+                CborLite::decodeInteger(it,res.end(),returnOpCode);
+                assert(returnOpCode==PEABIND_STREAMOP_RETURN);
             }
 
             std::shared_ptr<${this.cls.name}> ${this.cls.name}::createInstanceProxy(int instanceId_) {
