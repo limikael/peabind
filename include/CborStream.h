@@ -4,6 +4,7 @@
 #include <cstdint>
 #include "StreamTransport.h"
 #include "cbor-lite/codec.h"
+#include "cbor-lite/codec-fp.h"
 
 class CborStream {
 public:

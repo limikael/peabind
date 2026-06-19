@@ -5,6 +5,7 @@
 #include <cassert>
 #include "CborStream.h"
 #include "basic.h"
+#include <cmath>
 
 using namespace CborLite;
 
@@ -149,8 +150,12 @@ void test_stream_basic() {
 
 	delete h;
 
-	basic_exit();
+	assert(BasicFrontend::hellof(.5)==5);
 
+	//printf("third: %f\n",BasicFrontend::hellothird(10));
+	assert(fabs(BasicFrontend::hellothird(10)-3.3333333)<0.000001);
+
+	basic_exit();
 	delete backend;
 	delete a;
 	delete b;

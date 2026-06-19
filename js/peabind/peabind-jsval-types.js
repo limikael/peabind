@@ -54,13 +54,13 @@ class IntTypeStrategy {
     cborUnpack(name, msg) {
         return `
             auto ${msg}_it=${msg}.begin();
-            CborLite::decodeInteger(${msg}_it,${msg}.end(),${name});
+            ${this.cborUnpackIt(name,`${msg}_it`,msg)}
         `;
     }
 
     cborUnpackIt(name, it, msg) {
         return `
-            CborLite::decodeInteger(it,${msg}.end(),${name});
+            CborLite::decodeInteger(${it},${msg}.end(),${name});
         `;
     }
 }
@@ -70,6 +70,10 @@ class FloatTypeStrategy {
         this.typeDef=typeDef;
         if (this.typeDef.promise)
             throw new Error("float promise not impl");
+    }
+
+    nativeType() {
+        return "float";
     }
 
     nativeDecl(name) {
@@ -94,6 +98,23 @@ class FloatTypeStrategy {
 
     cleanup(name) {
         return `jsvalFree(${name});\n`
+    }
+
+    cborUnpack(name, msg) {
+        return `
+            auto ${msg}_it=${msg}.begin();
+            ${this.cborUnpackIt(name,`${msg}_it`,msg)}
+        `;
+    }
+
+    cborUnpackIt(name, it, msg) {
+        return `
+            CborLite::decodeDoubleFloat(${it},${msg}.end(),${name});
+        `;
+    }
+
+    cborPack(msg, name) {
+        return `CborLite::encodeDoubleFloat(${msg},${name});\n`;
     }
 }
 
