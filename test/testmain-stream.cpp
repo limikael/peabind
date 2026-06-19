@@ -120,6 +120,7 @@ void test_stream_basic() {
 	basic_init(a);
 
 	int i=BasicFrontend::hello(1,2);
+	//printf("ret=%d\n",i);
 	assert(i==3);
 
 	i=BasicFrontend::hello2();

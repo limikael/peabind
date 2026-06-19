@@ -15,7 +15,7 @@ export default class StreamFrontendFunctionRenderer extends FunctionRenderer {
         if (this.func.return.type!="void" || this.func.return.promise) {
             epilogue=`
                 ${this.tr(this.func.return).nativeDecl("ret")}
-                ${this.tr(this.func.return).cborUnpack("ret","res")}
+                ${this.tr(this.func.return).cborUnpackIt("ret","res_it","res")}
                 return ret;
             `;
         }
@@ -31,6 +31,12 @@ export default class StreamFrontendFunctionRenderer extends FunctionRenderer {
                 CborLite::encodeInteger(req,thisId);
                 ${this.func.args.map((a,i)=>this.tr(a).cborPack("req",`arg_${i}`)).join("\n")}
                 std::vector<uint8_t> res=${this.prefix}frontend->query(req);
+                auto res_it=res.begin();
+                size_t resArraySize;
+                CborLite::decodeArraySize(res_it,res.end(),resArraySize);
+                int returnOpCode;
+                CborLite::decodeInteger(res_it,res.end(),returnOpCode);
+                assert(returnOpCode==PEABIND_STREAMOP_RETURN);
                 ${epilogue}
             }
         `);

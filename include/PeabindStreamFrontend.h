@@ -1,6 +1,7 @@
 #include <peabind.h>
 #include "StreamTransport.h"
 #include "CborStream.h"
+#include <cassert>
 
 struct InstanceIdTag {
     int instanceId;

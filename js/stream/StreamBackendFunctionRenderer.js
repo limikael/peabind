@@ -36,7 +36,9 @@ export default class StreamBackendFunctionRenderer extends FunctionRenderer {
         if (this.func.return.type=="void" && !this.func.return.promise) {
             call=`
                 ${callTarget}(${this.func.args.map((arg,i)=>`a${i}`).join(",")});
-                CborLite::encodeInteger(res,-1);
+                size_t resArraySize=1;
+                CborLite::encodeArraySize(res,resArraySize);
+                CborLite::encodeInteger(res,PEABIND_STREAMOP_RETURN);
             `;
         }
 
@@ -44,6 +46,9 @@ export default class StreamBackendFunctionRenderer extends FunctionRenderer {
             call=`
                 ${this.tr(this.func.return).nativeDecl("ret")}
                 ret=${callTarget}(${this.func.args.map((arg,i)=>`a${i}`).join(",")});
+                size_t resArraySize=2;
+                CborLite::encodeArraySize(res,resArraySize);
+                CborLite::encodeInteger(res,PEABIND_STREAMOP_RETURN);
                 ${this.tr(this.func.return).cborPack("res","ret")}
             `;
         }

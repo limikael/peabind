@@ -49,14 +49,6 @@ class StreamFrontendRenderer extends IdlRenderer {
             void ${this.prefix}exit();
         `);
     }
-
-    /*generateIdFromInstance(instance) {
-        return `${instance}->instanceId`
-    }*/
-
-    /*generateInstanceFromId(className, id) {
-        return `${className}::createInstanceProxy(${id})`
-    }*/
 }
 
 export async function peabindStreamFrontend(options) {
