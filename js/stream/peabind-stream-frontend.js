@@ -3,7 +3,7 @@ import path from "node:path";
 import {ifdefWrap, autoIndent, namespaceWrap} from "../utils/lang-util.js";
 import {createTypeStrategy} from "../peabind/peabind-jsval-types.js";
 import StreamFrontendFunctionRenderer from "./StreamFrontendFunctionRenderer.js";
-import ClassBuilder from "../idl/ClassBuilder.js";
+import StreamFrontendClassRenderer from "./StreamFrontendClassRenderer.js";
 import IdlRenderer from "../idl/IdlRenderer.js";
 
 class StreamFrontendRenderer extends IdlRenderer {
@@ -11,7 +11,7 @@ class StreamFrontendRenderer extends IdlRenderer {
         super({
             ...options,
             functionRendererClass: StreamFrontendFunctionRenderer,
-            classRendererClass: ClassBuilder,
+            classRendererClass: StreamFrontendClassRenderer,
         });
     }
 

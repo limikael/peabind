@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import {ifdefWrap, autoIndent} from "../utils/lang-util.js";
 import StreamBackendFunctionRenderer from "./StreamBackendFunctionRenderer.js";
-import ClassBuilder from "../idl/ClassBuilder.js";
+import StreamBackendClassRenderer from "./StreamBackendClassRenderer.js";
 import IdlRenderer from "../idl/IdlRenderer.js";
 
 class StreamBackendRenderer extends IdlRenderer {
@@ -10,7 +10,7 @@ class StreamBackendRenderer extends IdlRenderer {
         super({
             ...options,
             functionRendererClass: StreamBackendFunctionRenderer,
-            classRendererClass: ClassBuilder,
+            classRendererClass: StreamBackendClassRenderer,
         });
     }
 
