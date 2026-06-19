@@ -151,9 +151,13 @@ void test_stream_basic() {
 	delete h;
 
 	assert(BasicFrontend::hellof(.5)==5);
+	assert(BasicFrontend::hellos("hello","world")=="helloworld");
 
 	//printf("third: %f\n",BasicFrontend::hellothird(10));
 	assert(fabs(BasicFrontend::hellothird(10)-3.3333333)<0.000001);
+
+	std::vector<uint8_t> buf=BasicFrontend::createBuffer();
+	assert(BasicFrontend::peekBuffer(buf,2)==33);
 
 	basic_exit();
 	delete backend;

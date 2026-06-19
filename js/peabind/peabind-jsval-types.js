@@ -123,6 +123,10 @@ class StringTypeStrategy {
         this.typeDef=typeDef;
     }
 
+    nativeType() {
+        return "std::string";
+    }
+
     nativeDecl(name) {
         if (this.typeDef.promise)
             return `Promise<std::string> ${name};\n`;
@@ -157,11 +161,32 @@ class StringTypeStrategy {
     cleanup(name) {
         return `jsvalFree(${name});\n`
     }
+
+    cborPack(msg, name) {
+        return `CborLite::encodeBytes(${msg},${name});\n`;
+    }
+
+    cborUnpack(name, msg) {
+        return `
+            auto ${msg}_it=${msg}.begin();
+            ${this.cborUnpackIt(name,`${msg}_it`,msg)}
+        `;
+    }
+
+    cborUnpackIt(name, it, msg) {
+        return `
+            CborLite::decodeBytes(${it},${msg}.end(),${name});
+        `;
+    }
 }
 
 class BufferTypeStrategy {
     constructor(typeDef) {
         this.typeDef=typeDef;
+    }
+
+    nativeType() {
+        return "std::vector<uint8_t>";
     }
 
     nativeDecl(name) {
@@ -197,6 +222,23 @@ class BufferTypeStrategy {
 
     cleanup(name) {
         return `jsvalFree(${name});\n`
+    }
+
+    cborPack(msg, name) {
+        return `CborLite::encodeBytes(${msg},${name});\n`;
+    }
+
+    cborUnpack(name, msg) {
+        return `
+            auto ${msg}_it=${msg}.begin();
+            ${this.cborUnpackIt(name,`${msg}_it`,msg)}
+        `;
+    }
+
+    cborUnpackIt(name, it, msg) {
+        return `
+            CborLite::decodeBytes(${it},${msg}.end(),${name});
+        `;
     }
 }
 
