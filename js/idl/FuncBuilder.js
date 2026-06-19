@@ -14,15 +14,12 @@ export default class FuncBuilder {
             throw new Error("got no renderer!!!");
 
         this.cls=(...args)=>this.idlRenderer.cls(...args);
+        this.tr=(...args)=>this.idlRenderer.tr(...args);
 	}
 
-    ts(type) {
-        return createTypeStrategy(type, {idl: this.idl, prefix: this.prefix});
-    }
-
 	generateSignature() {
-		let args=this.func.args.map(a=>this.ts(a).nativeType()).join(",");
-        let typeSpec=this.ts(this.func.return).nativeType();
+		let args=this.func.args.map(a=>this.tr(a).nativeType()).join(",");
+        let typeSpec=this.tr(this.func.return).nativeType();
         if (this.func.ctor)
             typeSpec="";
 
@@ -88,9 +85,9 @@ export default class FuncBuilder {
 
         else {
             call=`
-                ${this.ts(this.func.return).nativeDecl("ret")}
+                ${this.tr(this.func.return).nativeDecl("ret")}
                 ret=${callTarget}(${this.func.args.map((arg,i)=>`a${i}`).join(",")});
-                ${this.ts(this.func.return).cborPack("res","ret")}
+                ${this.tr(this.func.return).cborPack("res","ret")}
             `;
         }
 
@@ -105,8 +102,8 @@ export default class FuncBuilder {
                 CborLite::decodeInteger(it,req.end(),opcode);
                 CborLite::decodeInteger(it,req.end(),funcid);
                 CborLite::decodeInteger(it,req.end(),thisid);
-                ${this.func.args.map((a,i)=>this.ts(a).nativeDecl(`a${i}`)).join("\n")}
-                ${this.func.args.map((a,i)=>this.ts(a).cborUnpackIt(`a${i}`,"it","req")).join("\n")}
+                ${this.func.args.map((a,i)=>this.tr(a).nativeDecl(`a${i}`)).join("\n")}
+                ${this.func.args.map((a,i)=>this.tr(a).cborUnpackIt(`a${i}`,"it","req")).join("\n")}
                 ${prelude}
                 ${call}
                 return res;
@@ -115,7 +112,7 @@ export default class FuncBuilder {
 	}*/
 
 	generateFrontendStub() {
-		let args=this.func.args.map((a,i)=>this.ts(a).nativeParam(`arg_${i}`)).join(",");
+		let args=this.func.args.map((a,i)=>this.tr(a).nativeParam(`arg_${i}`)).join(",");
         let declName=this.func.name;
         let instanceIdExpr="0";
         if (this.func.className) {
@@ -126,14 +123,14 @@ export default class FuncBuilder {
         let epilogue="";
         if (this.func.return.type!="void" || this.func.return.promise) {
             epilogue=`
-                ${this.ts(this.func.return).nativeDecl("ret")}
-                ${this.ts(this.func.return).cborUnpack("ret","res")}
+                ${this.tr(this.func.return).nativeDecl("ret")}
+                ${this.tr(this.func.return).cborUnpack("ret","res")}
                 return ret;
             `;
         }
 
 		return ifdefWrap(this.func.ifdef,`
-			${this.ts(this.func.return).nativeType()} ${declName}(${args}) {
+			${this.tr(this.func.return).nativeType()} ${declName}(${args}) {
 				std::vector<uint8_t> req;
 				size_t numParams=${this.func.args.length+3};
                 int thisId=${instanceIdExpr};
@@ -141,7 +138,7 @@ export default class FuncBuilder {
                 CborLite::encodeInteger(req,PEABIND_STREAMOP_CALL);
 				CborLite::encodeInteger(req,${this.getId()});
                 CborLite::encodeInteger(req,thisId);
-				${this.func.args.map((a,i)=>this.ts(a).cborPack("req",`arg_${i}`)).join("\n")}
+				${this.func.args.map((a,i)=>this.tr(a).cborPack("req",`arg_${i}`)).join("\n")}
 				std::vector<uint8_t> res=${this.prefix}frontend->query(req);
 				${epilogue}
 			}

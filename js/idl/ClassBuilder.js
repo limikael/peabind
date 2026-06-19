@@ -10,11 +10,8 @@ export default class ClassBuilder {
         this.idlRenderer=idlRenderer;
 
         this.fr=(...args)=>this.idlRenderer.fr(...args);
+        this.tr=(...args)=>this.idlRenderer.tr(...args);
 	}
-
-    ts(type) {
-        return createTypeStrategy(type, {idl: this.idl, prefix: this.prefix});
-    }
 
     getCtorFunc() {
         return ({
@@ -47,7 +44,7 @@ export default class ClassBuilder {
 
     generateFrontendStub() {
         let func=this.getCtorFunc();
-        let args=func.args.map((a,i)=>this.ts(a).nativeParam(`arg_${i}`)).join(",");
+        let args=func.args.map((a,i)=>this.tr(a).nativeParam(`arg_${i}`)).join(",");
 
         return ifdefWrap(this.cls.ifdef,`
             ${this.cls.name}::${this.cls.name}(${args}) {
@@ -56,7 +53,7 @@ export default class ClassBuilder {
                 CborLite::encodeArraySize(req,numParams); // num params
                 CborLite::encodeInteger(req,PEABIND_STREAMOP_NEW); // new op
                 CborLite::encodeInteger(req,${this.getId()}); // class id
-                ${func.args.map((a,i)=>this.ts(a).cborPack("req",`arg_${i}`)).join("\n")}
+                ${func.args.map((a,i)=>this.tr(a).cborPack("req",`arg_${i}`)).join("\n")}
                 //printf("doing new q\\n");
                 std::vector<uint8_t> res=${this.prefix}frontend->query(req);
                 auto it=res.begin();
@@ -98,8 +95,8 @@ export default class ClassBuilder {
                 int opcode,clsid;
                 CborLite::decodeInteger(it,req.end(),opcode);
                 CborLite::decodeInteger(it,req.end(),clsid);
-                ${func.args.map((a,i)=>this.ts(a).nativeDecl(`a${i}`)).join("\n")}
-                ${func.args.map((a,i)=>this.ts(a).cborUnpackIt(`a${i}`,"it","req")).join("\n")}
+                ${func.args.map((a,i)=>this.tr(a).nativeDecl(`a${i}`)).join("\n")}
+                ${func.args.map((a,i)=>this.tr(a).cborUnpackIt(`a${i}`,"it","req")).join("\n")}
                 auto instance=std::make_shared<${this.getExtClassName()}>(${params});
                 int objid=backend->addInstance(instance);
                 CborLite::encodeInteger(res,objid);

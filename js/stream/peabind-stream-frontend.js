@@ -15,16 +15,6 @@ class StreamFrontendRenderer extends IdlRenderer {
         });
     }
 
-    /*ts(typeDef) {
-        if (typeof typeDef=="string")
-            typeDef={type: typeDef};
-
-        return createTypeStrategy(typeDef, {
-            idl: this.idl, 
-            prefix: this.prefix
-        });
-    }*/
-
     generateSource() {
         return autoIndent(`
             #include "${this.projectName}.h"

@@ -43,9 +43,9 @@ export default class StreamBackendFunctionRenderer extends FuncBuilder {
 
         else {
             call=`
-                ${this.ts(this.func.return).nativeDecl("ret")}
+                ${this.tr(this.func.return).nativeDecl("ret")}
                 ret=${callTarget}(${this.func.args.map((arg,i)=>`a${i}`).join(",")});
-                ${this.ts(this.func.return).cborPack("res","ret")}
+                ${this.tr(this.func.return).cborPack("res","ret")}
             `;
         }
 
@@ -60,8 +60,8 @@ export default class StreamBackendFunctionRenderer extends FuncBuilder {
                 CborLite::decodeInteger(it,req.end(),opcode);
                 CborLite::decodeInteger(it,req.end(),funcid);
                 CborLite::decodeInteger(it,req.end(),thisid);
-                ${this.func.args.map((a,i)=>this.ts(a).nativeDecl(`a${i}`)).join("\n")}
-                ${this.func.args.map((a,i)=>this.ts(a).cborUnpackIt(`a${i}`,"it","req")).join("\n")}
+                ${this.func.args.map((a,i)=>this.tr(a).nativeDecl(`a${i}`)).join("\n")}
+                ${this.func.args.map((a,i)=>this.tr(a).cborUnpackIt(`a${i}`,"it","req")).join("\n")}
                 ${prelude}
                 ${call}
                 return res;
