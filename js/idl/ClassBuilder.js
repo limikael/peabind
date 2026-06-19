@@ -1,6 +1,5 @@
 import {createTypeStrategy} from "../peabind/peabind-jsval-types.js";
 import {ifdefWrap} from "../utils/lang-util.js";
-import {createFuncBuilder} from "./FuncBuilder.js";
 
 export default class ClassBuilder {
 	constructor({idl, cls, prefix, idlRenderer}) {

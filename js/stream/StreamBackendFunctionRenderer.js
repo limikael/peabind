@@ -2,9 +2,9 @@ import {createTypeStrategy} from "../peabind/peabind-jsval-types.js";
 import {ifdefWrap} from "../utils/lang-util.js";
 import {idlGetClass} from "../peabind/peabind-idl.js";
 import {createClassBuilder} from "../idl/ClassBuilder.js";
-import FuncBuilder from "../idl/FuncBuilder.js";
+import FunctionRenderer from "../idl/FunctionRenderer.js";
 
-export default class StreamBackendFunctionRenderer extends FuncBuilder {
+export default class StreamBackendFunctionRenderer extends FunctionRenderer {
 	generateBackendStub() {
         let name,callTarget,prelude;
         if (this.func.className) {

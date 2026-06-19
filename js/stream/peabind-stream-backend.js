@@ -1,7 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
 import {ifdefWrap, autoIndent} from "../utils/lang-util.js";
-import FuncBuilder from "../idl/FuncBuilder.js";
 import StreamBackendFunctionRenderer from "./StreamBackendFunctionRenderer.js";
 import ClassBuilder from "../idl/ClassBuilder.js";
 import IdlRenderer from "../idl/IdlRenderer.js";
