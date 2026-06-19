@@ -159,6 +159,11 @@ void test_stream_basic() {
 	std::vector<uint8_t> buf=BasicFrontend::createBuffer();
 	assert(BasicFrontend::peekBuffer(buf,2)==33);
 
+	{
+		auto hell=BasicFrontend::createHello();
+		assert(hell->getVal()==666);
+	}
+
 	basic_exit();
 	delete backend;
 	delete a;

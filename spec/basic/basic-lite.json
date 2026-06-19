@@ -9,8 +9,8 @@
 		"hellos": {"return": "string","args":["string","string"]},
 		"createBuffer": {"return": "buffer"},
 		"peekBuffer": {"return": "int", "args":["buffer","int"]},
-		/*"createHello": {"return":"Hello"},
-		"setHelloVal": {"args": ["Hello","int"]},
+		"createHello": {"return":"Hello"},
+		/*"setHelloVal": {"args": ["Hello","int"]},
 		"getHelloVal": {"args": ["Hello"], "return": "int"},
 		"getLiveHelloCount": {"return": "int"},
 		"removeHello": {},*/

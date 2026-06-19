@@ -20,6 +20,10 @@ export default class StreamFrontendClassRenderer extends ClassRenderer {
                 CborLite::decodeInteger(it,res.end(),instanceId);
             }
 
+            ${this.cls.name}::${this.cls.name}(InstanceIdTag instanceIdTag) {
+                instanceId=instanceIdTag.instanceId;
+            }
+
             ${this.cls.name}::~${this.cls.name}() {
                 std::vector<uint8_t> req;
                 size_t numParams=2;
@@ -27,6 +31,11 @@ export default class StreamFrontendClassRenderer extends ClassRenderer {
                 CborLite::encodeInteger(req,PEABIND_STREAMOP_DELETE);
                 CborLite::encodeInteger(req,instanceId);
                 ${this.prefix}frontend->query(req);
+            }
+
+            std::shared_ptr<${this.cls.name}> ${this.cls.name}::createInstanceProxy(int instanceId_) {
+                //printf("creating instance proxy...");
+                return std::make_shared<${this.cls.name}>(InstanceIdTag{instanceId_});
             }
 
             ${this.cls.methods.map(m=>this.fr(m).generateFrontendStub()).join("")}

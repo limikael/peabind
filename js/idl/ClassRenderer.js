@@ -25,12 +25,20 @@ export default class ClassRenderer {
             class ${this.cls.name} {
             public:
                 ${this.fr(this.getCtorFunc()).generateSignature()}
+                ${this.cls.name}(InstanceIdTag instanceIdTag);
                 ~${this.cls.name}();
                 ${this.cls.methods.map(m=>this.fr(m).generateSignature()).join("\n")}
+                static std::shared_ptr<${this.cls.name}> createInstanceProxy(int instanceId_);
                 int instanceId;
             };
 		`);
 	}
+
+    generateForwardSignature() {
+        return ifdefWrap(this.cls.ifdef,`
+            class ${this.cls.name};
+        `);
+    }
 
     getId() {
         let names=this.idl.classes.map(c=>c.name);

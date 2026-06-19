@@ -251,6 +251,10 @@ class ObjectTypeStrategy {
             throw new Error("Unknown type: "+this.typeDef.type);
     }
 
+    nativeType() {
+        return `std::shared_ptr<${this.getTemplateParam()}>`;
+    }
+
     getTemplateParam() {
         if (this.clsdef.namespace)
             return `${this.clsdef.namespace}::${this.typeDef.type}`;
@@ -303,6 +307,25 @@ class ObjectTypeStrategy {
 
     cleanup(name) {
         return `jsvalFree(${name});\n`
+    }
+
+    cborPack(msg, name) {
+        return `CborLite::encodeInteger(${msg},backend->addInstance(${name}));\n`;
+    }
+
+    cborUnpack(name, msg) {
+        return `
+            auto ${msg}_it=${msg}.begin();
+            ${this.cborUnpackIt(name,`${msg}_it`,msg)}
+        `;
+    }
+
+    cborUnpackIt(name, it, msg) {
+        return `
+            int ${name}_id;
+            CborLite::decodeInteger(${it},${msg}.end(),${name}_id);
+            ${name}=${this.getTemplateParam()}::createInstanceProxy(${name}_id);
+        `;
     }
 }
 

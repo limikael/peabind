@@ -2,6 +2,10 @@
 #include "StreamTransport.h"
 #include "CborStream.h"
 
+struct InstanceIdTag {
+    int instanceId;
+};
+
 class PeabindStreamFrontend {
 public:
     PeabindStreamFrontend(StreamTransport *streamTransport_);

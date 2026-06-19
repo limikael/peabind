@@ -39,6 +39,7 @@ class StreamFrontendRenderer extends IdlRenderer {
             #include <PeabindStreamFrontend.h>
             extern PeabindStreamFrontend* ${this.prefix}frontend;
             ${namespaceWrap(this.namespace,`
+                ${this.idl.classes.map(c=>this.cr(c).generateForwardSignature()).join("\n")}
                 ${this.idl.functions.map(f=>this.fr(f).generateSignature()).join("\n")}
                 ${this.idl.classes.map(f=>this.cr(f).generateSignature()).join("\n")}
             `)}
