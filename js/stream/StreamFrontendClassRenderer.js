@@ -17,6 +17,11 @@ export default class StreamFrontendClassRenderer extends ClassRenderer {
                 //printf("doing new q\\n");
                 std::vector<uint8_t> res=${this.prefix}frontend->query(req);
                 auto it=res.begin();
+                size_t arraySize;
+                CborLite::decodeArraySize(it,res.end(),arraySize);
+                int returnOpCode;
+                CborLite::decodeInteger(it,res.end(),returnOpCode);
+                assert(returnOpCode==PEABIND_STREAMOP_RETURN);
                 CborLite::decodeInteger(it,res.end(),instanceId);
             }
 

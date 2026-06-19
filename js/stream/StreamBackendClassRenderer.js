@@ -20,6 +20,9 @@ export default class StreamBackendClassRenderer extends ClassRenderer {
                 ${func.args.map((a,i)=>this.tr(a).cborUnpackIt(`a${i}`,"it","req")).join("\n")}
                 auto instance=std::make_shared<${this.getExtClassName()}>(${params});
                 int objid=backend->addInstance(instance);
+                size_t arraySize=2;
+                CborLite::encodeArraySize(res,arraySize);
+                CborLite::encodeInteger(res,PEABIND_STREAMOP_RETURN);
                 CborLite::encodeInteger(res,objid);
                 return res;
             }
