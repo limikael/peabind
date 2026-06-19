@@ -3,18 +3,17 @@ import {ifdefWrap} from "../utils/lang-util.js";
 import {createFuncBuilder} from "./FuncBuilder.js";
 
 export default class ClassBuilder {
-	constructor({idl, cls, prefix}) {
+	constructor({idl, cls, prefix, idlRenderer}) {
 		this.idl=idl;
 		this.cls=cls;
 		this.prefix=prefix;
+        this.idlRenderer=idlRenderer;
+
+        this.fn=(...args)=>this.idlRenderer.fn(...args);
 	}
 
     ts(type) {
         return createTypeStrategy(type, {idl: this.idl, prefix: this.prefix});
-    }
-
-    fs(func) {
-        return createFuncBuilder({idl: this.idl, prefix: this.prefix, func});
     }
 
     getCtorFunc() {
@@ -30,9 +29,9 @@ export default class ClassBuilder {
 		return ifdefWrap(this.cls.ifdef,`
             class ${this.cls.name} {
             public:
-                ${this.fs(this.getCtorFunc()).generateSignature()}
+                ${this.fn(this.getCtorFunc()).generateSignature()}
                 ~${this.cls.name}();
-                ${this.cls.methods.map(m=>this.fs(m).generateSignature()).join("\n")}
+                ${this.cls.methods.map(m=>this.fn(m).generateSignature()).join("\n")}
                 int instanceId;
             };
 		`);
@@ -73,7 +72,7 @@ export default class ClassBuilder {
                 ${this.prefix}frontend->query(req);
             }
 
-            ${this.cls.methods.map(m=>this.fs(m).generateFrontendStub()).join("")}
+            ${this.cls.methods.map(m=>this.fn(m).generateFrontendStub()).join("")}
         `);
     }
 
@@ -107,7 +106,7 @@ export default class ClassBuilder {
                 return res;
             }
 
-            ${this.cls.methods.map(func=>this.fs(func).generateBackendStub()).join("\n")}
+            ${this.cls.methods.map(func=>this.idlRenderer.fn(func).generateBackendStub()).join("\n")}
         `);
     }
 }

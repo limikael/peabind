@@ -4,21 +4,20 @@ import {idlGetClass} from "../peabind/peabind-idl.js";
 import {createClassBuilder} from "./ClassBuilder.js";
 
 export default class FuncBuilder {
-	constructor({idl, func, prefix}) {
+	constructor({idl, func, prefix, idlRenderer}) {
 		this.idl=idl;
 		this.func=func;
 		this.prefix=prefix;
+        this.idlRenderer=idlRenderer;
+
+        if (!this.idlRenderer)
+            throw new Error("got no renderer!!!");
+
+        this.cls=(...args)=>this.idlRenderer.cls(...args);
 	}
 
     ts(type) {
         return createTypeStrategy(type, {idl: this.idl, prefix: this.prefix});
-    }
-
-    cs(cls) {
-        if (typeof cls=="string")
-            cls=idlGetClass(this.idl,cls);
-
-        return createClassBuilder({idl: this.idl, prefix: this.prefix, cls});
     }
 
 	generateSignature() {
@@ -35,7 +34,7 @@ export default class FuncBuilder {
 	getId() {
         if (this.func.className) {
             let cls=idlGetClass(this.idl,this.func.className)
-            let clsId=this.cs(cls).getId();
+            let clsId=this.cls(cls).getId();
             let names=cls.methods.map(f=>f.name);
             let idx=names.indexOf(this.func.name);
             if (idx<0)
@@ -51,7 +50,7 @@ export default class FuncBuilder {
 		return names.indexOf(this.func.name);
 	}
 
-	generateBackendStub() {
+	/*generateBackendStub() {
         let name,callTarget,prelude;
         if (this.func.className) {
             if (this.func.static) {
@@ -113,7 +112,7 @@ export default class FuncBuilder {
                 return res;
             }
         `);
-	}
+	}*/
 
 	generateFrontendStub() {
 		let args=this.func.args.map((a,i)=>this.ts(a).nativeParam(`arg_${i}`)).join(",");

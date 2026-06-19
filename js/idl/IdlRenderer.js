@@ -1,4 +1,5 @@
 import path from "node:path";
+import {idlGetClass} from "../peabind/peabind-idl.js";
 
 export default class IdlRenderer {
 	constructor({idl, output, prefix, namespace, functionRendererClass, classRendererClass}) {
@@ -25,10 +26,13 @@ export default class IdlRenderer {
 	}
 
 	getFunc(funcDef) {
-        return new this.functionRendererClass({idl: this.idl, prefix: this.prefix, func: funcDef});
+        return new this.functionRendererClass({idl: this.idl, prefix: this.prefix, func: funcDef, idlRenderer: this});
 	}
 
 	getClass(clsDef) {
-        return new this.classRendererClass({idl: this.idl, prefix: this.prefix, cls: clsDef});
+        if (typeof clsDef=="string")
+            clsDef=idlGetClass(this.idl,clsDef);
+
+        return new this.classRendererClass({idl: this.idl, prefix: this.prefix, cls: clsDef, idlRenderer: this});
 	}
 }

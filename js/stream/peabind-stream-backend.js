@@ -2,14 +2,15 @@ import fs from "node:fs";
 import path from "node:path";
 import {ifdefWrap, autoIndent} from "../utils/lang-util.js";
 import FuncBuilder from "../idl/FuncBuilder.js";
+import StreamBackendFunctionRenderer from "./StreamBackendFunctionRenderer.js";
 import ClassBuilder from "../idl/ClassBuilder.js";
 import IdlRenderer from "../idl/IdlRenderer.js";
 
-class StreamBackendEmitter extends IdlRenderer {
+class StreamBackendRenderer extends IdlRenderer {
     constructor(options) {
         super({
             ...options,
-            functionRendererClass: FuncBuilder,
+            functionRendererClass: StreamBackendFunctionRenderer,
             classRendererClass: ClassBuilder,
         });
     }
@@ -47,7 +48,7 @@ class StreamBackendEmitter extends IdlRenderer {
 }
 
 export async function peabindStreamBackend(options) {
-    let renderer=new StreamBackendEmitter(options);
+    let renderer=new StreamBackendRenderer(options);
 
     fs.writeFileSync(renderer.getOutput(),renderer.generateSource());
     fs.writeFileSync(renderer.getOutput(".h"),renderer.generateHeaderSource());
