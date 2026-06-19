@@ -14,7 +14,7 @@ export default class IdlRenderer {
 		this.functionRendererClass=functionRendererClass;
 		this.classRendererClass=classRendererClass;
 
-		this.fn=(...args)=>this.getFunc(...args);
+		this.fr=(...args)=>this.getFunctionRenderer(...args);
     	this.cls=(...args)=>this.getClass(...args);
 	}
 
@@ -25,7 +25,7 @@ export default class IdlRenderer {
 		return this.output;
 	}
 
-	getFunc(funcDef) {
+	getFunctionRenderer(funcDef) {
         return new this.functionRendererClass({idl: this.idl, prefix: this.prefix, func: funcDef, idlRenderer: this});
 	}
 

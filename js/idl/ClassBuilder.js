@@ -9,7 +9,7 @@ export default class ClassBuilder {
 		this.prefix=prefix;
         this.idlRenderer=idlRenderer;
 
-        this.fn=(...args)=>this.idlRenderer.fn(...args);
+        this.fr=(...args)=>this.idlRenderer.fr(...args);
 	}
 
     ts(type) {
@@ -29,9 +29,9 @@ export default class ClassBuilder {
 		return ifdefWrap(this.cls.ifdef,`
             class ${this.cls.name} {
             public:
-                ${this.fn(this.getCtorFunc()).generateSignature()}
+                ${this.fr(this.getCtorFunc()).generateSignature()}
                 ~${this.cls.name}();
-                ${this.cls.methods.map(m=>this.fn(m).generateSignature()).join("\n")}
+                ${this.cls.methods.map(m=>this.fr(m).generateSignature()).join("\n")}
                 int instanceId;
             };
 		`);
@@ -72,7 +72,7 @@ export default class ClassBuilder {
                 ${this.prefix}frontend->query(req);
             }
 
-            ${this.cls.methods.map(m=>this.fn(m).generateFrontendStub()).join("")}
+            ${this.cls.methods.map(m=>this.fr(m).generateFrontendStub()).join("")}
         `);
     }
 
@@ -106,7 +106,7 @@ export default class ClassBuilder {
                 return res;
             }
 
-            ${this.cls.methods.map(func=>this.idlRenderer.fn(func).generateBackendStub()).join("\n")}
+            ${this.cls.methods.map(func=>this.fr(func).generateBackendStub()).join("\n")}
         `);
     }
 }

@@ -19,17 +19,17 @@ class StreamBackendRenderer extends IdlRenderer {
         return autoIndent(`
             #include "${this.projectName}.h"
             ${this.idl.include.map(i=>`#include "${i}"`).join("\n")}
-            ${this.idl.functions.map(func=>this.fn(func).generateBackendStub()).join("\n")}
+            ${this.idl.functions.map(func=>this.fr(func).generateBackendStub()).join("\n")}
             ${this.idl.classes.map(cls=>this.cls(cls).generateBackendStub()).join("\n")}
             PeabindStreamBackend* ${this.prefix}create_stream_backend(StreamTransport* streamTransport) {
                 PeabindStreamBackend* backend=new PeabindStreamBackend(streamTransport);
                 ${this.idl.functions.map(func=>`
-                    backend->addFunction(${this.fn(func).getId()},${this.prefix}${func.name});
+                    backend->addFunction(${this.fr(func).getId()},${this.prefix}${func.name});
                 `).join("")}
                 ${this.idl.classes.map(cls=>`
                     backend->addClass(${this.cls(cls).getId()},${this.prefix}${cls.name}_constructor);
                     ${cls.methods.map(func=>`
-                        backend->addFunction(${this.fn(func).getId()},${this.prefix}${cls.name}_${func.name});
+                        backend->addFunction(${this.fr(func).getId()},${this.prefix}${cls.name}_${func.name});
                     `).join("")}
                 `).join("")}
                 return backend;
