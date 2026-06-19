@@ -50,7 +50,8 @@ export function peabindNormalize(def) {
 	for (let c of def.classes) {
 		normalizeObjectKeys(c,[
 			"name","constructible","namespace","ctorArgs",
-			"methods","events","ifdef","extends","const"
+			"methods","events","ifdef","extends","const",
+			"eventsByName"
 		]);
 		if (!c.hasOwnProperty("constructible"))
 			c.constructible=true;
@@ -72,6 +73,8 @@ export function peabindNormalize(def) {
 			if (!e.dispatcher)
 				e.dispatcher=e.name;
 		}
+
+		c.eventsByName=normalizeBuildIndex(c.events,"name");
 
 		if (!c.const)
 			c.const={};

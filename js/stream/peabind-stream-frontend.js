@@ -4,6 +4,7 @@ import {ifdefWrap, autoIndent, namespaceWrap} from "../utils/lang-util.js";
 import {createTypeStrategy} from "../peabind/peabind-jsval-types.js";
 import StreamFrontendFunctionRenderer from "./StreamFrontendFunctionRenderer.js";
 import StreamFrontendClassRenderer from "./StreamFrontendClassRenderer.js";
+import StreamFrontendEventRenderer from "./StreamFrontendEventRenderer.js";
 import IdlRenderer from "../idl/IdlRenderer.js";
 
 class StreamFrontendRenderer extends IdlRenderer {
@@ -12,6 +13,7 @@ class StreamFrontendRenderer extends IdlRenderer {
             ...options,
             functionRendererClass: StreamFrontendFunctionRenderer,
             classRendererClass: StreamFrontendClassRenderer,
+            eventRendererClass: StreamFrontendEventRenderer
         });
 
         this.packer=`${this.prefix}frontend`;

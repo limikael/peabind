@@ -111,6 +111,7 @@ void test_cbor() {
 }
 
 void test_stream_basic() {
+	fprintf(stderr,"- Stream calls...\n");
 	auto [a,b]=createMockStreamPair();
 	auto backend=basic_create_stream_backend(b);
 	b->dataEvent.on([backend](){
@@ -183,12 +184,37 @@ void test_stream_basic() {
 	delete b;
 }
 
+void test_stream_events() {
+	fprintf(stderr,"- Stream events...\n");
+	auto [a,b]=createMockStreamPair();
+	auto backend=basic_create_stream_backend(b);
+	b->dataEvent.on([backend](){
+		backend->loop();
+	});
+
+	basic_init(a);
+
+	{
+		auto s=std::make_shared<BasicFrontend::Simple>(123);
+		s->dataEvent.on([](){
+			printf("event called...");
+		});
+		s->emitData();
+	}
+
+	basic_exit();
+	delete backend;
+	delete a;
+	delete b;
+}
+
 int main() {
 	fprintf(stderr,"Running stream tests...\n");
 
 	test_stream();
 	test_cbor();
 	test_stream_basic();
+	test_stream_events();
 
 	return 0;
 }

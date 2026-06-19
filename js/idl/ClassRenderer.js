@@ -9,7 +9,20 @@ export default class ClassRenderer {
 
         this.fr=(...args)=>this.idlRenderer.fr(...args);
         this.tr=(...args)=>this.idlRenderer.tr(...args);
+        this.er=(...args)=>this.getEventRenderer(...args);
 	}
+
+    getEventRenderer(ev) {
+        if (typeof ev=="string")
+            ev=this.cls.eventsByName[ev];
+
+        return new this.idlRenderer.eventRendererClass({
+            idl: this.idl,
+            prefix: this.prefix,
+            idlRenderer: this.idlRenderer,
+            ev
+        });
+    }
 
     getCtorFunc() {
         return ({
@@ -18,6 +31,10 @@ export default class ClassRenderer {
             return: {type: "void"},
             ctor: true
         });
+    }
+
+    getEventNames() {
+        return this.cls.events.map(ev=>ev.name);
     }
 
 	generateSignature() {
@@ -30,6 +47,7 @@ export default class ClassRenderer {
                 ${this.cls.methods.map(m=>this.fr(m).generateSignature()).join("\n")}
                 static std::shared_ptr<${this.cls.name}> createInstanceProxy(int instanceId_);
                 int instanceId;
+                ${this.getEventNames().map(e=>this.er(e).generateSignature()).join("\n")}
             };
 		`);
 	}

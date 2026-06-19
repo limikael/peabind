@@ -3,6 +3,20 @@
 #include "CborStream.h"
 #include <cassert>
 
+template<typename... Args>
+class StreamFrontendDispatcher {
+public:
+    int on(std::function<void(Args...)> listener) {
+        return 123;
+    }
+
+    void off(int handle) {
+    }
+
+    void off() {
+    }
+};
+
 struct InstanceIdTag {
     int instanceId;
 };
