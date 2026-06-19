@@ -12,6 +12,8 @@ class StreamBackendRenderer extends IdlRenderer {
             functionRendererClass: StreamBackendFunctionRenderer,
             classRendererClass: StreamBackendClassRenderer,
         });
+
+        this.packer="backend";
     }
 
     generateSource() {
@@ -44,6 +46,14 @@ class StreamBackendRenderer extends IdlRenderer {
             PeabindStreamBackend* ${this.prefix}create_stream_backend(StreamTransport*);
         `);
     }
+
+    /*generateIdFromInstance(instance) {
+        return `backend->addInstance(${instance})`
+    }*/
+
+    /*generateInstanceFromId(className, id) {
+        return `backend->getInstance(${id})`; //${className}::createInstanceProxy(${id})`
+    }*/
 }
 
 export async function peabindStreamBackend(options) {

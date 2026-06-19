@@ -39,6 +39,6 @@ export default class IdlRenderer {
 	}
 
     getTypeRenderer(typeDef) {
-        return createTypeStrategy(typeDef, {idl: this.idl, prefix: this.prefix});
+        return createTypeStrategy(typeDef, {idl: this.idl, prefix: this.prefix, idlRenderer: this});
     }
 }

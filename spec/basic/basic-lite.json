@@ -10,10 +10,10 @@
 		"createBuffer": {"return": "buffer"},
 		"peekBuffer": {"return": "int", "args":["buffer","int"]},
 		"createHello": {"return":"Hello"},
-		/*"setHelloVal": {"args": ["Hello","int"]},
+		"setHelloVal": {"args": ["Hello","int"]},
 		"getHelloVal": {"args": ["Hello"], "return": "int"},
 		"getLiveHelloCount": {"return": "int"},
-		"removeHello": {},*/
+		"removeHello": {},
 		"doesntExist": {"return": "int", "ifdef": "NOTEXIST"},
 		/*"getIntPromise": {"return": {"type": "int", "promise": true}},
 		"getSimplePromise": {"return": {"type": "Simple", "promise": true}},

@@ -13,6 +13,8 @@ class StreamFrontendRenderer extends IdlRenderer {
             functionRendererClass: StreamFrontendFunctionRenderer,
             classRendererClass: StreamFrontendClassRenderer,
         });
+
+        this.packer=`${this.prefix}frontend`;
     }
 
     generateSource() {
@@ -47,6 +49,14 @@ class StreamFrontendRenderer extends IdlRenderer {
             void ${this.prefix}exit();
         `);
     }
+
+    /*generateIdFromInstance(instance) {
+        return `${instance}->instanceId`
+    }*/
+
+    /*generateInstanceFromId(className, id) {
+        return `${className}::createInstanceProxy(${id})`
+    }*/
 }
 
 export async function peabindStreamFrontend(options) {

@@ -160,9 +160,21 @@ void test_stream_basic() {
 	assert(BasicFrontend::peekBuffer(buf,2)==33);
 
 	{
+		assert(BasicFrontend::getLiveHelloCount()==0);
+
 		auto hell=BasicFrontend::createHello();
 		assert(hell->getVal()==666);
+
+		BasicFrontend::setHelloVal(hell,987);
+		assert(hell->getVal()==987);
+
+		assert(BasicFrontend::getHelloVal(hell)==987);
+
+		assert(BasicFrontend::getLiveHelloCount()==1);
 	}
+
+	BasicFrontend::removeHello();
+	assert(BasicFrontend::getLiveHelloCount()==0);
 
 	basic_exit();
 	delete backend;

@@ -21,6 +21,12 @@ public:
     std::vector<uint8_t> handleDelete(std::vector<uint8_t> req);
     int getNumLiveInstances() { return instances.size(); }
 
+    template<typename T>
+    int pack(std::shared_ptr<T> instance) { return addInstance(instance); }
+
+    template<typename T>
+    std::shared_ptr<T> unpack(int instanceId) { return std::static_pointer_cast<T>(getInstance(instanceId)); }
+
 private:
     int nextInstanceId=1;
     std::map<int,PeabindStreamBackendFunction*> functions;

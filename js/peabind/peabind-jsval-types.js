@@ -243,7 +243,8 @@ class BufferTypeStrategy {
 }
 
 class ObjectTypeStrategy {
-    constructor(typeDef, {idl, prefix}) {
+    constructor(typeDef, {idl, prefix, idlRenderer}) {
+        this.idlRenderer=idlRenderer;
         this.typeDef=typeDef;
         this.prefix=prefix;
         this.clsdef=idlGetClass(idl,this.typeDef.type);
@@ -256,10 +257,15 @@ class ObjectTypeStrategy {
     }
 
     getTemplateParam() {
-        if (this.clsdef.namespace)
-            return `${this.clsdef.namespace}::${this.typeDef.type}`;
+        let t=this.typeDef.type;
 
-        return `${this.typeDef.type}`;
+        if (this.clsdef.namespace)
+            t=`${this.clsdef.namespace}::${t}`;
+
+        if (this.idlRenderer.namespace)
+            t=`${this.idlRenderer.namespace}::${t}`;
+
+        return t;
     }
 
     nativeDecl(name) {
@@ -310,7 +316,8 @@ class ObjectTypeStrategy {
     }
 
     cborPack(msg, name) {
-        return `CborLite::encodeInteger(${msg},backend->addInstance(${name}));\n`;
+        let packer=this.idlRenderer.packer;
+        return `CborLite::encodeInteger(${msg},${packer}->pack(${name}));\n`;
     }
 
     cborUnpack(name, msg) {
@@ -321,10 +328,12 @@ class ObjectTypeStrategy {
     }
 
     cborUnpackIt(name, it, msg) {
+        let packer=this.idlRenderer.packer;
+
         return `
             int ${name}_id;
             CborLite::decodeInteger(${it},${msg}.end(),${name}_id);
-            ${name}=${this.getTemplateParam()}::createInstanceProxy(${name}_id);
+            ${name}=${packer}->unpack<${this.getTemplateParam()}>(${name}_id);
         `;
     }
 }
@@ -374,7 +383,7 @@ class VoidTypeStrategy {
     }
 }
 
-export function createTypeStrategy(typeDef, {idl, prefix}) {
+export function createTypeStrategy(typeDef, {idl, prefix, idlRenderer}) {
     switch (typeDef.type) {
         case "void":
             return new VoidTypeStrategy(typeDef);
@@ -399,7 +408,7 @@ export function createTypeStrategy(typeDef, {idl, prefix}) {
             if (!idlGetClass(idl,typeDef.type))
                 throw new Error("Unknown type: "+typeDef.type);
 
-            return new ObjectTypeStrategy(typeDef, {idl, prefix});
+            return new ObjectTypeStrategy(typeDef, {idl, prefix, idlRenderer});
             break;
     }
 }
