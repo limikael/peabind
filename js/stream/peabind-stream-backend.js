@@ -22,9 +22,9 @@ class StreamBackendRenderer extends IdlRenderer {
             ${this.idl.classes.map(cls=>this.cr(cls).generateBackendStub()).join("\n")}
             PeabindStreamBackend* ${this.prefix}create_stream_backend(StreamTransport* streamTransport) {
                 PeabindStreamBackend* backend=new PeabindStreamBackend(streamTransport);
-                ${this.idl.functions.map(func=>`
+                ${this.idl.functions.map(func=>ifdefWrap(func.ifdef,`
                     backend->addFunction(${this.fr(func).getId()},${this.prefix}${func.name});
-                `).join("")}
+                `)).join("")}
                 ${this.idl.classes.map(cls=>`
                     backend->addClass(${this.cr(cls).getId()},${this.prefix}${cls.name}_constructor);
                     ${cls.methods.map(func=>`
