@@ -1,39 +1,34 @@
 import fs from "node:fs";
 import path from "node:path";
 import {ifdefWrap, autoIndent} from "../utils/lang-util.js";
-import {createFuncBuilder} from "../idl/FuncBuilder.js";
-import {createClassBuilder} from "../idl/ClassBuilder.js";
+import FuncBuilder from "../idl/FuncBuilder.js";
+import ClassBuilder from "../idl/ClassBuilder.js";
+import IdlRenderer from "../idl/IdlRenderer.js";
 
-class PeabindStreamBackendBuilder {
-    constructor({idl, prefix, projectName}) {
-        this.idl=idl;
-        this.prefix=prefix;
-        this.projectName=projectName;
-    }
-
-    fs(func) {
-        return createFuncBuilder({idl: this.idl, prefix: this.prefix, func});
-    }
-
-    cs(cls) {
-        return createClassBuilder({idl: this.idl, prefix: this.prefix, cls});
+class StreamBackendEmitter extends IdlRenderer {
+    constructor(options) {
+        super({
+            ...options,
+            functionRendererClass: FuncBuilder,
+            classRendererClass: ClassBuilder,
+        });
     }
 
     generateSource() {
         return autoIndent(`
             #include "${this.projectName}.h"
             ${this.idl.include.map(i=>`#include "${i}"`).join("\n")}
-            ${this.idl.functions.map(func=>this.fs(func).generateBackendStub()).join("\n")}
-            ${this.idl.classes.map(cls=>this.cs(cls).generateBackendStub()).join("\n")}
+            ${this.idl.functions.map(func=>this.fn(func).generateBackendStub()).join("\n")}
+            ${this.idl.classes.map(cls=>this.cls(cls).generateBackendStub()).join("\n")}
             PeabindStreamBackend* ${this.prefix}create_stream_backend(StreamTransport* streamTransport) {
                 PeabindStreamBackend* backend=new PeabindStreamBackend(streamTransport);
                 ${this.idl.functions.map(func=>`
-                    backend->addFunction(${this.fs(func).getId()},${this.prefix}${func.name});
+                    backend->addFunction(${this.fn(func).getId()},${this.prefix}${func.name});
                 `).join("")}
                 ${this.idl.classes.map(cls=>`
-                    backend->addClass(${this.cs(cls).getId()},${this.prefix}${cls.name}_constructor);
+                    backend->addClass(${this.cls(cls).getId()},${this.prefix}${cls.name}_constructor);
                     ${cls.methods.map(func=>`
-                        backend->addFunction(${this.fs(func).getId()},${this.prefix}${cls.name}_${func.name});
+                        backend->addFunction(${this.fn(func).getId()},${this.prefix}${cls.name}_${func.name});
                     `).join("")}
                 `).join("")}
                 return backend;
@@ -51,14 +46,9 @@ class PeabindStreamBackendBuilder {
     }
 }
 
-export async function peabindStreamBackend({idl, output, prefix}) {
-    let projectName=path.basename(output).slice(0,-4);
-    if (!prefix)
-        prefix=projectName.replaceAll(".","_")+"_";
+export async function peabindStreamBackend(options) {
+    let renderer=new StreamBackendEmitter(options);
 
-    let builder=new PeabindStreamBackendBuilder({idl, prefix, projectName});
-    fs.writeFileSync(output,builder.generateSource());
-
-    let headerOutput=output.slice(0,-4)+".h";
-    fs.writeFileSync(headerOutput,builder.generateHeaderSource());
+    fs.writeFileSync(renderer.getOutput(),renderer.generateSource());
+    fs.writeFileSync(renderer.getOutput(".h"),renderer.generateHeaderSource());
 }
