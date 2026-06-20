@@ -194,16 +194,16 @@ void test_stream_events() {
 
 	basic_init(a);
 	int handlerId;
-	{
-		auto s=std::make_shared<BasicFrontend::Simple>(123);
-		bool called=false;
-		handlerId=s->dataEvent.on([&called](){
-			called=true;
-			//printf("event called...");
-		});
-		s->emitData();
-		assert(called);
-	}
+	auto s=std::make_shared<BasicFrontend::Simple>(123);
+	bool called=false;
+	handlerId=s->dataEvent.on([&called](){
+		called=true;
+		//printf("event called...");
+	});
+	s->emitData();
+	assert(called);
+
+	s=nullptr;
 
 	//printf("handlerId: %d\n",handlerId);
 

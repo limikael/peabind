@@ -8,6 +8,8 @@ PeabindStreamFrontend::PeabindStreamFrontend(StreamTransport* streamTransport_) 
 }
 
 PeabindStreamFrontend::~PeabindStreamFrontend() {
+    assert(liveObjectCount==0);
+
 	delete cborStream;
 	//printf("frontend dtor\n");
 }

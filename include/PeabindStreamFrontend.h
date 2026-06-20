@@ -42,6 +42,7 @@ public:
     void handleMessage(std::vector<uint8_t> msg);
     void handleEmit(std::vector<uint8_t> msg);
     void loop();
+    int liveObjectCount=0;
 
 private:
     std::map<int,std::unique_ptr<StreamFrontendListener>> listeners;

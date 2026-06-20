@@ -28,9 +28,11 @@ class StreamFrontendRenderer extends IdlRenderer {
                 ${this.idl.classes.map(c=>this.cr(c).generateFrontendStub()).join("\n")}
             `)}
             void ${this.prefix}init(StreamTransport* transport) {
+                assert(!${this.prefix}frontend);
                 ${this.prefix}frontend=new PeabindStreamFrontend(transport);
             }
             void ${this.prefix}exit() {
+                assert(${this.prefix}frontend);
                 delete ${this.prefix}frontend;
                 ${this.prefix}frontend=nullptr;
             }

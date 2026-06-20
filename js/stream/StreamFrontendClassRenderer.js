@@ -66,6 +66,8 @@ export default class StreamFrontendClassRenderer extends ClassRenderer {
                 int returnOpCode;
                 CborLite::decodeInteger(it,res.end(),returnOpCode);
                 assert(returnOpCode==PEABIND_STREAMOP_RETURN);
+                this->frontend->liveObjectCount--;
+                assert(this->frontend->liveObjectCount>=0);
             }
 
             std::shared_ptr<${this.cls.name}> ${this.cls.name}::createInstanceProxy(int instanceId_) {
@@ -76,7 +78,9 @@ export default class StreamFrontendClassRenderer extends ClassRenderer {
             ${this.cls.methods.map(m=>this.fr(m).generateFrontendStub()).join("")}
 
             void ${this.cls.name}::initFrontendProxy() {
+                assert(${this.prefix}frontend && "no frontend active");
                 this->frontend=${this.idlRenderer.prefix}frontend;
+                this->frontend->liveObjectCount++;
                 ${this.getEventNames().map(e=>this.er(e).generateProxyInit()).join("\n")}
             }
         `);

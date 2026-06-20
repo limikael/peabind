@@ -37,20 +37,20 @@
 			"methods": {
 				"getVal": {"return":"int"},
 				"setVal": {"args":["int"]},
-				/*"emitData": {"args":["int","int"]},
+				//"emitData": {"args":["int","int"]},
 				"emitDataVoid": {},
-				"emitDataFloat": {"args": ["float"]},
+				/*"emitDataFloat": {"args": ["float"]},
 				"emitDataHello": {"args": ["Hello"]},
 				"emitDataString": {"args": ["string"]},
 				"staticAddOne": {"args": ["int"], "return": "int", "static": true}*/
 			},
-			/*"events": {
-				"data": {"args": ["int","int"], "dispatcher": "dataEvent"},
+			"events": {
+				//"data": {"args": ["int","int"], "dispatcher": "dataEvent"},
 				"dataVoid": {},
-				"dataFloat": {"args": ["float"]},
+				/*"dataFloat": {"args": ["float"]},
 				"dataHello": {"args": ["Hello"]},
-				"dataString": {"args": ["string"]},
-			},*/
+				"dataString": {"args": ["string"]},*/
+			},
 			"const": {
 				"HELLO": 1,
 				"HELLO_AGAIN": 2
