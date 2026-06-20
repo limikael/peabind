@@ -71,19 +71,23 @@ export function peabindGetLibConf(key, opts={}) {
 				case "quickjs":
 					return ([
 						path.join(__dirname,"../../src/jsval-quickjs.cpp"),
-						path.join(__dirname,"../../src/jsval-util.cpp")
+						path.join(__dirname,"../../src/jsval-util.cpp"),
+						path.join(__dirname,"../../src/PeabindJsval.cpp"),
 					]);
 					break;
 
 				case "mqjs":
 					return ([
 						path.join(__dirname,"../../src/jsval-mqjs.cpp"),
-						path.join(__dirname,"../../src/jsval-util.cpp")
+						path.join(__dirname,"../../src/jsval-util.cpp"),
+						path.join(__dirname,"../../src/PeabindJsval.cpp"),
 					]);
 					break;
 
 				case "wasm":
-					return [];
+					return [
+						path.join(__dirname,"../../src/PeabindJsval.cpp"),
+					];
 
 				default:
 					throw new Error("sources conf needs target");

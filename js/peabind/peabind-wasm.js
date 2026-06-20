@@ -30,7 +30,11 @@ export async function peabindWasm({idl, includePath, sources, output, prefix, de
 
     await buildJsvalWasm({
         output,
-        sources: [stubFn,...sources],
+        sources: [
+            stubFn,
+            path.join(__dirname,"../../src/PeabindJsval.cpp"),
+            ...sources
+        ],
         initFunction: `${builder.prefix}initmod`,
         define,
         includePath,

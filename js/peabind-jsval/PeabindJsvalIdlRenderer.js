@@ -22,8 +22,11 @@ export default class PeabindJsvalIdlRenderer extends IdlRenderer {
         return autoIndent(`
             ${this.include.map(i=>`#include "${i}"`).join("\n")}
             ${this.idl.include.map(i=>`#include "${i}"`).join("\n")}
+            #include "PeabindJsval.h"
             #include "peabind-priv.h"
             #include "jsval-util.h"
+
+            PeabindJsval *${this.prefix}context=nullptr;
 
             std::vector<Opaque*> opaques;
             std::vector<Listener*> listeners;
@@ -34,6 +37,8 @@ export default class PeabindJsvalIdlRenderer extends IdlRenderer {
             ${this.getClassRenderers().map(c=>c.generateDef()).join("\n")}
 
             extern "C" void ${this.prefix}initmod(JSVAL mod) {
+                assert(!${this.prefix}context);
+                ${this.prefix}context=new PeabindJsval();
                 ${symbolRegs?`
                     promiseClassId=jsvalCreateClass(Promise_constructor);
                     jsvalSetClassFinalizer(promiseClassId,Promise_finalizer);
@@ -46,10 +51,15 @@ export default class PeabindJsvalIdlRenderer extends IdlRenderer {
             }
 
             extern "C" void ${this.prefix}exitmod() {
+                assert(${this.prefix}context);
+
                 while (listeners.size()) {
                     //printf("remove listeners size: %d\\n",listeners.size());
                     listeners[0]->dispatcher->off(listeners[0]->handle);
                 }
+
+                delete(${this.prefix}context);
+                ${this.prefix}context=nullptr;
             }
 
             extern "C" int ${this.prefix}get_num_objects() {
