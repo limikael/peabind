@@ -36,6 +36,10 @@ class StreamFrontendRenderer extends IdlRenderer {
                 delete ${this.prefix}frontend;
                 ${this.prefix}frontend=nullptr;
             }
+            void ${this.prefix}loop() {
+                assert(${this.prefix}frontend);
+                ${this.prefix}frontend->loop();
+            }
         `);
     }
 
@@ -51,6 +55,7 @@ class StreamFrontendRenderer extends IdlRenderer {
             `)}
             void ${this.prefix}init(StreamTransport* transport);
             void ${this.prefix}exit();
+            void ${this.prefix}loop();
         `);
     }
 }

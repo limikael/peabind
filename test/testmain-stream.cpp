@@ -203,9 +203,22 @@ void test_stream_events() {
 	s->emitData();
 	assert(called);
 
-	s=nullptr;
+	auto h=BasicFrontend::createHello();
+	bool called2=false;
+	h->dataVoid.on([&called2](){
+		called2=true;
+		//printf("called...\n");
+	});
 
-	//printf("handlerId: %d\n",handlerId);
+	globalHello->dataVoid.emit();
+
+	assert(!called2);
+	for (int i=0; i<10; i++)
+		basic_loop();
+	assert(called2);
+
+	h=nullptr;
+	s=nullptr;
 
 	basic_exit();
 	delete backend;
