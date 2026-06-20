@@ -1,93 +1,33 @@
 import {idlGetClass} from "../idl/peabind-idl.js";
-import {autoIndent} from "../utils/lang-util.js";
+import {autoIndent, ifdefWrap} from "../utils/lang-util.js";
 import IdlRenderer from "../idl/IdlRenderer.js";
+import PeabindJsvalFunctionRenderer from "./PeabindJsvalFunctionRenderer.js";
 
 export default class PeabindJsvalIdlRenderer extends IdlRenderer {
-	generateFunctionDef(func) {
-        let name,prelude,callTarget,argStart;
-        if (func.className) {
-            if (func.static) {
-                name=`${this.prefix}${func.className}_${func.name}`;
-                prelude="";
-                callTarget=`${this.getExtClassName(func.className)}::${func.name}`
-            }
-
-            else {
-                name=`${this.prefix}${func.className}_${func.name}`;
-                prelude=`
-                    Opaque *opaque=(Opaque *)jsvalGetOpaque(thisobj);
-                    assert(opaque!=NULL);
-                    std::shared_ptr<${this.getExtClassName(func.className)}> instance=std::static_pointer_cast<${this.getExtClassName(func.className)}>(opaque->instance);
-                `;
-                callTarget=`instance->${func.name}`;
-            }
-        }
-
-        else {
-            name=`${this.prefix}${func.name}`;
-            prelude="";
-            callTarget=`${func.name}`;
-            if (func.namespace)
-                callTarget=`${func.namespace}::${func.name}`
-        }
-
-        let call;
-        if (func.return.type=="void" && !func.return.promise) {
-            call=`
-                ${callTarget}(${func.args.map((arg,i)=>`a${i}`).join(",")});
-                return jsvalUndefined();
-            `;
-        }
-
-        else {
-            call=`
-                ${this.tr(func.return).nativeDecl("ret")}
-                ret=${callTarget}(${func.args.map((arg,i)=>`a${i}`).join(",")});
-                ${this.tr(func.return).abiDecl("retval")}
-                ${this.tr(func.return).pack("retval","ret")}
-                return retval;
-            `;
-        }
-
-        return this.ifdefWrap(func.ifdef,`
-            static JSVAL ${name}(JSVAL thisobj, int argc, JSVAL *argv) {
-                if (argc!=${func.args.length}) return jsvalThrow(\"wrong arg count\");
-                ${prelude}
-                ${func.args.map((a,i)=>this.tr(a).nativeDecl(`a${i}`)).join("\n")}
-                ${func.args.map((a,i)=>this.tr(a).unpack(`a${i}`,`argv[${i}]`)).join("\n")}
-                ${call}
-            }
-        `);
-	}
-
-    ifdefWrap(ifdef, content) {
-        if (!ifdef)
-            return content;
-
-        return `
-            #ifdef ${ifdef}
-            ${content}
-            #endif
-        `
+    constructor(options) {
+        super({
+            ...options,
+            functionRendererClass: PeabindJsvalFunctionRenderer,
+        });
     }
 
 	generateFunctionReg(func) {
         if (func.className) {
             if (func.static) {
-                return this.ifdefWrap(func.ifdef,`
+                return ifdefWrap(func.ifdef,`
                     jsvalSetProp(${this.prefix}${func.className}_id,"${func.name}",jsvalCreateFunc(${this.prefix}${func.className}_${func.name}));
                 `);
             }
 
             else {
-                return this.ifdefWrap(func.ifdef,`
+                return ifdefWrap(func.ifdef,`
                     jsvalSetProtoProp(${this.prefix}${func.className}_id,"${func.name}",jsvalCreateFunc(${this.prefix}${func.className}_${func.name}));
                 `);
             }
         }
 
         else {
-            return this.ifdefWrap(func.ifdef,`
+            return ifdefWrap(func.ifdef,`
             	jsvalSetProp(mod,"${func.name}",jsvalCreateFunc(${this.prefix}${func.name}));
             `);
         }
@@ -173,20 +113,6 @@ export default class PeabindJsvalIdlRenderer extends IdlRenderer {
         `
     }
 
-    getExtClassName(cls) {
-        if (typeof cls=="string")
-            cls=idlGetClass(this.idl,cls);
-
-        if (!cls)
-            throw new Error("Undef class: "+cls);
-
-        let name=cls.name;
-        if (cls.namespace)
-            name=`${cls.namespace}::${cls.name}`;
-
-        return name;
-    }
-
     generateClassDef(cls) {
         let params=cls.ctorArgs.map((a,i)=>`a${i}`).join(",");
         let ctor;
@@ -202,7 +128,7 @@ export default class PeabindJsvalIdlRenderer extends IdlRenderer {
                     }
                     ${cls.ctorArgs.map((a,i)=>this.tr(a).nativeDecl(`a${i}`)).join("\n")}
                     ${cls.ctorArgs.map((a,i)=>this.tr(a).unpack(`a${i}`,`argv[${i}]`)).join("\n")}
-                    auto instance=std::make_shared<${this.getExtClassName(cls.name)}>(${params});
+                    auto instance=std::make_shared<${this.cr(cls.name).getExtClassName()}>(${params});
                     Opaque *opaque=new Opaque(instance,thisobj);
                     opaques.push_back(opaque);
                     jsvalSetOpaque(thisobj,opaque);
@@ -222,7 +148,7 @@ export default class PeabindJsvalIdlRenderer extends IdlRenderer {
             `;
         }
 
-        return this.ifdefWrap(cls.ifdef,`
+        return ifdefWrap(cls.ifdef,`
             ${ctor}
 
             static void ${this.prefix}${cls.name}_finalizer(JSVAL thisobj) {
@@ -234,7 +160,8 @@ export default class PeabindJsvalIdlRenderer extends IdlRenderer {
                 delete opaque;
             }
 
-            ${this.getClassMethods(cls).map(m=>this.generateFunctionDef(m)).join("\n")}
+            ${""/*this.getClassMethods(cls).map(m=>this.generateFunctionDef(m)).join("\n")*/}
+            ${this.getClassMethods(cls).map(m=>this.fr(m).generateDef()).join("\n")}
 
             ${this.generateEventDefs(cls)}
         `);
@@ -263,7 +190,7 @@ export default class PeabindJsvalIdlRenderer extends IdlRenderer {
     }
 
     generateClassReg(cls) {
-        return this.ifdefWrap(cls.ifdef,`
+        return ifdefWrap(cls.ifdef,`
             ${this.prefix}${cls.name}_id=jsvalCreateClass(${this.prefix}${cls.name}_constructor);
             jsvalSetClassFinalizer(${this.prefix}${cls.name}_id,${this.prefix}${cls.name}_finalizer);
             jsvalSetProp(mod,"${cls.name}",${this.prefix}${cls.name}_id);
@@ -296,7 +223,8 @@ export default class PeabindJsvalIdlRenderer extends IdlRenderer {
             JSVAL promiseClassId;
 
             ${this.idl.classes.map(c=>this.generateClassId(c)).join("\n")}
-            ${this.idl.functions.map(f=>this.generateFunctionDef(f)).join("\n")}
+            ${""/*this.idl.functions.map(f=>this.generateFunctionDef(f)).join("\n")*/}
+            ${this.idl.functions.map(f=>this.fr(f).generateDef()).join("\n")}
             ${this.idl.classes.map(c=>this.generateClassDef(c)).join("\n")}
 
             extern "C" void ${this.prefix}initmod(JSVAL mod) {
@@ -335,10 +263,3 @@ export default class PeabindJsvalIdlRenderer extends IdlRenderer {
         ];
     }
 }
-
-/*export function createPeabindJsvalBuilder({idl, projectName, prefix, include, symbolRegs, output}) {
-    if (!output)
-        throw new Error("need output");
-
-	return new PeabindJsvalRenderer({idl, projectName, prefix, include, symbolRegs, output});
-}*/

@@ -51,8 +51,8 @@ export async function peabindQuickjs({idl, includePath, sources, output, prefix}
         }
 
         ${builder.idl.classes.map(cls=>ifdefWrap(cls.ifdef,`
-            void ${builder.prefix}set_${cls.name}(const char *name, std::shared_ptr<${builder.getExtClassName(cls)}> val) {
-                jsvalSetProp(jsvalGetGlobal(),name,pack<${builder.getExtClassName(cls)}>(val,${builder.prefix}${cls.name}_id));
+            void ${builder.prefix}set_${cls.name}(const char *name, std::shared_ptr<${builder.cr(cls).getExtClassName()}> val) {
+                jsvalSetProp(jsvalGetGlobal(),name,pack<${builder.cr(cls).getExtClassName()}>(val,${builder.prefix}${cls.name}_id));
             }
         `)).join("\n")}
     `);
@@ -75,7 +75,7 @@ export async function peabindQuickjs({idl, includePath, sources, output, prefix}
         extern "C" int ${builder.prefix}get_num_listeners();
 
         ${builder.idl.classes.map(cls=>ifdefWrap(cls.ifdef,`
-            void ${builder.prefix}set_${cls.name}(const char *name, std::shared_ptr<${builder.getExtClassName(cls)}> val);
+            void ${builder.prefix}set_${cls.name}(const char *name, std::shared_ptr<${builder.cr(cls).getExtClassName()}> val);
         `)).join("\n")}
     `);
     fs.writeFileSync(headerOutput,headerContent);

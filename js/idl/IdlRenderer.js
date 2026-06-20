@@ -1,6 +1,7 @@
 import path from "node:path";
 import {idlGetClass} from "./peabind-idl.js";
 import {createTypeStrategy} from "./TypeRenderer.js";
+import ClassRenderer from "./ClassRenderer.js";
 
 export default class IdlRenderer {
 	constructor({idl, output, prefix, namespace, include,
@@ -8,6 +9,9 @@ export default class IdlRenderer {
 	    this.projectName=path.basename(output).slice(0,-4);
     	if (!prefix)
         	prefix=this.projectName.replaceAll(".","_")+"_";
+
+        if (!classRendererClass)
+        	classRendererClass=ClassRenderer;
 
 		this.idl=idl;
 		this.namespace=namespace;
