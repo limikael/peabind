@@ -1,23 +1,8 @@
-import {createTypeStrategy} from "./peabind-jsval-types.js";
 import {peabindNormalize, idlGetClass} from "../peabind/peabind-idl.js";
 import {autoIndent} from "../utils/lang-util.js";
 import IdlRenderer from "../idl/IdlRenderer.js";
 
 export default class PeabindJsvalIdlRenderer extends IdlRenderer {
-	/*constructor({idl, projectName, prefix, include, symbolRegs, output}) {
-        super({idl, projectName, prefix, include, output});
-
-		this.projectName=projectName;
-		this.prefix=prefix;
-        this.include=include;
-
-        if (!this.include)
-            this.include=[];
-
-        if (!this.prefix)
-            this.prefix=this.projectName.replaceAll(".","_")+"_";
-	}*/
-
 	generateFunctionDef(func) {
         let name,prelude,callTarget,argStart;
         if (func.className) {

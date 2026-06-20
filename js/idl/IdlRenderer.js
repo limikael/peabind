@@ -1,6 +1,6 @@
 import path from "node:path";
 import {idlGetClass} from "../peabind/peabind-idl.js";
-import {createTypeStrategy} from "../peabind-jsval/peabind-jsval-types.js";
+import {createTypeStrategy} from "./TypeRenderer.js";
 
 export default class IdlRenderer {
 	constructor({idl, output, prefix, namespace, include,
