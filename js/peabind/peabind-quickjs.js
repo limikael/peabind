@@ -1,7 +1,7 @@
 import path from "path";
 import os from "os";
 import fs from "fs";
-import {createPeabindJsvalBuilder} from "./peabind-jsval.js";
+import PeabindJsvalRenderer from "../peabind-jsval/PeabindJsvalIdlRenderer.js";
 import {dirnameFromImportMeta} from "../utils/node-util.js";
 import {autoIndent, ifdefWrap} from "../utils/lang-util.js";
 
@@ -12,10 +12,11 @@ export async function peabindQuickjs({idl, includePath, sources, output, prefix}
         throw new DeclaredError("Expected .cpp output");
 
     let projectName=path.basename(output).slice(0,-4);
-    let builder=createPeabindJsvalBuilder({
+    let builder=new PeabindJsvalRenderer({
         idl, 
         prefix,
         projectName,
+        output,
         include: ["jsval-quickjs.h",projectName+".h"]
     });
 

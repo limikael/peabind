@@ -1,9 +1,9 @@
 import path from "node:path";
 import {idlGetClass} from "../peabind/peabind-idl.js";
-import {createTypeStrategy} from "../peabind/peabind-jsval-types.js";
+import {createTypeStrategy} from "../peabind-jsval/peabind-jsval-types.js";
 
 export default class IdlRenderer {
-	constructor({idl, output, prefix, namespace,
+	constructor({idl, output, prefix, namespace, include,
 			functionRendererClass, classRendererClass, eventRendererClass}) {
 	    this.projectName=path.basename(output).slice(0,-4);
     	if (!prefix)
@@ -16,6 +16,9 @@ export default class IdlRenderer {
 		this.functionRendererClass=functionRendererClass;
 		this.classRendererClass=classRendererClass;
 		this.eventRendererClass=eventRendererClass;
+		this.include=include;
+		if (!this.include)
+			this.include=[];
 
 		this.fr=(...args)=>this.getFunctionRenderer(...args);
 		this.tr=(...args)=>this.getTypeRenderer(...args);
@@ -56,6 +59,13 @@ export default class IdlRenderer {
 	}
 
     getTypeRenderer(typeDef) {
-        return createTypeStrategy(typeDef, {idl: this.idl, prefix: this.prefix, idlRenderer: this});
+        if (typeof typeDef=="string")
+            typeDef={type: typeDef};
+
+        return createTypeStrategy(typeDef, {
+        	idl: this.idl, 
+        	prefix: this.prefix, 
+        	idlRenderer: this
+        });
     }
 }

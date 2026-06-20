@@ -1,33 +1,22 @@
 import {createTypeStrategy} from "./peabind-jsval-types.js";
-import {peabindNormalize, idlGetClass} from "./peabind-idl.js";
+import {peabindNormalize, idlGetClass} from "../peabind/peabind-idl.js";
 import {autoIndent} from "../utils/lang-util.js";
+import IdlRenderer from "../idl/IdlRenderer.js";
 
-class PeabindJsvalBuilder {
-	constructor({idl, projectName, prefix, include, symbolRegs}) {
-		this.idl=peabindNormalize(idl);
+export default class PeabindJsvalIdlRenderer extends IdlRenderer {
+	/*constructor({idl, projectName, prefix, include, symbolRegs, output}) {
+        super({idl, projectName, prefix, include, output});
+
 		this.projectName=projectName;
 		this.prefix=prefix;
         this.include=include;
-        this.symbolRegs=symbolRegs;
-        if (this.symbolRegs===undefined)
-            this.symbolRegs=true;
 
         if (!this.include)
             this.include=[];
 
         if (!this.prefix)
             this.prefix=this.projectName.replaceAll(".","_")+"_";
-	}
-
-	ts(typeDef) {
-        if (typeof typeDef=="string")
-            typeDef={type: typeDef};
-
-		return createTypeStrategy(typeDef, {
-			idl: this.idl, 
-			prefix: this.prefix
-		});
-	}
+	}*/
 
 	generateFunctionDef(func) {
         let name,prelude,callTarget,argStart;
@@ -67,10 +56,10 @@ class PeabindJsvalBuilder {
 
         else {
             call=`
-                ${this.ts(func.return).nativeDecl("ret")}
+                ${this.tr(func.return).nativeDecl("ret")}
                 ret=${callTarget}(${func.args.map((arg,i)=>`a${i}`).join(",")});
-                ${this.ts(func.return).abiDecl("retval")}
-                ${this.ts(func.return).pack("retval","ret")}
+                ${this.tr(func.return).abiDecl("retval")}
+                ${this.tr(func.return).pack("retval","ret")}
                 return retval;
             `;
         }
@@ -79,8 +68,8 @@ class PeabindJsvalBuilder {
             static JSVAL ${name}(JSVAL thisobj, int argc, JSVAL *argv) {
                 if (argc!=${func.args.length}) return jsvalThrow(\"wrong arg count\");
                 ${prelude}
-                ${func.args.map((a,i)=>this.ts(a).nativeDecl(`a${i}`)).join("\n")}
-                ${func.args.map((a,i)=>this.ts(a).unpack(`a${i}`,`argv[${i}]`)).join("\n")}
+                ${func.args.map((a,i)=>this.tr(a).nativeDecl(`a${i}`)).join("\n")}
+                ${func.args.map((a,i)=>this.tr(a).unpack(`a${i}`,`argv[${i}]`)).join("\n")}
                 ${call}
             }
         `);
@@ -121,7 +110,7 @@ class PeabindJsvalBuilder {
 	}
 
     generateEventOnDef(event) {
-        let argDecl=event.args.map((a,i)=>this.ts(a).nativeParam(`a${i}`)).join(",");
+        let argDecl=event.args.map((a,i)=>this.tr(a).nativeParam(`a${i}`)).join(",");
 
         return `
             if (eventName=="${event.name}") {
@@ -129,7 +118,7 @@ class PeabindJsvalBuilder {
                 int handle=instance->${event.dispatcher}.on([cbRef](${argDecl}){
                     JSVAL params[${event.args.length}];
                     ${event.args.map((a,i)=>`
-                        ${this.ts(a).pack(`params[${i}]`,`a${i}`)}
+                        ${this.tr(a).pack(`params[${i}]`,`a${i}`)}
                     `).join("\n")}
                     //Serial.printf("will call handle\\n");
                     //printf("will call...\\n");
@@ -141,7 +130,7 @@ class PeabindJsvalBuilder {
                     jsvalFree(res);
 
                     ${event.args.map((a,i)=>`
-                        ${this.ts(a).cleanup(`params[${i}]`)}
+                        ${this.tr(a).cleanup(`params[${i}]`)}
                     `).join("\n")}
 
                     //Serial.printf("called\\n");
@@ -177,7 +166,7 @@ class PeabindJsvalBuilder {
                 if (argc!=2)
                     return jsvalThrow("worng arg count for on");
 
-                std::shared_ptr<${this.ts(cls.name).getTemplateParam()}> instance=unpack<${this.ts(cls.name).getTemplateParam()}>(thisobj,${this.prefix}${cls.name}_id);
+                std::shared_ptr<${this.tr(cls.name).getTemplateParam()}> instance=unpack<${this.tr(cls.name).getTemplateParam()}>(thisobj,${this.prefix}${cls.name}_id);
                 std::string eventName=jsvalToStdString(argv[0]);
                 JSVAL cbVal=argv[1];
                 JSVAL_ID cbId=jsvalGetObjectId(cbVal);
@@ -189,7 +178,7 @@ class PeabindJsvalBuilder {
                 if (argc!=2)
                     return jsvalThrow("worng arg count for off");
 
-                std::shared_ptr<${this.ts(cls.name).getTemplateParam()}> instance=unpack<${this.ts(cls.name).getTemplateParam()}>(thisobj,${this.prefix}${cls.name}_id);
+                std::shared_ptr<${this.tr(cls.name).getTemplateParam()}> instance=unpack<${this.tr(cls.name).getTemplateParam()}>(thisobj,${this.prefix}${cls.name}_id);
                 std::string eventName=jsvalToStdString(argv[0]);
                 JSVAL cbVal=argv[1];
                 JSVAL_ID cbId=jsvalGetObjectId(cbVal);
@@ -226,8 +215,8 @@ class PeabindJsvalBuilder {
                         jsvalSetOpaque(thisobj,opaque);
                         return jsvalThrow("wrong ctor arg count");
                     }
-                    ${cls.ctorArgs.map((a,i)=>this.ts(a).nativeDecl(`a${i}`)).join("\n")}
-                    ${cls.ctorArgs.map((a,i)=>this.ts(a).unpack(`a${i}`,`argv[${i}]`)).join("\n")}
+                    ${cls.ctorArgs.map((a,i)=>this.tr(a).nativeDecl(`a${i}`)).join("\n")}
+                    ${cls.ctorArgs.map((a,i)=>this.tr(a).unpack(`a${i}`,`argv[${i}]`)).join("\n")}
                     auto instance=std::make_shared<${this.getExtClassName(cls.name)}>(${params});
                     Opaque *opaque=new Opaque(instance,thisobj);
                     opaques.push_back(opaque);
@@ -307,7 +296,10 @@ class PeabindJsvalBuilder {
         `);
     }
 
-    generateSource() {
+    generateSource({symbolRegs}={}) {
+        if (symbolRegs===undefined)
+            symbolRegs=true;
+
         return autoIndent(`
             ${this.include.map(i=>`#include "${i}"`).join("\n")}
             ${this.idl.include.map(i=>`#include "${i}"`).join("\n")}
@@ -323,7 +315,7 @@ class PeabindJsvalBuilder {
             ${this.idl.classes.map(c=>this.generateClassDef(c)).join("\n")}
 
             extern "C" void ${this.prefix}initmod(JSVAL mod) {
-                ${this.symbolRegs?`
+                ${symbolRegs?`
                     promiseClassId=jsvalCreateClass(Promise_constructor);
                     jsvalSetClassFinalizer(promiseClassId,Promise_finalizer);
                     jsvalSetProp(mod,"PeabindPromise",promiseClassId);
@@ -357,34 +349,11 @@ class PeabindJsvalBuilder {
             ...this.idl.classes.map(f=>f.name)
         ];
     }
-
-    /*getExports() {
-        let exp=[];
-
-        for (let func of this.idl.functions) {
-            exp.push({
-                type: "function",
-                name: func.name,
-                ifdef: func.ifdef,
-                numArgs: func.args.length,
-                symbolName: `${this.prefix}${func.name}`
-            });
-        }
-
-        for (let cls of this.idl.classes) {
-            exp.push({
-                type: "constructor",
-                name: cls.name,
-                ifdef: cls.ifdef,
-                numArgs: cls.ctorArgs.length,
-                symbolName: `${this.prefix}${cls.name}_constructor`
-            });
-        }
-
-        return exp;
-    }*/
 }
 
-export function createPeabindJsvalBuilder({idl, projectName, prefix, include, symbolRegs}) {
-	return new PeabindJsvalBuilder({idl, projectName, prefix, include, symbolRegs});
-}
+/*export function createPeabindJsvalBuilder({idl, projectName, prefix, include, symbolRegs, output}) {
+    if (!output)
+        throw new Error("need output");
+
+	return new PeabindJsvalRenderer({idl, projectName, prefix, include, symbolRegs, output});
+}*/

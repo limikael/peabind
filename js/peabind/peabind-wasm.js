@@ -1,7 +1,7 @@
 import path from "path";
 import os from "os";
 import fs from "fs";
-import {createPeabindJsvalBuilder} from "./peabind-jsval.js";
+import PeabindJsvalRenderer from "../peabind-jsval/PeabindJsvalIdlRenderer.js";
 import {buildJsvalWasm} from "../jsval/build-jsval-wasm.js";
 import {dirnameFromImportMeta} from "../utils/node-util.js";
 
@@ -12,10 +12,11 @@ export async function peabindWasm({idl, includePath, sources, output, prefix, de
         throw new DeclaredError("Expected .js output");
 
     let projectName=path.basename(output).slice(0,-3);
-    let builder=createPeabindJsvalBuilder({
+    let builder=new PeabindJsvalRenderer({
         idl, 
         prefix,
         projectName,
+        output,
         include: ["jsval-wasm.h"]
     });
 

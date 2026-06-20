@@ -1,4 +1,4 @@
-import {peabindNormalize, idlGetClass} from "./peabind-idl.js";
+import {peabindNormalize, idlGetClass} from "../peabind/peabind-idl.js";
 
 class IntTypeStrategy {
     constructor(typeDef) {

@@ -1,7 +1,7 @@
 import path from "path";
 import os from "os";
 import fs from "fs";
-import {createPeabindJsvalBuilder} from "./peabind-jsval.js";
+import PeabindJsvalRenderer from "../peabind-jsval/PeabindJsvalIdlRenderer.js";
 import {dirnameFromImportMeta, runCommand} from "../utils/node-util.js";
 import {ifdefWrap, autoIndent} from "../utils/lang-util.js";
 import {jsvalMqjsStdlibgen} from "../jsval/jsval-mqjs-stdlibgen.js";
@@ -13,12 +13,12 @@ export async function peabindMqjs({idl, includePath, sources, output, prefix}) {
         throw new DeclaredError("Expected .cpp output");
 
     let projectName=path.basename(output).slice(0,-4);
-    let builder=createPeabindJsvalBuilder({
+    let builder=new PeabindJsvalRenderer({
         idl, 
         prefix,
         projectName,
+        output,
         include: ["jsval-mqjs.h",projectName+".h"],
-        symbolRegs: false,
     });
 
     await jsvalMqjsStdlibgen({
@@ -55,7 +55,7 @@ export async function peabindMqjs({idl, includePath, sources, output, prefix}) {
     });
 
     let source=autoIndent(`
-        ${builder.generateSource()}
+        ${builder.generateSource({symbolRegs: false})}
         #include "${projectName}.stdlib.h"
 
         extern "C" const JSSTDLibraryDef *${builder.prefix}get_stdlib() {
