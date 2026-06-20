@@ -10,6 +10,8 @@ export default class EventRenderer {
 
         if (!this.idlRenderer)
             throw new Error("got no renderer!!!");
+
+        this.tr=(...args)=>this.idlRenderer.tr(...args);
 	}
 
     getId() {

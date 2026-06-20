@@ -27,6 +27,7 @@ export default class IdlRenderer {
 		this.fr=(...args)=>this.getFunctionRenderer(...args);
 		this.tr=(...args)=>this.getTypeRenderer(...args);
     	this.cr=(...args)=>this.getClassRenderer(...args);
+    	this.er=(...args)=>this.getEventRenderer(...args);
 	}
 
 	getOutput(prefix) {
@@ -36,7 +37,26 @@ export default class IdlRenderer {
 		return this.output;
 	}
 
+    getEventRenderer(ev) {
+        if (typeof ev=="string")
+        	throw new Error("there are no gloal events...");
+
+        return new this.eventRendererClass({
+            idl: this.idl,
+            prefix: this.prefix,
+            idlRenderer: this,
+            classRenderer: this,
+            ev
+        });
+    }
+
 	getFunctionRenderer(funcDef) {
+		if (typeof funcDef=="string")
+			funcDef=this.idl.functionsByName[funcDef];
+
+		if (!funcDef)
+			throw new Error("No such function");
+
         return new this.functionRendererClass({idl: this.idl, prefix: this.prefix, func: funcDef, idlRenderer: this});
 	}
 
@@ -51,12 +71,16 @@ export default class IdlRenderer {
 		return this.idl.classes.map(cls=>cls.name);
 	}
 
+	getClassRenderers() {
+        return this.getClassNames().map(name=>this.getClassRenderer(name));
+	}
+
 	getFunctionNames() {
 		return this.idl.functions.map(f=>f.name);
 	}
 
-	getClassRenderers() {
-        return this.getClassNames().map(name=>this.getClassRenderer(name));
+	getFunctionRenderers() {
+        return this.getFunctionNames().map(name=>this.getFunctionRenderer(name));
 	}
 
 	getEventRenderers() {
