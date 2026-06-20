@@ -1,5 +1,4 @@
 import {ifdefWrap} from "../utils/lang-util.js";
-import {idlGetClass} from "../peabind/peabind-idl.js";
 import FunctionRenderer from "../idl/FunctionRenderer.js";
 
 export default class StreamBackendFunctionRenderer extends FunctionRenderer {

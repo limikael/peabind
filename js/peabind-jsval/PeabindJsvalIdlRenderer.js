@@ -1,4 +1,4 @@
-import {peabindNormalize, idlGetClass} from "../peabind/peabind-idl.js";
+import {idlGetClass} from "../idl/peabind-idl.js";
 import {autoIndent} from "../utils/lang-util.js";
 import IdlRenderer from "../idl/IdlRenderer.js";
 

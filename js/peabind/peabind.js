@@ -1,12 +1,12 @@
 import {peabindWasm} from "./peabind-wasm.js";
 import {peabindQuickjs} from "./peabind-quickjs.js";
 import {peabindMqjs} from "./peabind-mqjs.js";
-import {peabindNormalize, peabindMerge} from "./peabind-idl.js";
+import {peabindNormalize, peabindMerge} from "../idl/peabind-idl.js";
 import {arrayify} from "../utils/js-util.js";
 import JSON5 from "json5";
 import path from "path";
 import fs from "fs";
-export {peabindMerge} from "./peabind-idl.js";
+export {peabindMerge} from "../idl/peabind-idl.js";
 import {dirnameFromImportMeta} from "../utils/node-util.js";
 import {peabindStreamBackend} from "../stream/peabind-stream-backend.js";
 import {peabindStreamFrontend} from "../stream/peabind-stream-frontend.js";

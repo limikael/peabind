@@ -1,5 +1,4 @@
 import {ifdefWrap} from "../utils/lang-util.js";
-import {idlGetClass} from "../peabind/peabind-idl.js";
 
 export default class EventRenderer {
 	constructor({idl, ev, prefix, idlRenderer, classRenderer}) {
