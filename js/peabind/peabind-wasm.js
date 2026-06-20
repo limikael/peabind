@@ -32,9 +32,11 @@ export async function peabindWasm({idl, includePath, sources, output, prefix, de
         output,
         sources: [stubFn,...sources],
         initFunction: `${builder.prefix}initmod`,
-//        hoistedSymbols: builder.getExports().map(exp=>exp.name),
-        hoistedSymbols: builder.getSymbolNames(),
         define,
-        includePath
+        includePath,
+        hoistedSymbols: [
+            ...builder.getFunctionNames(),
+            ...builder.getClassNames()
+        ],
     });
 }

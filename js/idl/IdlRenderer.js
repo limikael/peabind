@@ -51,6 +51,10 @@ export default class IdlRenderer {
 		return this.idl.classes.map(cls=>cls.name);
 	}
 
+	getFunctionNames() {
+		return this.idl.functions.map(f=>f.name);
+	}
+
 	getClassRenderers() {
         return this.getClassNames().map(name=>this.getClassRenderer(name));
 	}

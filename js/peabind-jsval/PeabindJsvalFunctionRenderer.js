@@ -60,4 +60,28 @@ export default class PeabindJsvalFunctionRenderer extends FunctionRenderer {
             }
         `);
     }
+
+    generateReg() {
+        let func=this.func;
+
+        if (func.className) {
+            if (func.static) {
+                return ifdefWrap(func.ifdef,`
+                    jsvalSetProp(${this.idlRenderer.prefix}${func.className}_id,"${func.name}",jsvalCreateFunc(${this.prefix}${func.className}_${func.name}));
+                `);
+            }
+
+            else {
+                return ifdefWrap(func.ifdef,`
+                    jsvalSetProtoProp(${this.idlRenderer.prefix}${func.className}_id,"${func.name}",jsvalCreateFunc(${this.prefix}${func.className}_${func.name}));
+                `);
+            }
+        }
+
+        else {
+            return ifdefWrap(func.ifdef,`
+                jsvalSetProp(mod,"${func.name}",jsvalCreateFunc(${this.idlRenderer.prefix}${func.name}));
+            `);
+        }
+    }
 }

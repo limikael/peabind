@@ -11,29 +11,6 @@ export default class PeabindJsvalIdlRenderer extends IdlRenderer {
         });
     }
 
-	generateFunctionReg(func) {
-        if (func.className) {
-            if (func.static) {
-                return ifdefWrap(func.ifdef,`
-                    jsvalSetProp(${this.prefix}${func.className}_id,"${func.name}",jsvalCreateFunc(${this.prefix}${func.className}_${func.name}));
-                `);
-            }
-
-            else {
-                return ifdefWrap(func.ifdef,`
-                    jsvalSetProtoProp(${this.prefix}${func.className}_id,"${func.name}",jsvalCreateFunc(${this.prefix}${func.className}_${func.name}));
-                `);
-            }
-        }
-
-        else {
-            return ifdefWrap(func.ifdef,`
-            	jsvalSetProp(mod,"${func.name}",jsvalCreateFunc(${this.prefix}${func.name}));
-            `);
-        }
-
-	}
-
     generateEventOnDef(event) {
         let argDecl=event.args.map((a,i)=>this.tr(a).nativeParam(`a${i}`)).join(",");
 
@@ -195,7 +172,7 @@ export default class PeabindJsvalIdlRenderer extends IdlRenderer {
             jsvalSetClassFinalizer(${this.prefix}${cls.name}_id,${this.prefix}${cls.name}_finalizer);
             jsvalSetProp(mod,"${cls.name}",${this.prefix}${cls.name}_id);
 
-            ${this.getClassMethods(cls).map(m=>this.generateFunctionReg(m)).join("\n")}
+            ${this.getClassMethods(cls).map(m=>this.fr(m).generateReg()).join("\n")}
 
             ${cls.events.length?`
                 jsvalSetProtoProp(${this.prefix}${cls.name}_id,"on",jsvalCreateFunc(${this.prefix}${cls.name}_on));
@@ -234,7 +211,7 @@ export default class PeabindJsvalIdlRenderer extends IdlRenderer {
                     jsvalSetProp(mod,"PeabindPromise",promiseClassId);
                     jsvalSetProtoProp(promiseClassId,"then",jsvalCreateFunc(Promise_then));
                     jsvalSetProtoProp(promiseClassId,"catch",jsvalCreateFunc(Promise_catch));
-                    ${this.idl.functions.map(f=>this.generateFunctionReg(f)).join("\n")}
+                    ${this.idl.functions.map(f=>this.fr(f).generateReg()).join("\n")}
                     ${this.idl.classes.map(c=>this.generateClassReg(c)).join("\n")}
                 `:""}
             }
@@ -254,12 +231,5 @@ export default class PeabindJsvalIdlRenderer extends IdlRenderer {
                 return listeners.size();
             }
         `); 
-    }
-
-    getSymbolNames() {
-        return [
-            ...this.idl.functions.map(f=>f.name),
-            ...this.idl.classes.map(f=>f.name)
-        ];
     }
 }
