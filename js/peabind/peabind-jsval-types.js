@@ -262,7 +262,7 @@ class ObjectTypeStrategy {
         if (this.clsdef.namespace)
             t=`${this.clsdef.namespace}::${t}`;
 
-        if (this.idlRenderer.namespace)
+        if (this.idlRenderer && this.idlRenderer.namespace)
             t=`${this.idlRenderer.namespace}::${t}`;
 
         return t;

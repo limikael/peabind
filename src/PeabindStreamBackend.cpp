@@ -68,6 +68,19 @@ std::vector<uint8_t> PeabindStreamBackend::handleDelete(std::vector<uint8_t> req
     return res;
 }
 
+std::vector<uint8_t> PeabindStreamBackend::handleOn(std::vector<uint8_t> req) {
+    auto it=req.begin();
+    size_t items;
+    int opcode,instanceId,eventId;
+
+    CborLite::decodeArraySize(it,req.end(),items);
+    CborLite::decodeInteger(it,req.end(),opcode);
+    CborLite::decodeInteger(it,req.end(),instanceId);
+    CborLite::decodeInteger(it,req.end(),eventId);
+
+    return onHandler(this,instanceId,eventId);
+}
+
 void PeabindStreamBackend::loop() {
 	if (cborStream->available()) {
 		std::vector<uint8_t> req=cborStream->read();
@@ -93,6 +106,10 @@ void PeabindStreamBackend::loop() {
             case PEABIND_STREAMOP_DELETE:
             	res=handleDelete(req);
             	break;
+
+            case PEABIND_STREAMOP_ON:
+                res=handleOn(req);
+                break;
 
             default:
                 assert(0 && "unknown op");

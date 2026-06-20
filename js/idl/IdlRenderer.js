@@ -40,6 +40,21 @@ export default class IdlRenderer {
         return new this.classRendererClass({idl: this.idl, prefix: this.prefix, cls: clsDef, idlRenderer: this});
 	}
 
+	getClassNames() {
+		return this.idl.classes.map(cls=>cls.name);
+	}
+
+	getClassRenderers() {
+        return this.getClassNames().map(name=>this.getClassRenderer(name));
+	}
+
+	getEventRenderers() {
+		let renderers=[];
+		this.getClassRenderers().map(cr=>cr.getEventRenderers()).map(crs=>renderers.push(...crs));
+
+		return renderers;
+	}
+
     getTypeRenderer(typeDef) {
         return createTypeStrategy(typeDef, {idl: this.idl, prefix: this.prefix, idlRenderer: this});
     }

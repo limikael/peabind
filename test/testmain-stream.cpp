@@ -193,14 +193,19 @@ void test_stream_events() {
 	});
 
 	basic_init(a);
-
+	int handlerId;
 	{
 		auto s=std::make_shared<BasicFrontend::Simple>(123);
-		s->dataEvent.on([](){
-			printf("event called...");
+		bool called=false;
+		handlerId=s->dataEvent.on([&called](){
+			called=true;
+			//printf("event called...");
 		});
 		s->emitData();
+		assert(called);
 	}
+
+	//printf("handlerId: %d\n",handlerId);
 
 	basic_exit();
 	delete backend;

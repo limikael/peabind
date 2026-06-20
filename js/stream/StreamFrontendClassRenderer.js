@@ -2,6 +2,27 @@ import ClassRenderer from "../idl/ClassRenderer.js";
 import {ifdefWrap} from "../utils/lang-util.js";
 
 export default class StreamFrontendClassRenderer extends ClassRenderer {
+    generateSignature() {
+        return ifdefWrap(this.cls.ifdef,`
+            class ${this.cls.name}: public StreamFrontendProxy {
+            public:
+                ${this.fr(this.getCtorFunc()).generateSignature()}
+                ${this.cls.name}(InstanceIdTag instanceIdTag);
+                ~${this.cls.name}();
+                ${this.cls.methods.map(m=>this.fr(m).generateSignature()).join("\n")}
+                static std::shared_ptr<${this.cls.name}> createInstanceProxy(int instanceId_);
+                ${this.getEventNames().map(e=>this.er(e).generateSignature()).join("\n")}
+                void initFrontendProxy();
+            };
+        `);
+    }
+
+    generateForwardSignature() {
+        return ifdefWrap(this.cls.ifdef,`
+            class ${this.cls.name};
+        `);
+    }
+
     generateFrontendStub() {
         let func=this.getCtorFunc();
         let args=func.args.map((a,i)=>this.tr(a).nativeParam(`arg_${i}`)).join(",");
@@ -23,10 +44,12 @@ export default class StreamFrontendClassRenderer extends ClassRenderer {
                 CborLite::decodeInteger(it,res.end(),returnOpCode);
                 assert(returnOpCode==PEABIND_STREAMOP_RETURN);
                 CborLite::decodeInteger(it,res.end(),instanceId);
+                initFrontendProxy();
             }
 
             ${this.cls.name}::${this.cls.name}(InstanceIdTag instanceIdTag) {
                 instanceId=instanceIdTag.instanceId;
+                initFrontendProxy();
             }
 
             ${this.cls.name}::~${this.cls.name}() {
@@ -51,6 +74,11 @@ export default class StreamFrontendClassRenderer extends ClassRenderer {
             }
 
             ${this.cls.methods.map(m=>this.fr(m).generateFrontendStub()).join("")}
+
+            void ${this.cls.name}::initFrontendProxy() {
+                this->frontend=${this.idlRenderer.prefix}frontend;
+                ${this.getEventNames().map(e=>this.er(e).generateProxyInit()).join("\n")}
+            }
         `);
     }
 }

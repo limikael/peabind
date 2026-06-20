@@ -7,4 +7,11 @@ export default class StreamFrontendEventRenderer extends EventRenderer {
             StreamFrontendDispatcher<> ${this.ev.dispatcher};
         `;
     }
+
+    generateProxyInit() {
+        return `
+            ${this.ev.dispatcher}.setFrontendProxy(this);
+            ${this.ev.dispatcher}.setEventId(${this.getId()});
+        `;
+    }
 }

@@ -3,6 +3,7 @@ import path from "node:path";
 import {ifdefWrap, autoIndent} from "../utils/lang-util.js";
 import StreamBackendFunctionRenderer from "./StreamBackendFunctionRenderer.js";
 import StreamBackendClassRenderer from "./StreamBackendClassRenderer.js";
+import StreamBackendEventRenderer from "./StreamBackendEventRenderer.js";
 import IdlRenderer from "../idl/IdlRenderer.js";
 
 class StreamBackendRenderer extends IdlRenderer {
@@ -11,6 +12,7 @@ class StreamBackendRenderer extends IdlRenderer {
             ...options,
             functionRendererClass: StreamBackendFunctionRenderer,
             classRendererClass: StreamBackendClassRenderer,
+            eventRendererClass: StreamBackendEventRenderer
         });
 
         this.packer="backend";
@@ -22,8 +24,29 @@ class StreamBackendRenderer extends IdlRenderer {
             ${this.idl.include.map(i=>`#include "${i}"`).join("\n")}
             ${this.idl.functions.map(func=>this.fr(func).generateBackendStub()).join("\n")}
             ${this.idl.classes.map(cls=>this.cr(cls).generateBackendStub()).join("\n")}
+
+            static std::vector<uint8_t> ${this.prefix}handle_on(PeabindStreamBackend* backend, int instanceId, int eventId) {
+                std::vector<uint8_t> res;
+                int handlerId=backend->nextInstanceId++;
+                switch (eventId) {
+                    ${this.getEventRenderers().map(e=>e.generateBackendCase()).join("\n")}
+
+                    default:
+                        handlerId=-1;
+                        break;
+                }
+
+                size_t size=2;
+                CborLite::encodeArraySize(res,size);
+                CborLite::encodeInteger(res,PEABIND_STREAMOP_RETURN);
+                CborLite::encodeInteger(res,handlerId);
+
+                return res;
+            }
+
             PeabindStreamBackend* ${this.prefix}create_stream_backend(StreamTransport* streamTransport) {
                 PeabindStreamBackend* backend=new PeabindStreamBackend(streamTransport);
+                backend->setOnHandler(${this.prefix}handle_on);
                 ${this.idl.functions.map(func=>ifdefWrap(func.ifdef,`
                     backend->addFunction(${this.fr(func).getId()},${this.prefix}${func.name});
                 `)).join("")}
@@ -35,7 +58,6 @@ class StreamBackendRenderer extends IdlRenderer {
                 `).join("")}
                 return backend;
             }
-
         `);
     }
 

@@ -6,6 +6,7 @@
 class PeabindStreamBackend;
 
 typedef std::vector<uint8_t> PeabindStreamBackendFunction(PeabindStreamBackend*, std::vector<uint8_t>);
+typedef std::vector<uint8_t> PeabindStreamBackendOnHandler(PeabindStreamBackend* backend, int instanceId, int eventId);
 
 class PeabindStreamBackend {
 public:
@@ -19,7 +20,9 @@ public:
     std::vector<uint8_t> handleCall(std::vector<uint8_t> req);
     std::vector<uint8_t> handleNew(std::vector<uint8_t> req);
     std::vector<uint8_t> handleDelete(std::vector<uint8_t> req);
+    std::vector<uint8_t> handleOn(std::vector<uint8_t> req);
     int getNumLiveInstances() { return instances.size(); }
+    void setOnHandler(PeabindStreamBackendOnHandler *o) { onHandler=o; }
 
     template<typename T>
     int pack(std::shared_ptr<T> instance) { return addInstance(instance); }
@@ -27,11 +30,13 @@ public:
     template<typename T>
     std::shared_ptr<T> unpack(int instanceId) { return std::static_pointer_cast<T>(getInstance(instanceId)); }
 
-private:
     int nextInstanceId=1;
+    CborStream *cborStream;
+
+private:
     std::map<int,PeabindStreamBackendFunction*> functions;
     std::map<int,PeabindStreamBackendFunction*> constructors;
     std::map<int,std::shared_ptr<void>> instances;
     StreamTransport *streamTransport;
-    CborStream *cborStream;
+    PeabindStreamBackendOnHandler *onHandler;
 };

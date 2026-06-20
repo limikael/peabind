@@ -12,6 +12,10 @@ export default class ClassRenderer {
         this.er=(...args)=>this.getEventRenderer(...args);
 	}
 
+    getEventRenderers() {
+        return this.getEventNames().map(name=>this.getEventRenderer(name));
+    }
+
     getEventRenderer(ev) {
         if (typeof ev=="string")
             ev=this.cls.eventsByName[ev];
@@ -20,6 +24,7 @@ export default class ClassRenderer {
             idl: this.idl,
             prefix: this.prefix,
             idlRenderer: this.idlRenderer,
+            classRenderer: this,
             ev
         });
     }
@@ -35,27 +40,6 @@ export default class ClassRenderer {
 
     getEventNames() {
         return this.cls.events.map(ev=>ev.name);
-    }
-
-	generateSignature() {
-		return ifdefWrap(this.cls.ifdef,`
-            class ${this.cls.name} {
-            public:
-                ${this.fr(this.getCtorFunc()).generateSignature()}
-                ${this.cls.name}(InstanceIdTag instanceIdTag);
-                ~${this.cls.name}();
-                ${this.cls.methods.map(m=>this.fr(m).generateSignature()).join("\n")}
-                static std::shared_ptr<${this.cls.name}> createInstanceProxy(int instanceId_);
-                int instanceId;
-                ${this.getEventNames().map(e=>this.er(e).generateSignature()).join("\n")}
-            };
-		`);
-	}
-
-    generateForwardSignature() {
-        return ifdefWrap(this.cls.ifdef,`
-            class ${this.cls.name};
-        `);
     }
 
     getId() {
