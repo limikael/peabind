@@ -9,24 +9,12 @@
 #include <cstdio>
 #include <variant>
 #include <optional>
+#include "PeabindJsval.h"
 
 class Opaque;
-class Listener;
 
 extern std::vector<Opaque*> opaques;
 extern JSVAL promiseClassId;
-extern std::vector<Listener*> listeners;
-
-class Listener {
-public:
-    Listener(Dispatcher<> *dispatcher_, int handle_) {
-        dispatcher=dispatcher_;
-        handle=handle_;
-    }
-
-    Dispatcher<> *dispatcher;
-    int handle;
-};
 
 class Opaque {
 public:
@@ -45,20 +33,20 @@ public:
     std::function<void(JSVAL)> onCatch;
 };
 
-void removeListener(Listener *listener) {
+/*void removeListener(Listener *listener) {
     //printf("listeer destr... weak exp=%d\\n",instanceWeak.expired());
-    auto it = std::remove(listeners.begin(), listeners.end(), listener);
-    assert(it!=listeners.end());
+    auto it = std::remove(global_context->listeners.begin(), global_context->listeners.end(), listener);
+    assert(it!=global_context->listeners.end());
 
-    if (it != listeners.end()) {
-        listeners.erase(it, listeners.end());
+    if (it != global_context->listeners.end()) {
+        global_context->listeners.erase(it, global_context->listeners.end());
         delete listener;
     }
 
     else {
         printf("listener not found!\\n");
     }
-}
+}*/
 
 template<typename T>
 static std::shared_ptr<T> unpack(JSVAL v, JSVAL classId) {
@@ -128,9 +116,9 @@ static JSVAL packPromise(Promise<T> promise, std::function<JSVAL(T)> packer) {
         });
 
         Listener *listener=new Listener((Dispatcher<>*) thenDispatcher,handle);
-        listeners.push_back(listener);
+        global_context->listeners.push_back(listener);
         thenDispatcher->setDestructor(handle,[listener, cbRef](){
-            removeListener(listener);
+            global_context->removeListener(listener);
             jsvalRefFree(cbRef);
         });
     };
@@ -161,9 +149,9 @@ static JSVAL packPromise(Promise<T> promise, std::function<JSVAL(T)> packer) {
         });
 
         Listener *listener=new Listener((Dispatcher<>*) catchDispatcher,handle);
-        listeners.push_back(listener);
+        global_context->listeners.push_back(listener);
         catchDispatcher->setDestructor(handle,[listener, cbRef](){
-            removeListener(listener);
+            global_context->removeListener(listener);
             jsvalRefFree(cbRef);
         });
     };
