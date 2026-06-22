@@ -1,5 +1,17 @@
 #pragma once
 #include "async_primitives.hpp"
+#include "jsval.h"
+
+class Opaque {
+public:
+    Opaque(std::shared_ptr<void> instance_, JSVAL val_) { 
+        instance=instance_; 
+        val=val_;
+    };
+
+    std::shared_ptr<void> instance;
+    JSVAL val;
+};
 
 class Listener {
 public:
@@ -20,6 +32,7 @@ public:
 	void removeListener(Listener *listener);
 
 	std::vector<Listener*> listeners;
+	std::vector<Opaque*> opaques;
 };
 
 extern PeabindJsval *global_context;

@@ -20,7 +20,7 @@ export default class PeabindJsvalClassRenderer extends ClassRenderer {
                 static JSVAL ${this.idlRenderer.prefix}${cls.name}_constructor(JSVAL thisobj, int argc, JSVAL *argv) {
                     if (argc!=${cls.ctorArgs.length}) {
                         Opaque *opaque=new Opaque(nullptr,thisobj);
-                        opaques.push_back(opaque);
+                        ${this.idlRenderer.prefix}context->opaques.push_back(opaque);
                         jsvalSetOpaque(thisobj,opaque);
                         return jsvalThrow("wrong ctor arg count");
                     }
@@ -28,7 +28,7 @@ export default class PeabindJsvalClassRenderer extends ClassRenderer {
                     ${cls.ctorArgs.map((a,i)=>this.tr(a).unpack(`a${i}`,`argv[${i}]`)).join("\n")}
                     auto instance=std::make_shared<${this.getExtClassName()}>(${params});
                     Opaque *opaque=new Opaque(instance,thisobj);
-                    opaques.push_back(opaque);
+                    ${this.idlRenderer.prefix}context->opaques.push_back(opaque);
                     jsvalSetOpaque(thisobj,opaque);
                     return thisobj;
                 }
@@ -39,7 +39,7 @@ export default class PeabindJsvalClassRenderer extends ClassRenderer {
             ctor=`
                 static JSVAL ${this.idlRenderer.prefix}${cls.name}_constructor(JSVAL thisobj, int argc, JSVAL *argv) {
                     Opaque *opaque=new Opaque(nullptr,thisobj);
-                    opaques.push_back(opaque);
+                    ${this.idlRenderer.prefix}context->opaques.push_back(opaque);
                     jsvalSetOpaque(thisobj,opaque);
                     return jsvalThrow(\"private constructor\");
                 }
@@ -50,11 +50,15 @@ export default class PeabindJsvalClassRenderer extends ClassRenderer {
             ${ctor}
 
             static void ${this.idlRenderer.prefix}${cls.name}_finalizer(JSVAL thisobj) {
-                //Serial.printf("dtor...\\n");
+                printf("class dtor...\\n");
                 Opaque *opaque=(Opaque *)jsvalGetOpaque(thisobj);
-                auto it = std::find(opaques.begin(), opaques.end(), opaque);
-                assert(it != opaques.end());
-                opaques.erase(it);
+                if (!opaque) {
+                    printf("it is already gone dead...\\n");
+                    return;
+                }
+                auto it = std::find(${this.idlRenderer.prefix}context->opaques.begin(), ${this.idlRenderer.prefix}context->opaques.end(), opaque);
+                assert(it != ${this.idlRenderer.prefix}context->opaques.end());
+                ${this.idlRenderer.prefix}context->opaques.erase(it);
                 delete opaque;
             }
 

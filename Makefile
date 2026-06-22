@@ -37,6 +37,7 @@ test-mqjs:
 		-pbasic_ \
 		-tmqjs
 	wrapcc --linker=g++ gcc -g -o bin/test-mqjs-basic \
+		-fsanitize=address,leak -fno-omit-frame-pointer \
 		-Wno-narrowing \
 		-Iinclude \
 		-Iext/mquickjs-main \
@@ -50,7 +51,9 @@ test-mqjs:
 		ext/mquickjs-main/cutils.c \
 		ext/mquickjs-main/libm.c \
 		$(shell peabind --lib-conf=cargs -tmqjs) -O0
-	valgrind --quiet \
+	ASAN_OPTIONS=detect_leaks=1 ./bin/test-mqjs-basic
+
+#	valgrind --quiet \
 		--leak-check=full \
 		--show-leak-kinds=all \
 		--error-exitcode=1 \

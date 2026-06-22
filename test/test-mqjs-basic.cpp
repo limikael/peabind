@@ -84,7 +84,10 @@ void test_mqjs_classes() {
     s=jsvalToStdString(v);
     assert(s=="yep");
 
+    jsvalQuickjsRunGc();
+
     basic_exit();
+    printf("exited, doing mqjs exit...\n");
     jsvalMqjsExit();
 }
 

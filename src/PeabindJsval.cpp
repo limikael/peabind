@@ -18,6 +18,15 @@ PeabindJsval::~PeabindJsval() {
 }
 
 void PeabindJsval::clearListeners() {
+    printf("num opaques at shutdown: %d\n",opaques.size());
+    for (auto it=opaques.begin(); it!=opaques.end(); it++) {
+        Opaque *o=*it;
+        jsvalSetOpaque(o->val,nullptr);
+        delete o;
+    }
+
+    opaques.clear();
+
     while (listeners.size()) {
         //printf("remove listeners size: %d\\n",global_context->listeners.size());
         listeners[0]->dispatcher->off(listeners[0]->handle);

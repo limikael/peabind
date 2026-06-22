@@ -11,21 +11,8 @@
 #include <optional>
 #include "PeabindJsval.h"
 
-class Opaque;
-
-extern std::vector<Opaque*> opaques;
+//extern std::vector<Opaque*> opaques;
 extern JSVAL promiseClassId;
-
-class Opaque {
-public:
-    Opaque(std::shared_ptr<void> instance_, JSVAL val_) { 
-        instance=instance_; 
-        val=val_;
-    };
-
-    std::shared_ptr<void> instance;
-    JSVAL val;
-};
 
 class PromiseOpaque {
 public:
@@ -80,7 +67,7 @@ static JSVAL pack(std::shared_ptr<T> instance, JSVAL classId) {
 
     JSVAL val=jsvalCreateObject(classId);
     Opaque *opaque=new Opaque(instance,val);
-    opaques.push_back(opaque);
+    global_context->opaques.push_back(opaque);
     jsvalSetOpaque(val,opaque);
     return val;
 }

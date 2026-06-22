@@ -29,7 +29,7 @@ export default class PeabindJsvalIdlRenderer extends IdlRenderer {
             PeabindJsval *${this.prefix}context=nullptr;
             PeabindJsval *global_context=nullptr;
 
-            std::vector<Opaque*> opaques;
+            //std::vector<Opaque*> opaques;
             //std::vector<Listener*> listeners;
             JSVAL promiseClassId;
 
@@ -54,6 +54,7 @@ export default class PeabindJsvalIdlRenderer extends IdlRenderer {
 
             extern "C" void ${this.prefix}exitmod() {
                 assert(${this.prefix}context);
+                printf("exitmod...\\n");
 
                 ${this.prefix}context->clearListeners();
 
@@ -62,7 +63,7 @@ export default class PeabindJsvalIdlRenderer extends IdlRenderer {
             }
 
             extern "C" int ${this.prefix}get_num_objects() {
-                return opaques.size();
+                return global_context->opaques.size();
             }
 
             extern "C" int ${this.prefix}get_num_listeners() {
