@@ -50,12 +50,16 @@ export default class PeabindJsvalClassRenderer extends ClassRenderer {
             ${ctor}
 
             static void ${this.idlRenderer.prefix}${cls.name}_finalizer(JSVAL thisobj) {
-                printf("class dtor...\\n");
-                Opaque *opaque=(Opaque *)jsvalGetOpaque(thisobj);
-                if (!opaque) {
-                    printf("it is already gone dead...\\n");
+                if (!${this.idlRenderer.prefix}context) {
+                    //printf("class dtor, engine gone...\\n");
                     return;
                 }
+
+                Opaque *opaque=(Opaque *)jsvalGetOpaque(thisobj);
+                /*if (!opaque) {
+                    printf("it is already gone dead...\\n");
+                    return;
+                }*/
                 auto it = std::find(${this.idlRenderer.prefix}context->opaques.begin(), ${this.idlRenderer.prefix}context->opaques.end(), opaque);
                 assert(it != ${this.idlRenderer.prefix}context->opaques.end());
                 ${this.idlRenderer.prefix}context->opaques.erase(it);

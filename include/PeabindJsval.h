@@ -28,7 +28,7 @@ class PeabindJsval {
 public:
 	PeabindJsval();
 	~PeabindJsval();
-	void clearListeners();
+	void shutdown();
 	void removeListener(Listener *listener);
 
 	std::vector<Listener*> listeners;

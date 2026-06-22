@@ -17,11 +17,11 @@ PeabindJsval::~PeabindJsval() {
 	
 }
 
-void PeabindJsval::clearListeners() {
-    printf("num opaques at shutdown: %d\n",opaques.size());
+void PeabindJsval::shutdown() {
+    //printf("num opaques at shutdown: %d\n",opaques.size());
     for (auto it=opaques.begin(); it!=opaques.end(); it++) {
         Opaque *o=*it;
-        jsvalSetOpaque(o->val,nullptr);
+        //jsvalSetOpaque(o->val,nullptr);
         delete o;
     }
 

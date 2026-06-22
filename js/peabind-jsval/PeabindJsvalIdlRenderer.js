@@ -54,20 +54,26 @@ export default class PeabindJsvalIdlRenderer extends IdlRenderer {
 
             extern "C" void ${this.prefix}exitmod() {
                 assert(${this.prefix}context);
-                printf("exitmod...\\n");
+                //printf("exitmod...\\n");
 
-                ${this.prefix}context->clearListeners();
+                ${this.prefix}context->shutdown();
 
                 delete(${this.prefix}context);
                 ${this.prefix}context=nullptr;
             }
 
             extern "C" int ${this.prefix}get_num_objects() {
-                return global_context->opaques.size();
+                if (!${this.prefix}context)
+                    return 0;
+
+                return ${this.prefix}context->opaques.size();
             }
 
             extern "C" int ${this.prefix}get_num_listeners() {
-                return global_context->listeners.size();
+                if (!${this.prefix}context)
+                    return 0;
+
+                return ${this.prefix}context->listeners.size();
             }
         `); 
     }
