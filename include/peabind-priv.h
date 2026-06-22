@@ -20,30 +20,6 @@ public:
 };
 
 template<typename T>
-static JSVAL pack(std::shared_ptr<T> instance, JSVAL classId) {
-    if (instance==nullptr)
-        return jsvalNull();
-
-    // Causes a leak, dunno why...
-    /*for (Opaque *o: opaques) {
-        if (o->instance.get()==instance.get()) {
-            printf("reusing...\\n");
-            JSVAL val=jsvalDup(o->val);
-            Opaque *opaque=new Opaque(instance,val);
-            opaques.push_back(opaque);
-            jsvalSetOpaque(val,opaque);
-            return val;
-        }
-    }*/
-
-    JSVAL val=jsvalCreateObject(classId);
-    Opaque *opaque=new Opaque(instance,val);
-    global_context->opaques.push_back(opaque);
-    jsvalSetOpaque(val,opaque);
-    return val;
-}
-
-template<typename T>
 static JSVAL packPromise(Promise<T> promise, std::function<JSVAL(T)> packer) {
     JSVAL promiseVal=jsvalCreateObject(promiseClassId);
     PromiseOpaque *promiseOpaque=new PromiseOpaque();

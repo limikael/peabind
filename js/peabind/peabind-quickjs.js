@@ -52,7 +52,7 @@ export async function peabindQuickjs({idl, includePath, sources, output, prefix}
 
         ${builder.idl.classes.map(cls=>ifdefWrap(cls.ifdef,`
             void ${builder.prefix}set_${cls.name}(const char *name, std::shared_ptr<${builder.cr(cls).getExtClassName()}> val) {
-                jsvalSetProp(jsvalGetGlobal(),name,pack<${builder.cr(cls).getExtClassName()}>(val,${builder.prefix}${cls.name}_id));
+                jsvalSetProp(jsvalGetGlobal(),name,${builder.prefix}context->pack<${builder.cr(cls).getExtClassName()}>(val,${builder.prefix}${cls.name}_id));
             }
         `)).join("\n")}
     `);

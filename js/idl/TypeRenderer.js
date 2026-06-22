@@ -297,7 +297,7 @@ class ObjectTypeStrategy {
         if (this.typeDef.promise) {
             return `
                 ${dest}=packPromise<std::shared_ptr<${this.getTemplateParam()}>>(${src},[](std::shared_ptr<${this.getTemplateParam()}> v) {
-                    return pack<${this.getTemplateParam()}>(v,${id});
+                    return ${this.prefix}context->pack<${this.getTemplateParam()}>(v,${id});
                 });
             `;
         }
@@ -308,7 +308,7 @@ class ObjectTypeStrategy {
             return `${dest}=packPromise<${this.getTemplateParam()}>(${src},${id});`
         }
 
-        return `${dest}=pack<${this.getTemplateParam()}>(${src},${id});`
+        return `${dest}=${this.prefix}context->pack<${this.getTemplateParam()}>(${src},${id});`
     }
 
     cleanup(name) {

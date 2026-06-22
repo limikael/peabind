@@ -57,6 +57,27 @@ std::shared_ptr<void> PeabindJsval::unpackInstance(JSVAL v, JSVAL classId) {
         return nullptr;
 
     return opaque->instance;
-//    std::shared_ptr<T> p=
-//    return std::static_pointer_cast<T>(opaque->instance);
+}
+
+JSVAL PeabindJsval::packInstance(std::shared_ptr<void> instance, JSVAL classId) {
+    if (instance==nullptr)
+        return jsvalNull();
+
+    // Causes a leak, dunno why...
+    /*for (Opaque *o: opaques) {
+        if (o->instance.get()==instance.get()) {
+            printf("reusing...\\n");
+            JSVAL val=jsvalDup(o->val);
+            Opaque *opaque=new Opaque(instance,val);
+            opaques.push_back(opaque);
+            jsvalSetOpaque(val,opaque);
+            return val;
+        }
+    }*/
+
+    JSVAL val=jsvalCreateObject(classId);
+    Opaque *opaque=new Opaque(instance,val);
+    global_context->opaques.push_back(opaque);
+    jsvalSetOpaque(val,opaque);
+    return val;
 }

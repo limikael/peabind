@@ -31,10 +31,16 @@ public:
 	void shutdown();
 	void removeListener(Listener *listener);
     std::shared_ptr<void> unpackInstance(JSVAL v, JSVAL classId);
+    JSVAL packInstance(std::shared_ptr<void> instance, JSVAL classId);
 
     template<typename T> 
     std::shared_ptr<T> unpack(JSVAL v, JSVAL classId) { 
         return std::static_pointer_cast<T>(unpackInstance(v,classId)); 
+    }
+
+    template<typename T>
+    JSVAL pack(std::shared_ptr<T> instance, JSVAL classId) {
+        return packInstance(instance,classId);
     }
 
 	std::vector<Listener*> listeners;
