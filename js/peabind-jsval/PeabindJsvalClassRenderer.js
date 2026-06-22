@@ -118,7 +118,7 @@ export default class PeabindJsvalClassRenderer extends ClassRenderer {
                 if (argc!=2)
                     return jsvalThrow("worng arg count for on");
 
-                std::shared_ptr<${this.tr(cls.name).getTemplateParam()}> instance=unpack<${this.tr(cls.name).getTemplateParam()}>(thisobj,${this.prefix}${cls.name}_id);
+                std::shared_ptr<${this.tr(cls.name).getTemplateParam()}> instance=${this.prefix}context->unpack<${this.tr(cls.name).getTemplateParam()}>(thisobj,${this.prefix}${cls.name}_id);
                 std::string eventName=jsvalToStdString(argv[0]);
                 JSVAL cbVal=argv[1];
                 JSVAL_ID cbId=jsvalGetObjectId(cbVal);
@@ -130,7 +130,7 @@ export default class PeabindJsvalClassRenderer extends ClassRenderer {
                 if (argc!=2)
                     return jsvalThrow("worng arg count for off");
 
-                std::shared_ptr<${this.tr(cls.name).getTemplateParam()}> instance=unpack<${this.tr(cls.name).getTemplateParam()}>(thisobj,${this.prefix}${cls.name}_id);
+                std::shared_ptr<${this.tr(cls.name).getTemplateParam()}> instance=${this.prefix}context->unpack<${this.tr(cls.name).getTemplateParam()}>(thisobj,${this.prefix}${cls.name}_id);
                 std::string eventName=jsvalToStdString(argv[0]);
                 JSVAL cbVal=argv[1];
                 JSVAL_ID cbId=jsvalGetObjectId(cbVal);

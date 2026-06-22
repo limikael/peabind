@@ -288,7 +288,7 @@ class ObjectTypeStrategy {
 
     unpack(dest, src) {
         let id=`${this.prefix}${this.typeDef.type}_id`;
-        return `${dest}=unpack<${this.getTemplateParam()}>(${src},${id});`;
+        return `${dest}=${this.prefix}context->unpack<${this.getTemplateParam()}>(${src},${id});`;
     }
 
     pack(dest, src) {

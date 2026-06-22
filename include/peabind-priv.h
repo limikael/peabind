@@ -11,7 +11,6 @@
 #include <optional>
 #include "PeabindJsval.h"
 
-//extern std::vector<Opaque*> opaques;
 extern JSVAL promiseClassId;
 
 class PromiseOpaque {
@@ -19,34 +18,6 @@ public:
     std::function<void(JSVAL)> then;
     std::function<void(JSVAL)> onCatch;
 };
-
-/*void removeListener(Listener *listener) {
-    //printf("listeer destr... weak exp=%d\\n",instanceWeak.expired());
-    auto it = std::remove(global_context->listeners.begin(), global_context->listeners.end(), listener);
-    assert(it!=global_context->listeners.end());
-
-    if (it != global_context->listeners.end()) {
-        global_context->listeners.erase(it, global_context->listeners.end());
-        delete listener;
-    }
-
-    else {
-        printf("listener not found!\\n");
-    }
-}*/
-
-template<typename T>
-static std::shared_ptr<T> unpack(JSVAL v, JSVAL classId) {
-    if (!jsvalInstanceOf(v,classId))
-        return nullptr;
-
-    Opaque *opaque=(Opaque *)jsvalGetOpaque(v);
-    if (!opaque)
-        return nullptr;
-
-    std::shared_ptr<T> p=std::static_pointer_cast<T>(opaque->instance);
-    return p;
-}
 
 template<typename T>
 static JSVAL pack(std::shared_ptr<T> instance, JSVAL classId) {

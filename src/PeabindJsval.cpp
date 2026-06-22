@@ -47,3 +47,16 @@ void PeabindJsval::removeListener(Listener *listener) {
         printf("listener not found!\\n");
     }
 }
+
+std::shared_ptr<void> PeabindJsval::unpackInstance(JSVAL v, JSVAL classId) {
+    if (!jsvalInstanceOf(v,classId))
+        return nullptr;
+
+    Opaque *opaque=(Opaque *)jsvalGetOpaque(v);
+    if (!opaque)
+        return nullptr;
+
+    return opaque->instance;
+//    std::shared_ptr<T> p=
+//    return std::static_pointer_cast<T>(opaque->instance);
+}
