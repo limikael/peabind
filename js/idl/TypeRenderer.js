@@ -1,8 +1,11 @@
 import {idlGetClass} from "./peabind-idl.js";
 
 class IntTypeStrategy {
-    constructor(typeDef) {
+    constructor(typeDef, {idl, prefix, idlRenderer}) {
         this.typeDef=typeDef;
+        this.idl=idl;
+        this.prefix=prefix;
+        this.idlRenderer=idlRenderer;
     }
 
     nativeType() {
@@ -34,7 +37,7 @@ class IntTypeStrategy {
     pack(dest, src) {
         if (this.typeDef.promise) {
             return `
-                ${dest}=packPromise<int32_t>(*${src},[](int32_t v) {
+                ${dest}=${this.prefix}context->packPromise<int32_t>(*${src},[](int32_t v) {
                     return jsvalCreateInt(v);
                 });
             `;
@@ -66,8 +69,12 @@ class IntTypeStrategy {
 }
 
 class FloatTypeStrategy {
-    constructor(typeDef) {
+    constructor(typeDef, {idl, prefix, idlRenderer}) {
         this.typeDef=typeDef;
+        this.idl=idl;
+        this.prefix=prefix;
+        this.idlRenderer=idlRenderer;
+
         if (this.typeDef.promise)
             throw new Error("float promise not impl");
     }
@@ -119,8 +126,11 @@ class FloatTypeStrategy {
 }
 
 class StringTypeStrategy {
-    constructor(typeDef) {
+    constructor(typeDef, {idl, prefix, idlRenderer}) {
         this.typeDef=typeDef;
+        this.idl=idl;
+        this.prefix=prefix;
+        this.idlRenderer=idlRenderer;
     }
 
     nativeType() {
@@ -145,7 +155,7 @@ class StringTypeStrategy {
     pack(dest, src) {
         if (this.typeDef.promise) {
             return `
-                ${dest}=packPromise<std::string>(${src},[](std::string v) {
+                ${dest}=${this.prefix}context->packPromise<std::string>(${src},[](std::string v) {
                     return jsvalCreateString(v.c_str());
                 });
             `;
@@ -181,8 +191,11 @@ class StringTypeStrategy {
 }
 
 class BufferTypeStrategy {
-    constructor(typeDef) {
+    constructor(typeDef, {idl, prefix, idlRenderer}) {
         this.typeDef=typeDef;
+        this.idl=idl;
+        this.prefix=prefix;
+        this.idlRenderer=idlRenderer;
     }
 
     nativeType() {
@@ -207,7 +220,7 @@ class BufferTypeStrategy {
     pack(dest, src) {
         if (this.typeDef.promise) {
             return `
-                ${dest}=packPromise<std::vector<uint8_t>>(${src},[](std::vector<uint8_t> b) {
+                ${dest}=${this.prefix}context->packPromise<std::vector<uint8_t>>(${src},[](std::vector<uint8_t> b) {
                     return jsvalCreateBuffer(b.data(),b.size());
                 });
             `;
@@ -296,17 +309,17 @@ class ObjectTypeStrategy {
 
         if (this.typeDef.promise) {
             return `
-                ${dest}=packPromise<std::shared_ptr<${this.getTemplateParam()}>>(${src},[](std::shared_ptr<${this.getTemplateParam()}> v) {
+                ${dest}=${this.prefix}context->packPromise<std::shared_ptr<${this.getTemplateParam()}>>(${src},[](std::shared_ptr<${this.getTemplateParam()}> v) {
                     return ${this.prefix}context->pack<${this.getTemplateParam()}>(v,${id});
                 });
             `;
         }
 
 
-        if (this.typeDef.promise) {
+        /*if (this.typeDef.promise) {
             //return `printf("packing promise!!!\\n"); abort(); `;
-            return `${dest}=packPromise<${this.getTemplateParam()}>(${src},${id});`
-        }
+            return `${dest}=${this.prefix}context->packPromise<${this.getTemplateParam()}>(${src},${id});`
+        }*/
 
         return `${dest}=${this.prefix}context->pack<${this.getTemplateParam()}>(${src},${id});`
     }
@@ -339,8 +352,11 @@ class ObjectTypeStrategy {
 }
 
 class VoidTypeStrategy {
-    constructor(typeDef) {
+    constructor(typeDef, {idl, prefix, idlRenderer}) {
         this.typeDef=typeDef;
+        this.idl=idl;
+        this.prefix=prefix;
+        this.idlRenderer=idlRenderer;
     }
 
     nativeType() {
@@ -371,7 +387,7 @@ class VoidTypeStrategy {
             throw new Error("packing void without promise???");
 
         return `
-            ${dest}=packPromise<std::monostate>(${src},[](std::monostate m) {
+            ${dest}=${this.prefix}context->packPromise<std::monostate>(${src},[](std::monostate m) {
                 return jsvalUndefined();
             });
         `;
@@ -386,22 +402,22 @@ class VoidTypeStrategy {
 export function createTypeStrategy(typeDef, {idl, prefix, idlRenderer}) {
     switch (typeDef.type) {
         case "void":
-            return new VoidTypeStrategy(typeDef);
+            return new VoidTypeStrategy(typeDef, {idl, prefix, idlRenderer});
 
         case "int":
-            return new IntTypeStrategy(typeDef);
+            return new IntTypeStrategy(typeDef, {idl, prefix, idlRenderer});
             break;
 
         case "float":
-            return new FloatTypeStrategy(typeDef);
+            return new FloatTypeStrategy(typeDef, {idl, prefix, idlRenderer});
             break;
 
         case "string":
-            return new StringTypeStrategy(typeDef);
+            return new StringTypeStrategy(typeDef, {idl, prefix, idlRenderer});
             break;
 
         case "buffer":
-            return new BufferTypeStrategy(typeDef);
+            return new BufferTypeStrategy(typeDef, {idl, prefix, idlRenderer});
             break;
 
         default:

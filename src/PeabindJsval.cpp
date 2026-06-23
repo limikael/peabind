@@ -77,7 +77,7 @@ JSVAL PeabindJsval::packInstance(std::shared_ptr<void> instance, JSVAL classId) 
 
     JSVAL val=jsvalCreateObject(classId);
     Opaque *opaque=new Opaque(instance,val);
-    global_context->opaques.push_back(opaque);
+    opaques.push_back(opaque);
     jsvalSetOpaque(val,opaque);
     return val;
 }

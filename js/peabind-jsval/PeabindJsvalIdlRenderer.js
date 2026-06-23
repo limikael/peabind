@@ -27,10 +27,8 @@ export default class PeabindJsvalIdlRenderer extends IdlRenderer {
             #include "jsval-util.h"
 
             PeabindJsval *${this.prefix}context=nullptr;
-            PeabindJsval *global_context=nullptr;
+            //PeabindJsval *global_context=nullptr;
 
-            //std::vector<Opaque*> opaques;
-            //std::vector<Listener*> listeners;
             JSVAL promiseClassId;
 
             ${this.getClassRenderers().map(c=>c.generateClassId()).join("\n")}
@@ -40,7 +38,7 @@ export default class PeabindJsvalIdlRenderer extends IdlRenderer {
             extern "C" void ${this.prefix}initmod(JSVAL mod) {
                 assert(!${this.prefix}context);
                 ${this.prefix}context=new PeabindJsval();
-                global_context=${this.prefix}context;
+                //global_context=${this.prefix}context;
                 ${symbolRegs?`
                     promiseClassId=jsvalCreateClass(Promise_constructor);
                     jsvalSetClassFinalizer(promiseClassId,Promise_finalizer);
