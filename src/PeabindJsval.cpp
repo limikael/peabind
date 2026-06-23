@@ -45,6 +45,19 @@ PeabindJsval::~PeabindJsval() {
 	
 }
 
+Listener *PeabindJsval::findListener(Dispatcher<>* dispatcher, JSVAL_ID cbId) {
+    for (auto it=listeners.begin(); it!=listeners.end(); it++) {
+        Listener *l=*it;
+
+        if (l->dispatcher==dispatcher &&
+                l->cbRef &&
+                jsvalGetObjectId(jsvalRefGetValue(l->cbRef))==cbId)
+            return l;
+    }
+
+    return nullptr;
+}
+
 #ifdef JSVAL_RUNTIME_REG
     void PeabindJsval::initPromiseClass(JSVAL mod) {
         promiseClassId=jsvalCreateClass(Promise_constructor);

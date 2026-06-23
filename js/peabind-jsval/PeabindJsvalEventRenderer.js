@@ -32,8 +32,9 @@ export default class PeabindJsvalEventRenderer extends EventRenderer {
 
                 Dispatcher<>* d=(Dispatcher<>*)&(instance->${event.dispatcher});
                 Listener *listener=new Listener(d,handle);
+                listener->cbRef=cbRef;
                 ${this.idlRenderer.prefix}context->listeners.push_back(listener);
-                instance->${event.dispatcher}.setIdInt(handle,cbId);
+                //instance->${event.dispatcher}.setIdInt(handle,cbId);
                 instance->${event.dispatcher}.setDestructor(handle,[cbRef,listener](){
                     ${this.idlRenderer.prefix}context->removeListener(listener);
                     jsvalRefFree(cbRef);
@@ -47,8 +48,13 @@ export default class PeabindJsvalEventRenderer extends EventRenderer {
 
         return `
             if (eventName=="${event.name}") {
-                int handle=instance->${event.dispatcher}.getHandleByIdInt(cbId);
-                instance->${event.dispatcher}.off(handle);
+                Dispatcher<>* d=(Dispatcher<>*)&(instance->${event.dispatcher});
+                Listener *listener=${this.idlRenderer.prefix}context->findListener(d,cbId);
+                if (listener)
+                    listener->dispatcher->off(listener->handle);
+
+                //int handle=instance->${event.dispatcher}.getHandleByIdInt(cbId);
+                //instance->${event.dispatcher}.off(handle);
             }
         `
     }

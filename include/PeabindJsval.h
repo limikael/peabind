@@ -33,10 +33,12 @@ public:
     Listener(Dispatcher<> *dispatcher_, int handle_) {
         dispatcher=dispatcher_;
         handle=handle_;
+        cbRef=nullptr;
     }
 
     Dispatcher<> *dispatcher;
     int handle;
+    JSVAL_REF cbRef;
 };
 
 class PeabindJsval {
@@ -50,6 +52,7 @@ public:
     template<class T> std::shared_ptr<T> unpack(JSVAL v, JSVAL classId);
     template<class T> JSVAL pack(std::shared_ptr<T> instance, JSVAL classId);
     template<typename T> JSVAL packPromise(Promise<T> promise, std::function<JSVAL(T)> packer);
+    Listener *findListener(Dispatcher<>*, JSVAL_ID cbId);
 
     #ifdef JSVAL_RUNTIME_REG
         void initPromiseClass(JSVAL mod);

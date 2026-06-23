@@ -14,7 +14,7 @@ class Dispatcher {
         int handle;
         std::function<void(Args...)> fn;
         std::function<void()> destructor;
-        uint64_t idInt;
+        //uint64_t idInt;
     };
 
     std::vector<Listener> listeners;
@@ -33,7 +33,7 @@ public:
 
     int on(std::function<void(Args...)> listener) {
         int handle = nextHandle++;
-        listeners.push_back({handle, std::move(listener), nullptr, 0});
+        listeners.push_back({handle, std::move(listener), nullptr/*, 0*/});
         return handle;
     }
 
@@ -45,7 +45,7 @@ public:
         }
     }
 
-    int getHandleByIdInt(uint64_t idInt) {
+    /*int getHandleByIdInt(uint64_t idInt) {
         for (auto it = listeners.begin(); it != listeners.end(); ++it) {
             if (it->idInt == idInt) {
                 return it->handle;
@@ -61,7 +61,7 @@ public:
                 it->idInt=idInt;
             }
         }
-    }
+    }*/
 
     void off(int handle) {
         for (auto it = listeners.begin(); it != listeners.end(); ++it) {
