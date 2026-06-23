@@ -1,6 +1,15 @@
 #pragma once
-#include "async_primitives.hpp"
+#include <string>
+#include <map>
+#include <memory>
+#include <algorithm>
+#include <cassert>
+#include <cstdio>
+#include <variant>
+#include <optional>
+#include "peabind.h"
 #include "jsval.h"
+#include "jsval-util.h"
 
 class Opaque {
 public:
@@ -42,10 +51,14 @@ public:
     template<class T> JSVAL pack(std::shared_ptr<T> instance, JSVAL classId);
     template<typename T> JSVAL packPromise(Promise<T> promise, std::function<JSVAL(T)> packer);
 
+    #ifdef JSVAL_RUNTIME_REG
+        void initPromiseClass(JSVAL mod);
+    #endif
+
 	std::vector<Listener*> listeners;
 	std::vector<Opaque*> opaques;
 
-    //JSVAL promiseClassId;
+    JSVAL promiseClassId;
 };
 
 #include "PeabindJsval.tpp"

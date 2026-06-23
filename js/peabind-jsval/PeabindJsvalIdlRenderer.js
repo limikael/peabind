@@ -23,14 +23,8 @@ export default class PeabindJsvalIdlRenderer extends IdlRenderer {
             ${this.include.map(i=>`#include "${i}"`).join("\n")}
             ${this.idl.include.map(i=>`#include "${i}"`).join("\n")}
             #include "PeabindJsval.h"
-            #include "peabind-priv.h"
-            #include "jsval-util.h"
 
             PeabindJsval *${this.prefix}context=nullptr;
-            //PeabindJsval *global_context=nullptr;
-
-            JSVAL promiseClassId;
-
             ${this.getClassRenderers().map(c=>c.generateClassId()).join("\n")}
             ${this.getFunctionRenderers().map(f=>f.generateDef()).join("\n")}
             ${this.getClassRenderers().map(c=>c.generateDef()).join("\n")}
@@ -38,13 +32,8 @@ export default class PeabindJsvalIdlRenderer extends IdlRenderer {
             extern "C" void ${this.prefix}initmod(JSVAL mod) {
                 assert(!${this.prefix}context);
                 ${this.prefix}context=new PeabindJsval();
-                //global_context=${this.prefix}context;
                 ${symbolRegs?`
-                    promiseClassId=jsvalCreateClass(Promise_constructor);
-                    jsvalSetClassFinalizer(promiseClassId,Promise_finalizer);
-                    jsvalSetProp(mod,"PeabindPromise",promiseClassId);
-                    jsvalSetProtoProp(promiseClassId,"then",jsvalCreateFunc(Promise_then));
-                    jsvalSetProtoProp(promiseClassId,"catch",jsvalCreateFunc(Promise_catch));
+                    ${this.prefix}context->initPromiseClass(mod);
                     ${this.getFunctionRenderers().map(f=>f.generateReg()).join("\n")}
                     ${this.getClassRenderers().map(c=>c.generateReg()).join("\n")}
                 `:""}
@@ -52,10 +41,7 @@ export default class PeabindJsvalIdlRenderer extends IdlRenderer {
 
             extern "C" void ${this.prefix}exitmod() {
                 assert(${this.prefix}context);
-                //printf("exitmod...\\n");
-
                 ${this.prefix}context->shutdown();
-
                 delete(${this.prefix}context);
                 ${this.prefix}context=nullptr;
             }

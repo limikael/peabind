@@ -9,13 +9,51 @@
 #include <variant>
 #include <optional>
 
-PeabindJsval::PeabindJsval() {
+JSVAL Promise_constructor(JSVAL thisobj, int argc, JSVAL *argv) {
+    printf("promise ctor, don't call directly...\n");
+    abort();
+    return thisobj;
+}
 
+void Promise_finalizer(JSVAL thisobj) {
+    //printf("promise finalizer...\n");
+
+    PromiseOpaque *p=(PromiseOpaque *)jsvalGetOpaque(thisobj);
+    delete p;
+}
+
+JSVAL Promise_then(JSVAL thisobj, int argc, JSVAL *argv) {
+    PromiseOpaque *p=(PromiseOpaque *)jsvalGetOpaque(thisobj);
+    p->then(argv[0]);
+    if (argc>=2)
+        p->onCatch(argv[1]);
+
+    return jsvalDup(thisobj);
+}
+
+JSVAL Promise_catch(JSVAL thisobj, int argc, JSVAL *argv) {
+    PromiseOpaque *p=(PromiseOpaque *)jsvalGetOpaque(thisobj);
+    p->onCatch(argv[0]);
+    return jsvalDup(thisobj);
+}
+
+PeabindJsval::PeabindJsval() {
+    promiseClassId=jsvalUndefined();
 }
 
 PeabindJsval::~PeabindJsval() {
 	
 }
+
+#ifdef JSVAL_RUNTIME_REG
+    void PeabindJsval::initPromiseClass(JSVAL mod) {
+        promiseClassId=jsvalCreateClass(Promise_constructor);
+        jsvalSetClassFinalizer(promiseClassId,Promise_finalizer);
+        jsvalSetProp(mod,"PeabindPromise",promiseClassId);
+        jsvalSetProtoProp(promiseClassId,"then",jsvalCreateFunc(Promise_then));
+        jsvalSetProtoProp(promiseClassId,"catch",jsvalCreateFunc(Promise_catch));
+    }
+#endif
 
 void PeabindJsval::shutdown() {
     //printf("num opaques at shutdown: %d\n",opaques.size());
