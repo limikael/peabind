@@ -121,7 +121,7 @@ export default class PeabindJsvalClassRenderer extends ClassRenderer {
                 std::shared_ptr<${this.tr(cls.name).getTemplateParam()}> instance=${this.prefix}context->unpack<${this.tr(cls.name).getTemplateParam()}>(thisobj,${this.prefix}${cls.name}_id);
                 std::string eventName=jsvalToStdString(argv[0]);
                 JSVAL cbVal=argv[1];
-                JSVAL_ID cbId=jsvalGetObjectId(cbVal);
+                //JSVAL_ID cbId=jsvalGetObjectId(cbVal);
                 ${cls.events.map(event=>this.er(event).generateOnDef()).join("\n")}
                 return jsvalUndefined();
             }
