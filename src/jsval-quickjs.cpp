@@ -22,13 +22,11 @@ static JSValue Uint8Array_ctor;
 class PromiseRejection {
 public:
     PromiseRejection(JSValue promise_, JSValue reason_) {
-        //printf("ctor...\n");
         promise=JS_DupValue(jsvalCtx,promise_);
         reason=JS_DupValue(jsvalCtx,reason_);
     }
 
     ~PromiseRejection() {
-        //printf("dtor...\n");
         JS_FreeValue(jsvalCtx,promise);
         JS_FreeValue(jsvalCtx,reason);
     }
@@ -67,16 +65,9 @@ void jsvalQuickjsRunJobs() {
     int ret=1;
 
     while (ret>0) {
-        //printf("running pending...\n");
         ret=JS_ExecutePendingJob(rt, &tmpctx);
-        //printf("JS_ExecutePendingJob: %d\n",ret);
-
-        if (ret) {
-            //Serial.printf("execute pending: %d\n",ret);
-        }
 
         if (ret<0) {
-            //Serial.printf("execute pending: %d\n",ret);
             return;
         }
 
@@ -85,7 +76,6 @@ void jsvalQuickjsRunJobs() {
                 if (!JS_IsUndefined(promiseRejection))
                     JS_FreeValue(jsvalCtx,promiseRejection);
 
-                //printf("rejected promises: %d\n",promiseRejections.size());
                 promiseRejection=JS_DupValue(jsvalCtx,promiseRejections[0]->reason);
                 promiseRejections.clear();
             }
@@ -237,32 +227,19 @@ JSVAL jsvalCreateClass(JSVAL_FUNC *ctorfunc) {
     int magic=nextFunctionId++;
     functions[magic]=ctorfunc;
 
-    //Serial.printf("************ creating class...\n");
-
-
     if (classIdByCtor.find(ctorfunc)==classIdByCtor.end()) {
-        //Serial.printf("************ register new class id...\n");
-
         JSClassID createClassId=0;
         JS_NewClassID(&createClassId);
         classIdByCtor[ctorfunc]=createClassId;
-        //Serial.printf("************ created class id: %d\n",createClassId);
-        //printf("create classid: %d\n",createClassId);
     }
 
     JSClassID classId=classIdByCtor[ctorfunc];
     if (!JS_IsRegisteredClass(JS_GetRuntime(jsvalCtx),classId)) {
-        //Serial.printf("************ register new class with runtime...\n");
-
         JSClassDef def={.class_name="My", .finalizer=finalizerTrampoline};
         JS_NewClass(JS_GetRuntime(jsvalCtx),classId,&def);
-
-        //Serial.printf("************ done registering\n");
-        //printf("reg class in rt...\n");
     }
 
     JSValue proto=JS_NewObject(jsvalCtx);
-    //Serial.printf("************ setting proto with class id=%d\n",classId);
     JS_SetClassProto(jsvalCtx,classId,proto);
     JSValue ctor=JS_NewCFunctionMagic(jsvalCtx,ctorTrampoline,"ctor",0,JS_CFUNC_constructor_magic,magic);
     JS_SetConstructor(jsvalCtx,ctor,proto);
@@ -283,8 +260,6 @@ void jsvalSetClassFinalizer(JSVAL cls, JSVAL_FINALIZER *f) {
     JS_ToUint32(jsvalCtx,&classId,classIdProp);
 
     finalizerByClassId[classId]=f;
-
-    //printf("settng finalizer for: %d\n",classId);
 }
 
 float jsvalGetFloat(JSVAL v) {
@@ -301,8 +276,6 @@ JSVAL jsvalCreateObject(JSVAL cls) {
     JSValue classIdProp=JS_GetPropertyStr(jsvalCtx,cls,"__classId");
     JSClassID classId;
     JS_ToUint32(jsvalCtx,&classId,classIdProp);
-
-    //printf("create obj of class: %d\n",classId);
 
     JSValue obj=JS_NewObjectClass(jsvalCtx,classId);
     return obj;
@@ -338,7 +311,6 @@ int jsvalGetSize(JSVAL obj) {
         size_t offs,len,perElem;
         JSValue buf=JS_GetTypedArrayBuffer(jsvalCtx,value,&offs,&len,&perElem);
         JS_FreeValue(jsvalCtx,buf);
-        //printf("yep it is, size=%d\n",byte_length);
         return len;
     }
 
