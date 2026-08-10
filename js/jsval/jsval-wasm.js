@@ -10,10 +10,8 @@ class JsvalWasmModule {
         this.idByObject=new WeakMap();
         this.finalizationRegistry=new FinalizationRegistry(({classId,id})=>{
             this.objectById.delete(id);
-            //let o=this.objectById.get(id).deref();
 
             if (classId) {
-                //console.log("finalizing from JS: ",id);
                 this.instance.exports.jsvalNotifyFinalize(classId,id);
             }
         });
@@ -86,10 +84,7 @@ class JsvalWasmModule {
         let end=msg;
         while (mem[end]!==0) end++;
         let s=new TextDecoder("utf-8").decode(mem.subarray(msg, end));
-        let e=new Error(s);
-        throw e;
-
-        return e;
+        throw new Error(s);
     }
 
     jsvalUndefined=()=>{
@@ -101,7 +96,6 @@ class JsvalWasmModule {
     }
 
     jsvalDup=(id)=>{
-        //console.log("dup: "+id);
         if (!this.strongById.has(id)) {
             this.strongById.set(id,{
                 count: 0,
@@ -114,10 +108,8 @@ class JsvalWasmModule {
     }
 
     jsvalFree=(id)=>{
-        //console.log("free: "+id);
         let strong=this.strongById.get(id);
         if (!strong) {
-            //console.log("Warning, double free, id="+id+" v=",this.unpack(id));
             return;
         }
 
@@ -131,10 +123,6 @@ class JsvalWasmModule {
             return this.idByObject.get(o);
 
         let id=this.nextRegistryId++;
-
-        /*if (o instanceof Uint8Array) {
-            console.log("packing",o,"into",id);
-        }*/
 
         if (typeof o=="string" ||
                 typeof o=="number" ||
@@ -212,8 +200,6 @@ class JsvalWasmModule {
     }
 
     jsvalCreateObject=(classId)=>{
-        //console.log("creating class, classid="+classId);
-
         let cls=this.unpack(classId);
         let instance=Object.create(cls.prototype);
         return this.pack(instance);
@@ -281,7 +267,6 @@ class JsvalWasmModule {
 
         function C(...args) {
             let thisid = that.pack(this);
-            //console.log("created instance=",thisid," classid=",id);
             let aid = that.pack(args);
             let retid = that.instance.exports.jsvalCallNative(id, thisid, aid);
             let ret = that.unpack(retid);
@@ -322,7 +307,6 @@ class JsvalWasmModule {
 
     jsvalReadBuffer=(id, dest)=>{
         let o=this.unpack(id);
-        //console.log("reading buffer from id: ",id,o);
         let mem=new Uint8Array(this.instance.exports.memory.buffer);
         mem.set(o,dest);
 
