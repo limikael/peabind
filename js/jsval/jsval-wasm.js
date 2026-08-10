@@ -1,6 +1,22 @@
 import {loadWasmInstance} from "../utils/wasm-util.js";
 
-class JsvalWasmModule {
+// Tagged small-int encoding mirrors include/jsval-wasm.h: bit 31 set =>
+// low 31 bits are a 31-bit signed int (sign-extended from bit 30).
+const JSVAL_TAG_INT_MIN = -(1 << 30);
+const JSVAL_TAG_INT_MAX = (1 << 30) - 1;
+
+export function jsvalIsTaggedInt(id) { return id < 0; }
+export function jsvalIntFits(i) {
+    return Number.isInteger(i) && i >= JSVAL_TAG_INT_MIN && i <= JSVAL_TAG_INT_MAX;
+}
+export function jsvalTagInt(i) {
+    return (0x80000000 | (i & 0x7FFFFFFF)) | 0;
+}
+export function jsvalUntagInt(id) {
+    return (id << 1) >> 1;
+}
+
+export class JsvalWasmModule {
     constructor({url, initFunction}) {
         if (!initFunction)
             throw new Error("No init function for load!");
@@ -40,14 +56,14 @@ class JsvalWasmModule {
                 jsvalCreateString: this.jsvalCreateString,
                 jsvalSetPropJsval: this.jsvalSetPropJsval,
                 jsvalGetPropJsval: this.jsvalGetPropJsval,
-                jsvalGetInt: this.jsvalGetInt,
+                jsvalGetIntBoxed: this.jsvalGetInt,
                 jsvalGetFloat: this.jsvalGetFloat,
-                jsvalCreateInt: this.jsvalCreateInt,
+                jsvalCreateIntBoxed: this.jsvalCreateInt,
                 jsvalCreateFloat: this.jsvalCreateFloat,
                 jsvalCreateArray: this.jsvalCreateArray,
                 jsvalReadString: this.jsvalReadString,
-                jsvalDup: this.jsvalDup,
-                jsvalFree: this.jsvalFree,
+                jsvalDupBoxed: this.jsvalDup,
+                jsvalFreeBoxed: this.jsvalFree,
                 jsvalCreateObject: this.jsvalCreateObject,
                 jsvalUndefined: this.jsvalUndefined,
                 jsvalNull: this.jsvalNull,
@@ -102,6 +118,8 @@ class JsvalWasmModule {
 
     jsvalDup=(id)=>{
         //console.log("dup: "+id);
+        if (id === 0 || jsvalIsTaggedInt(id)) return id;
+
         if (!this.strongById.has(id)) {
             this.strongById.set(id,{
                 count: 0,
@@ -115,6 +133,8 @@ class JsvalWasmModule {
 
     jsvalFree=(id)=>{
         //console.log("free: "+id);
+        if (id === 0 || jsvalIsTaggedInt(id)) return;
+
         let strong=this.strongById.get(id);
         if (!strong) {
             //console.log("Warning, double free, id="+id+" v=",this.unpack(id));
@@ -127,6 +147,9 @@ class JsvalWasmModule {
     }
 
     pack=(o)=>{
+        if (jsvalIntFits(o))
+            return jsvalTagInt(o);
+
         if (this.idByObject.has(o))
             return this.idByObject.get(o);
 
@@ -156,6 +179,9 @@ class JsvalWasmModule {
     unpack=(id)=>{
         if (id===0)
             return 0;
+
+        if (jsvalIsTaggedInt(id))
+            return jsvalUntagInt(id);
 
         let o=this.objectById.get(id).deref();
         if (o===undefined) {

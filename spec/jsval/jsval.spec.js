@@ -110,6 +110,53 @@ describe("jsval",()=>{
         //console.log("removing after MyClass...");
     });
 
+    it("round-trips small ints without growing the registry",async ()=>{
+        let mod=await getMod();
+        let reg=mod.__jsvalWasmModule.objectById;
+
+        // Boundary values that fit in the 31-bit tagged range.
+        const TAG_MAX=(1<<30)-1;
+        const TAG_MIN=-(1<<30);
+        for (const v of [0,1,-1,42,-42,12345,-12345,TAG_MAX,TAG_MIN]) {
+            expect(mod.echoInt(v)).withContext(`v=${v}`).toEqual(v);
+            expect(mod.isArgTaggedInt(v)).withContext(`tagged? v=${v}`).toEqual(1);
+        }
+
+        // Hammer it. Without tagging the int arg AND the int return value
+        // would each get registered, giving ~3 entries per call (args,
+        // unpacked arg via jsvalGetItemAt, packed return via jsvalCreateInt).
+        // With tagging, only the args array gets a slot — so growth is at
+        // most one per call.
+        const N=200;
+        const sizeBefore=reg.size;
+        for (let i=0; i<N; i++) {
+            expect(mod.echoInt(i)).toEqual(i);
+        }
+        const grew=reg.size-sizeBefore;
+        expect(grew).withContext(`registry grew by ${grew} over ${N} calls`).toBeLessThanOrEqual(N);
+    });
+
+    it("falls back to boxed ints when out of tagged range",async ()=>{
+        let mod=await getMod();
+        const TAG_MAX=(1<<30)-1;
+
+        // Just outside the tagged range — must use the boxed path, but
+        // still round-trip correctly.
+        for (const v of [TAG_MAX+1, -(TAG_MAX+2), 2**30, -(2**30)-1, 2**30+12345]) {
+            expect(mod.echoInt(v)).withContext(`v=${v}`).toEqual(v);
+            expect(mod.isArgTaggedInt(v)).withContext(`not tagged? v=${v}`).toEqual(0);
+        }
+    });
+
+    it("passes many tagged ints in one call",async ()=>{
+        let mod=await getMod();
+        // sumInts is variadic, so we get one args array (boxed) but each
+        // element is a tagged int with no individual registry entry.
+        expect(mod.sumInts(1,2,3,4,5)).toEqual(15);
+        expect(mod.sumInts(-10,10)).toEqual(0);
+        expect(mod.sumInts()).toEqual(0);
+    });
+
     it("can call callbacks",async ()=>{
         let mod=await getMod();
         let callCount=0;
